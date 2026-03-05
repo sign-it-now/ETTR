@@ -3,1191 +3,1143 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>ETTR Fleet Management</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
-<script src="https://cdn.tailwindcss.com"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 <style>
-  * { box-sizing: border-box; }
-  body { margin: 0; font-family: 'Inter', system-ui, sans-serif; background: #0a0f1e; color: #fff; }
-  ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: #1e293b; } ::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
-  input[type=date]::-webkit-calendar-picker-indicator { filter: invert(1); }
-  select option { background: #1e293b; }
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:#0a0f1e;color:#f1f5f9;min-height:100vh}
+input,select,textarea{font-family:inherit}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-thumb{background:#334155;border-radius:3px}
+input[type=date]::-webkit-calendar-picker-indicator{filter:invert(1)}
+select option{background:#1e293b}
+
+/* Layout */
+#sidebar{position:fixed;left:0;top:0;height:100vh;width:220px;background:#0f172a;border-right:1px solid #1e293b;display:flex;flex-direction:column;z-index:50;transition:width .2s}
+#sidebar.collapsed{width:60px}
+#main{margin-left:220px;padding:24px;min-height:100vh;transition:margin .2s}
+#sidebar.collapsed~#main{margin-left:60px}
+@media(max-width:640px){#sidebar{width:60px}#sidebar~#main{margin-left:60px}}
+
+/* Components */
+.card{background:#1e293b;border:1px solid #334155;border-radius:12px;overflow:hidden}
+.card-p{padding:16px}
+.badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;color:#fff}
+.btn{border:none;border-radius:8px;cursor:pointer;font-weight:600;color:#fff;font-family:inherit;transition:opacity .15s}
+.btn:hover{opacity:.85}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-blue{background:#2563eb}
+.btn-amber{background:#d97706}
+.btn-slate{background:#475569}
+.btn-green{background:#16a34a}
+.btn-red{background:#dc2626}
+.btn-emerald{background:#059669}
+.btn-sm{padding:6px 12px;font-size:12px}
+.btn-md{padding:8px 16px;font-size:13px}
+.btn-lg{padding:12px 24px;font-size:15px}
+.btn-full{width:100%}
+.inp-label{display:block;font-size:11px;color:#94a3b8;margin-bottom:4px}
+.inp{width:100%;background:#0f172a;border:1px solid #334155;border-radius:8px;padding:8px 12px;color:#f1f5f9;font-size:13px;outline:none;font-family:inherit}
+.inp:focus{border-color:#2563eb}
+.stat-card{padding:16px}
+.stat-label{font-size:11px;color:#64748b;margin-bottom:4px}
+.stat-value{font-size:22px;font-weight:800}
+.stat-sub{font-size:11px;color:#475569;margin-top:2px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.grid4{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.flex{display:flex}.flex-col{flex-direction:column}.gap4{gap:4px}.gap8{gap:8px}.gap12{gap:12px}.gap16{gap:16px}.gap20{gap:20px}
+.items-center{align-items:center}.items-start{align-items:flex-start}.justify-between{justify-content:space-between}.justify-end{justify-content:flex-end}
+.wrap{flex-wrap:wrap}.flex1{flex:1}.shrink0{flex-shrink:0}
+.w-full{width:100%}.text-right{text-align:right}.text-center{text-align:center}
+.hidden{display:none!important}
+.page-title{font-size:22px;font-weight:800}
+.page-sub{color:#64748b;font-size:13px;margin-top:2px}
+.section{display:flex;flex-direction:column;gap:16px}
+.alert{border-radius:8px;padding:10px 14px;font-size:13px;display:flex;align-items:center;gap:8px}
+.alert-red{background:rgba(220,38,38,.15);border:1px solid rgba(220,38,38,.4);color:#f87171}
+.alert-amber{background:rgba(180,83,9,.2);border:1px solid rgba(180,83,9,.4);color:#fbbf24}
+.alert-orange{background:rgba(234,88,12,.15);border:1px solid rgba(234,88,12,.4);color:#fb923c;cursor:pointer}
+.alert-blue{background:rgba(29,78,216,.15);border:1px solid rgba(29,78,216,.4);color:#93c5fd}
+.divider{border:none;border-top:1px solid #1e293b;margin:12px 0}
+.fs11{font-size:11px}.fs12{font-size:12px}.fs13{font-size:13px}.fs14{font-size:14px}.fs16{font-size:16px}.fs18{font-size:18px}
+.fw600{font-weight:600}.fw700{font-weight:700}.fw800{font-weight:800}
+.c-slate{color:#64748b}.c-blue{color:#60a5fa}.c-green{color:#4ade80}.c-amber{color:#fbbf24}.c-red{color:#f87171}.c-orange{color:#fb923c}.c-purple{color:#c084fc}.c-white{color:#f1f5f9}
+.mt4{margin-top:4px}.mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}
+.mb4{margin-bottom:4px}.mb8{margin-bottom:8px}.mb12{margin-bottom:12px}.mb16{margin-bottom:16px}
+.p16{padding:16px}.p20{padding:20px}.p24{padding:24px}
+.row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #1e293b;font-size:13px;flex-wrap:wrap;gap:8px}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;z-index:200;padding:16px}
+.modal{background:#1e293b;border-radius:16px;padding:24px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto}
+.nav-item{width:100%;display:flex;align-items:center;gap:10px;padding:8px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:500;background:transparent;color:#94a3b8;transition:all .15s;text-align:left}
+.nav-item:hover{color:#fff;background:rgba(255,255,255,.05)}
+.nav-item.active{background:#1d4ed8;color:#fff}
+.tab-bar{display:flex;gap:4px;background:rgba(255,255,255,.04);border-radius:8px;padding:4px;border:1px solid #334155;width:fit-content}
+.tab{padding:6px 14px;border-radius:6px;border:none;cursor:pointer;font-size:12px;font-weight:500;background:transparent;color:#64748b;font-family:inherit}
+.tab.active{background:#334155;color:#fff}
+.filter-pill{padding:6px 12px;border-radius:99px;border:none;cursor:pointer;font-size:12px;font-weight:500;background:#1e293b;color:#64748b;font-family:inherit}
+.filter-pill.active{background:#2563eb;color:#fff}
+.load-item{padding:16px;cursor:pointer}
+.load-item:hover{background:rgba(255,255,255,.02)}
+.receipt-img{height:60px;border-radius:6px;border:1px solid #334155;object-fit:cover;cursor:pointer}
+.sidebar-logo{font-weight:900;font-size:18px}
+.sidebar-sub{color:#475569;font-size:11px}
+.user-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0}
+.toggle-btn{background:none;border:none;color:#64748b;cursor:pointer;font-size:18px;padding:4px}
+.section-label{color:#334155;font-size:10px;font-weight:700;text-transform:uppercase;padding:0 8px;margin-bottom:4px}
+.check-box{width:32px;height:32px;border-radius:8px;border:2px solid #475569;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;transition:all .15s}
+.check-box.checked{background:#16a34a;border-color:#16a34a}
+.upload-zone{border:2px dashed #334155;border-radius:10px;padding:24px;text-align:center;cursor:pointer;transition:border-color .15s}
+.upload-zone:hover{border-color:#2563eb}
+.status-badge{padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;color:#fff}
 </style>
+
 </head>
 <body>
-<div id="root"></div>
-<script type="text/babel">
-const { useState, useEffect, useRef, useCallback } = React;
 
-// ── CONSTANTS ──────────────────────────────────────────────────────────────────
-const ROLES = { DEVELOPER:‘developer’, CARRIER_ADMIN:‘carrier_admin’, DRIVER:‘driver’ };
+<div id="app"></div>
 
-const INITIAL_USERS = [
-{ id:‘tim_smith’, name:‘Tim Smith’, email:‘tim@ettr.com’, phone:‘618-974-8695’,
-password:‘ettr2024’, role:ROLES.DEVELOPER, carrierRole:‘Lease Operator’,
-cdl:’’, cdlState:‘IL’, cdlExpiry:’’, medCardExpiry:’’, hireDate:’’,
-address:’’, emergencyContact:’’, emergencyPhone:’’, truckId:‘pete_777’, deleted:false },
-{ id:‘bruce_edgerton’, name:‘Bruce Edgerton’, email:‘bruce@ettr.com’, phone:’’,
-password:‘ettr2024’, role:ROLES.CARRIER_ADMIN, carrierRole:‘Owner Operator’,
-cdl:’’, cdlState:‘WI’, cdlExpiry:’’, medCardExpiry:’’, hireDate:’’,
-address:‘Bonduel, WI’, emergencyContact:’’, emergencyPhone:’’, truckId:‘kw_bruce’, deleted:false }
+<script>
+// ── DATA & STATE ──────────────────────────────────────────────────────────────
+const ROLES = {DEV:'developer',ADMIN:'carrier_admin',DRIVER:'driver'};
+const EXPENSE_CATS = ['Fuel','Supplies','Parts','Repairs','Meals','Tolls','Lodging','Scale Fees','Lumper','Permits','Tools','Insurance','Registration','Other'];
+const LOAD_STATUSES = ['Searching','Rate Pending','Confirmed','Dispatched','In Transit','Delivered','Billing','Paid','Cancelled'];
+const STATUS_COLORS = {'Searching':'#475569','Rate Pending':'#b45309','Confirmed':'#1d4ed8','Dispatched':'#1d4ed8','In Transit':'#4338ca','Delivered':'#15803d','Billing':'#c2410c','Paid':'#065f46','Cancelled':'#b91c1c'};
+const DOC_TYPES = ['IFTA Certificate','Form 2290 (HVUT)','W-9','Operating Authority','Certificate of Insurance','License Plate Registration','CDL Copy','Medical Examiner Certificate','Annual Inspection Report','Lease Agreement','Other'];
+const SERVICE_TYPES = ['Oil Change','Filter Change','Tire Rotation','Tire Replacement','Brake Service','DOT Inspection','Annual Inspection','Wheel Seal','King Pin','Air Spring','Shock Absorber','3-Axle Alignment','Coolant System','Transmission Service','DEF System','Electrical','Reefer Service','General Repair','Other'];
+const BROKERS = ['CNA Transportation','Coyote Logistics','Echo Global Logistics','GlobalTranz','Landstar','TQL','XPO Logistics','Other'];
+const TRAILER_TYPES = ['Dry Van','Reefer','Flatbed','Step Deck','RGN','Tanker','Other'];
+const US_STATES = ['AL','AR','AZ','CA','CO','CT','DE','FL','GA','IA','ID','IL','IN','KS','KY','LA','MA','MD','ME','MI','MN','MO','MS','MT','NC','ND','NE','NH','NJ','NM','NV','NY','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VA','VT','WA','WI','WV','WY'];
+
+const INIT_USERS = [
+  {id:'tim_smith',name:'Tim Smith',email:'tim@ettr.com',phone:'618-974-8695',password:'ettr2024',role:ROLES.DEV,carrierRole:'Lease Operator',cdl:'',cdlState:'IL',cdlExpiry:'',medCardExpiry:'',hireDate:'',address:'',emergencyContact:'',emergencyPhone:'',truckId:'pete_777',deleted:false},
+  {id:'bruce_edgerton',name:'Bruce Edgerton',email:'bruce@ettr.com',phone:'',password:'ettr2024',role:ROLES.ADMIN,carrierRole:'Owner Operator',cdl:'',cdlState:'WI',cdlExpiry:'',medCardExpiry:'',hireDate:'',address:'Bonduel, WI',emergencyContact:'',emergencyPhone:'',truckId:'kw_bruce',deleted:false}
+];
+const INIT_TRUCKS = [
+  {id:'pete_777',driverId:'tim_smith',make:'Peterbilt',model:'579',year:2013,color:'White',unit:'#777',vin:'1XP-BDP9X-3-ED234685',licensePlate:'',stateReg:'IL',eldProvider:'BlueInk Tech',mileage:996058.7,tires:{brand:'',size:'',frontTread:'',rearTread:''},brakes:{type:'Air Disc',brand:'',lastInspected:''},notes:''},
+  {id:'kw_bruce',driverId:'bruce_edgerton',make:'Kenworth',model:'T680',year:null,color:'Blue',unit:'',vin:'',licensePlate:'',stateReg:'WI',eldProvider:'',mileage:0,tires:{brand:'',size:'',frontTread:'',rearTread:''},brakes:{type:'Air Drum',brand:'',lastInspected:''},notes:''}
+];
+const INIT_PC = [
+  {id:'pc_mike001',description:"Mike's Inc - Truck #777 Major Repairs (Invoice #097919)",amount:15477.45,date:'2026-01-30',category:'Repairs',notes:"Full overhaul: kingpins, air springs, torque rods, radiator, trans cooler, shocks, DOT inspection, wheel seals, exhaust, power steering. Unit now passes DOT.",addedBy:'bruce_edgerton',forDriver:'tim_smith',paid:false,paidDate:null,paidMethod:null,receiptImage:null,receiptName:null,markedPaidByBruce:false,deleted:false}
 ];
 
-const INITIAL_TRUCKS = [
-{ id:‘pete_777’, driverId:‘tim_smith’, make:‘Peterbilt’, model:‘579’, year:2013, color:‘White’,
-unit:’#777’, vin:‘1XP-BDP9X-3-ED234685’, plate:’’, dotNumber:’’, mileage:996058.7,
-licensePlate:’’, stateReg:‘IL’, eldProvider:‘BlueInk Tech’,
-tires:{brand:’’,size:’’,frontTread:’’,rearTread:’’,lastReplaced:’’},
-brakes:{type:‘Air Disc’,brand:’’,lastInspected:’’,lastReplaced:’’},
-reefer:{hasReefer:false,brand:’’,model:’’,serial:’’,lastService:’’}, notes:’’ },
-{ id:‘kw_bruce’, driverId:‘bruce_edgerton’, make:‘Kenworth’, model:‘T680’, year:null,
-color:‘Blue’, unit:’’, vin:’’, plate:’’, dotNumber:‘US DOT 1978980’, mileage:0,
-licensePlate:’’, stateReg:‘WI’, eldProvider:’’,
-tires:{brand:’’,size:’’,frontTread:’’,rearTread:’’,lastReplaced:’’},
-brakes:{type:‘Air Drum’,brand:’’,lastInspected:’’,lastReplaced:’’},
-reefer:{hasReefer:false,brand:’’,model:’’,serial:’’,lastService:’’}, notes:’’ }
-];
+function ls(key,def){try{const v=localStorage.getItem(key);return v?JSON.parse(v):def;}catch(e){return def;}}
+function save(key,val){try{localStorage.setItem(key,JSON.stringify(val));}catch(e){}}
 
-const INITIAL_PETTY_CASH = [
-{ id:‘pc_mike001’,
-description:“Mike’s Inc - Truck #777 Major Repairs (Invoice #097919)”,
-amount:15477.45, date:‘2026-01-30’, category:‘Repairs’,
-notes:“Full overhaul: kingpins, air springs, torque rods, radiator, trans cooler, shocks, DOT inspection, wheel seals, exhaust, power steering. Unit now passes DOT.”,
-addedBy:‘bruce_edgerton’, forDriver:‘tim_smith’, paid:false, paidDate:null,
-paidMethod:null, receiptImage:null, receiptName:null, markedPaidByBruce:false, deleted:false }
-];
+const STATE = {
+  user: null,
+  page: 'dashboard',
+  collapsed: window.innerWidth < 640,
+  users: ls('ettr_users', INIT_USERS),
+  trucks: ls('ettr_trucks', INIT_TRUCKS),
+  pettyCash: ls('ettr_pc', INIT_PC),
+  loads: ls('ettr_loads', []),
+  trailers: ls('ettr_trailers', []),
+  service: ls('ettr_service', []),
+  documents: ls('ettr_docs', []),
+  fuel: ls('ettr_fuel', []),
+  eld: ls('ettr_eld', []),
+};
 
-const CARRIER = { name:‘Edgerton Truck & Trailer Repair’, dot:‘US DOT 1978980’, address:‘Bonduel, WI’ };
-const EXPENSE_CATS = [‘Fuel’,‘Supplies’,‘Parts’,‘Repairs’,‘Meals’,‘Tolls’,‘Lodging’,‘Scale Fees’,‘Lumper’,‘Permits’,‘Tools’,‘Insurance’,‘Registration’,‘Other’];
-const LOAD_STATUSES = [‘Searching’,‘Rate Pending’,‘Confirmed’,‘Dispatched’,‘In Transit’,‘Delivered’,‘Billing’,‘Paid’,‘Cancelled’];
-const STATUS_COLORS = {‘Searching’:’#475569’,‘Rate Pending’:’#b45309’,‘Confirmed’:’#1d4ed8’,‘Dispatched’:’#1d4ed8’,‘In Transit’:’#4338ca’,‘Delivered’:’#15803d’,‘Billing’:’#c2410c’,‘Paid’:’#065f46’,‘Cancelled’:’#b91c1c’};
-const DOC_TYPES = [‘IFTA Certificate’,‘Form 2290 (HVUT)’,‘W-9’,‘Operating Authority’,‘Certificate of Insurance’,‘License Plate Registration’,‘CDL Copy’,‘Medical Examiner Certificate’,‘Annual Inspection Report’,‘Lease Agreement’,‘Other’];
-const TRAILER_TYPES = [‘Dry Van’,‘Reefer’,‘Flatbed’,‘Step Deck’,‘RGN’,‘Tanker’,‘Other’];
-const BROKERS = [‘CNA Transportation’,‘Coyote Logistics’,‘Echo Global Logistics’,‘GlobalTranz’,‘Landstar’,‘TQL’,‘XPO Logistics’,‘Other’];
-const SERVICE_TYPES = [‘Oil Change’,‘Filter Change’,‘Tire Rotation’,‘Tire Replacement’,‘Brake Service’,‘DOT Inspection’,‘Annual Inspection’,‘Wheel Seal’,‘King Pin’,‘Air Spring’,‘Shock Absorber’,‘3-Axle Alignment’,‘Coolant System’,‘Transmission Service’,‘DEF System’,‘Electrical’,‘Reefer Service’,‘General Repair’,‘Other’];
+function saveState(key){save('ettr_'+key, STATE[key]);}
 
+// ── HELPERS ───────────────────────────────────────────────────────────────────
 const uid = () => Math.random().toString(36).substr(2,9)+Date.now().toString(36);
-const today = () => new Date().toISOString().split(‘T’)[0];
-const fmt$ = n => ‘$’+Number(n||0).toLocaleString(‘en-US’,{minimumFractionDigits:2,maximumFractionDigits:2});
-const fmtDate = d => d ? new Date(d+‘T12:00:00’).toLocaleDateString(‘en-US’,{month:‘short’,day:‘numeric’,year:‘numeric’}) : ‘—’;
-const daysUntil = d => d ? Math.ceil((new Date(d+‘T12:00:00’)-new Date())/86400000) : null;
+const today = () => new Date().toISOString().split('T')[0];
+const fmt$ = n => '$'+Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtDate = d => d ? new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
+const daysUntil = d => d ? Math.ceil((new Date(d+'T12:00:00')-new Date())/86400000) : null;
+const isAdmin = u => u && (u.role===ROLES.DEV||u.role===ROLES.ADMIN);
+const isDev = u => u && u.role===ROLES.DEV;
+const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
-// ── STORAGE ──────────────────────────────────────────────────────────────────
-function useLS(key, initial) {
-const [val, setVal] = useState(() => {
-try { const s=localStorage.getItem(key); return s?JSON.parse(s):initial; } catch(e){return initial;}
-});
-const save = useCallback((v) => {
-const nv = typeof v===‘function’?v(val):v;
-setVal(nv);
-try { localStorage.setItem(key, JSON.stringify(nv)); } catch(e){}
-},[key,val]);
-return [val, save];
+function el(tag,attrs,inner){
+  const a=Object.entries(attrs||{}).map(([k,v])=>` ${k}="${esc(v)}"`).join('');
+  return `<${tag}${a}>${inner||''}</${tag}>`;
+}
+function inp(label,id,value,type='text',placeholder=''){
+  return `<div><label class="inp-label" for="${id}">${label}</label><input class="inp" id="${id}" type="${type}" value="${esc(value)}" placeholder="${esc(placeholder)}"/></div>`;
+}
+function sel(label,id,value,options){
+  const opts = options.map(o=>`<option value="${esc(o)}" ${o==value?'selected':''}>${esc(o)}</option>`).join('');
+  return `<div><label class="inp-label" for="${id}">${label}</label><select class="inp" id="${id}"><option value="">Select...</option>${opts}</select></div>`;
+}
+function btn(label,onclick,cls='btn-blue btn-md'){return `<button class="btn ${cls}" onclick="${onclick}">${label}</button>`;}
+function card(inner,cls=''){return `<div class="card ${cls}">${inner}</div>`;}
+function badge(label,color='#475569'){return `<span class="badge" style="background:${color}">${esc(label)}</span>`;}
+function statCard(label,value,sub,color='#60a5fa'){return card(`<div class="stat-card"><div class="stat-label">${label}</div><div class="stat-value" style="color:${color}">${esc(String(value))}</div>${sub?`<div class="stat-sub">${esc(sub)}</div>`:''}</div>`);}
+function alert_(cls,inner){return `<div class="alert ${cls}">${inner}</div>`;}
+
+// ── RENDER ENGINE ─────────────────────────────────────────────────────────────
+function render(){
+  document.getElementById('app').innerHTML = STATE.user ? renderApp() : renderLogin();
+  bindEvents();
 }
 
-// ── UI COMPONENTS ─────────────────────────────────────────────────────────────
-const Card = ({children,className=’’}) => (
+function bindEvents(){
+  // Delegate clicks
+  document.querySelectorAll('[data-page]').forEach(el=>{
+    el.addEventListener('click',()=>{STATE.page=el.dataset.page;render();});
+  });
+  document.querySelectorAll('[data-action]').forEach(el=>{
+    el.addEventListener('click',()=>handleAction(el.dataset.action,el.dataset));
+  });
+  document.querySelectorAll('[data-toggle]').forEach(el=>{
+    el.addEventListener('click',()=>{
+      const target=document.getElementById(el.dataset.toggle);
+      if(target) target.classList.toggle('hidden');
+    });
+  });
+}
 
-  <div className={className} style={{background:'#1e293b',border:'1px solid #334155',borderRadius:12,overflow:'hidden'}}>{children}</div>
-);
-const Badge = ({label,color='#475569'}) => (
-  <span style={{background:color,color:'#fff',padding:'2px 8px',borderRadius:99,fontSize:11,fontWeight:600,display:'inline-block'}}>{label}</span>
-);
-const Btn = ({children,onClick,color='blue',size='md',className='',disabled=false,style={}}) => {
-  const bg = {blue:'#2563eb',green:'#16a34a',red:'#dc2626',slate:'#475569',amber:'#d97706',emerald:'#059669',orange:'#ea580c'}[color]||'#2563eb';
-  const pad = {sm:'6px 12px',md:'8px 16px',lg:'12px 24px'}[size]||'8px 16px';
-  const fs = {sm:12,md:13,lg:15}[size]||13;
-  return <button disabled={disabled} onClick={onClick} style={{background:bg,color:'#fff',border:'none',borderRadius:8,padding:pad,fontSize:fs,fontWeight:600,cursor:disabled?'not-allowed':'pointer',opacity:disabled?0.4:1,...style}} className={className}>{children}</button>;
-};
-const Inp = ({label,value,onChange,type='text',placeholder='',style={}}) => (
-  <div>
-    {label&&<label style={{color:'#94a3b8',fontSize:11,display:'block',marginBottom:4}}>{label}</label>}
-    <input type={type} value={value||''} onChange={e=>onChange(e.target.value)} placeholder={placeholder}
-      style={{width:'100%',background:'#0f172a',border:'1px solid #334155',borderRadius:8,padding:'8px 12px',color:'#f1f5f9',fontSize:13,outline:'none',...style}}/>
-  </div>
-);
-const Sel = ({label,value,onChange,options}) => (
-  <div>
-    {label&&<label style={{color:'#94a3b8',fontSize:11,display:'block',marginBottom:4}}>{label}</label>}
-    <select value={value||''} onChange={e=>onChange(e.target.value)}
-      style={{width:'100%',background:'#0f172a',border:'1px solid #334155',borderRadius:8,padding:'8px 12px',color:'#f1f5f9',fontSize:13,outline:'none'}}>
-      <option value="">Select...</option>
-      {options.map(o=><option key={o} value={o}>{o}</option>)}
-    </select>
-  </div>
-);
-const StatCard = ({label,value,sub,color='#60a5fa'}) => (
-  <Card>
-    <div style={{padding:16}}>
-      <p style={{color:'#64748b',fontSize:11,marginBottom:4}}>{label}</p>
-      <p style={{color,fontSize:22,fontWeight:800,margin:0}}>{value}</p>
-      {sub&&<p style={{color:'#475569',fontSize:11,marginTop:2}}>{sub}</p>}
-    </div>
-  </Card>
-);
+function handleAction(action, data){
+  switch(action){
+    case 'logout': STATE.user=null; STATE.page='dashboard'; render(); break;
+    case 'toggle-sidebar': STATE.collapsed=!STATE.collapsed; render(); break;
+    case 'login': doLogin(); break;
+    case 'toggle-pw': {
+      const pw=document.getElementById('login-pw');
+      pw.type=pw.type==='password'?'text':'password';
+      break;
+    }
+    case 'save-profile': saveProfile(); break;
+    case 'save-truck': saveTruck(); break;
+    case 'add-load': addLoad(); break;
+    case 'update-load-status': updateLoadStatus(data.id, data.status); break;
+    case 'delete-load': deleteLoad(data.id); break;
+    case 'add-pc': addPettyCash(); break;
+    case 'mark-paid': markPaid(data.id); break;
+    case 'unmark-paid': unmarkPaid(data.id); break;
+    case 'delete-pc': deletePc(data.id); break;
+    case 'upload-receipt-cam': triggerReceiptUpload(data.id,'cam'); break;
+    case 'upload-receipt-file': triggerReceiptUpload(data.id,'file'); break;
+    case 'view-receipt': viewReceipt(data.id); break;
+    case 'close-modal': document.querySelector('.modal-overlay')?.remove(); break;
+    case 'add-service': addService(); break;
+    case 'delete-service': deleteService(data.id); break;
+    case 'add-fuel': addFuel(); break;
+    case 'add-trailer': addTrailer(); break;
+    case 'delete-trailer': deleteTrailer(data.id); break;
+    case 'add-doc': addDoc(); break;
+    case 'delete-doc': deleteDoc(data.id); break;
+    case 'add-eld': addELD(); break;
+    case 'add-user': addUser(); break;
+    case 'toggle-user': toggleUser(data.id); break;
+    case 'set-pc-filter': setPcFilter(data.val); break;
+    case 'set-load-filter': setLoadFilter(data.val); break;
+    case 'set-report-period': setReportPeriod(data.val); break;
+    case 'expand-load': expandLoad(data.id); break;
+  }
+}
 
 // ── LOGIN ─────────────────────────────────────────────────────────────────────
-function LoginScreen({users,onLogin}) {
-const [email,setEmail]=useState(’’);
-const [pw,setPw]=useState(’’);
-const [showPw,setShowPw]=useState(false);
-const [err,setErr]=useState(’’);
-const handle = () => {
-const u=users.find(u=>(u.email.toLowerCase()===email.toLowerCase()||u.name.toLowerCase().includes(email.toLowerCase()))&&u.password===pw&&!u.deleted);
-u?onLogin(u):setErr(‘Invalid email or password.’);
-};
-return (
-<div style={{minHeight:‘100vh’,display:‘flex’,alignItems:‘center’,justifyContent:‘center’,background:‘linear-gradient(135deg,#060e1f 0%,#0a1628 60%,#0f1f3d 100%)’}}>
-<div style={{width:‘100%’,maxWidth:400,padding:‘0 24px’}}>
-<div style={{textAlign:‘center’,marginBottom:32}}>
-<div style={{width:72,height:72,borderRadius:20,background:‘linear-gradient(135deg,#1565c0,#0d47a1)’,display:‘flex’,alignItems:‘center’,justifyContent:‘center’,margin:‘0 auto 16px’,fontSize:32}}>🚛</div>
-<h1 style={{fontSize:36,fontWeight:900,margin:0,letterSpacing:-1}}>ETTR</h1>
-<p style={{color:’#60a5fa’,fontWeight:600,margin:‘4px 0 2px’}}>Fleet Management System</p>
-<p style={{color:’#475569’,fontSize:12,margin:0}}>Edgerton Truck & Trailer Repair • Bonduel, WI • DOT 1978980</p>
-</div>
-<Card>
-<div style={{padding:32}}>
-<h2 style={{margin:‘0 0 20px’,fontSize:18,fontWeight:700}}>Sign In</h2>
-{err&&<div style={{background:‘rgba(220,38,38,0.15)’,border:‘1px solid rgba(220,38,38,0.4)’,borderRadius:8,padding:‘10px 14px’,color:’#f87171’,fontSize:13,marginBottom:16,display:‘flex’,alignItems:‘center’,gap:8}}>⚠️ {err}</div>}
-<div style={{display:‘flex’,flexDirection:‘column’,gap:12}}>
-<Inp label=“Email or Name” value={email} onChange={v=>{setEmail(v);setErr(’’);}} placeholder=“Enter email or full name”/>
-<div>
-<label style={{color:’#94a3b8’,fontSize:11,display:‘block’,marginBottom:4}}>Password</label>
-<div style={{position:‘relative’}}>
-<input type={showPw?‘text’:‘password’} value={pw} onChange={e=>{setPw(e.target.value);setErr(’’);}}
-onKeyDown={e=>e.key===‘Enter’&&handle()} placeholder=“Enter password”
-style={{width:‘100%’,background:’#0f172a’,border:‘1px solid #334155’,borderRadius:8,padding:‘8px 36px 8px 12px’,color:’#f1f5f9’,fontSize:13,outline:‘none’}}/>
-<button onClick={()=>setShowPw(!showPw)} style={{position:‘absolute’,right:10,top:‘50%’,transform:‘translateY(-50%)’,background:‘none’,border:‘none’,color:’#64748b’,cursor:‘pointer’,fontSize:16}}>
-{showPw?‘🙈’:‘👁️’}
-</button>
-</div>
-</div>
-<Btn onClick={handle} size=“lg” style={{width:‘100%’,marginTop:4}}>Sign In →</Btn>
-</div>
-<div style={{marginTop:20,paddingTop:16,borderTop:‘1px solid #334155’,textAlign:‘center’}}>
-<p style={{color:’#334155’,fontSize:11,margin:0}}>ETTR Fleet Management • DOT 1978980</p>
-</div>
-</div>
-</Card>
-<p style={{color:’#1e293b’,fontSize:11,textAlign:‘center’,marginTop:16}}>v1.0 • Built by Tim Smith</p>
-</div>
-</div>
-);
+function renderLogin(){
+  return `
+  <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#060e1f,#0a1628,#0f1f3d);padding:24px">
+    <div style="width:100%;max-width:400px">
+      <div class="text-center mb16">
+        <div style="width:72px;height:72px;border-radius:20px;background:linear-gradient(135deg,#1565c0,#0d47a1);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:36px">🚛</div>
+        <div style="font-size:36px;font-weight:900;letter-spacing:-1px">ETTR</div>
+        <div style="color:#60a5fa;font-weight:600;margin:4px 0 2px">Fleet Management System</div>
+        <div style="color:#475569;font-size:12px">Edgerton Truck &amp; Trailer Repair • Bonduel, WI • DOT 1978980</div>
+      </div>
+      ${card(`
+        <div class="p24">
+          <div class="fw700 fs18 mb16">Sign In</div>
+          <div id="login-err" class="alert alert-red mb12 hidden"></div>
+          <div class="flex flex-col gap12">
+            ${inp('Email or Name','login-email','','text','Enter email or full name')}
+            <div>
+              <label class="inp-label">Password</label>
+              <div style="position:relative">
+                <input class="inp" id="login-pw" type="password" placeholder="Enter password" style="padding-right:36px"/>
+                <button onclick="handleAction('toggle-pw',{})" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#64748b;cursor:pointer;font-size:16px">👁️</button>
+              </div>
+            </div>
+            ${btn('Sign In →','handleAction(\'login\',{})','btn-blue btn-lg btn-full')}
+          </div>
+          <div style="margin-top:20px;padding-top:16px;border-top:1px solid #334155;text-align:center;color:#334155;font-size:11px">ETTR Fleet Management • DOT 1978980</div>
+        </div>
+      `)}
+      <div style="text-align:center;color:#1e293b;font-size:11px;margin-top:16px">v2.0 • Built by Tim Smith</div>
+    </div>
+  </div>`;
 }
 
-// ── SIDEBAR ───────────────────────────────────────────────────────────────────
-function Sidebar({user,page,setPage,onLogout,collapsed,setCollapsed}) {
-const isAdmin = user.role===ROLES.DEVELOPER||user.role===ROLES.CARRIER_ADMIN;
-const isDev = user.role===ROLES.DEVELOPER;
-const nav = [
-{label:‘Main’,items:[{id:‘dashboard’,icon:‘🏠’,label:‘Dashboard’},{id:‘profile’,icon:‘👤’,label:‘My Profile’},{id:‘truck’,icon:‘🚛’,label:‘My Truck’}]},
-{label:‘Operations’,items:[{id:‘loads’,icon:‘📦’,label:‘Loads’},{id:‘petty_cash’,icon:‘💰’,label:‘Petty Cash’},{id:‘fuel’,icon:‘⛽’,label:‘Fuel & IFTA’},…(user.id===‘tim_smith’?[{id:‘eld’,icon:‘🕐’,label:‘ELD Logs’}]:[]),]},
-{label:‘Assets’,items:[{id:‘trailers’,icon:‘🔲’,label:‘Trailers’},{id:‘service’,icon:‘🔧’,label:‘Service Records’},{id:‘documents’,icon:‘🛡️’,label:‘Documents’}]},
-{label:‘Insights’,items:[{id:‘reports’,icon:‘📊’,label:‘Reports’}]},
-…(isAdmin?[{label:‘Management’,items:[{id:‘admin’,icon:‘⚙️’,label:isDev?‘System Admin’:‘Carrier Admin’}]}]:[]),
-];
-const w = collapsed?60:220;
-return (
-<div style={{position:‘fixed’,left:0,top:0,height:‘100vh’,width:w,background:’#0f172a’,borderRight:‘1px solid #1e293b’,display:‘flex’,flexDirection:‘column’,zIndex:50,transition:‘width 0.2s’,overflow:‘hidden’}}>
-<div style={{display:‘flex’,alignItems:‘center’,justifyContent:‘space-between’,padding:‘16px 12px’,borderBottom:‘1px solid #1e293b’,minWidth:0}}>
-{!collapsed&&<div><p style={{fontWeight:900,fontSize:18,margin:0,fontFamily:‘Georgia,serif’}}>ETTR</p><p style={{color:’#475569’,fontSize:11,margin:0}}>Fleet Mgmt</p></div>}
-<button onClick={()=>setCollapsed(!collapsed)} style={{background:‘none’,border:‘none’,color:’#64748b’,cursor:‘pointer’,fontSize:18,padding:4,flexShrink:0}}>
-{collapsed?‘☰’:‘✕’}
-</button>
-</div>
-{!collapsed&&(
-<div style={{padding:‘12px’,borderBottom:‘1px solid #1e293b’}}>
-<div style={{display:‘flex’,alignItems:‘center’,gap:8}}>
-<div style={{width:32,height:32,borderRadius:‘50%’,background:user.id===‘tim_smith’?’#475569’:’#1d4ed8’,display:‘flex’,alignItems:‘center’,justifyContent:‘center’,fontWeight:700,fontSize:13,flexShrink:0}}>{user.name[0]}</div>
-<div style={{minWidth:0}}>
-<p style={{margin:0,fontSize:12,fontWeight:600,overflow:‘hidden’,textOverflow:‘ellipsis’,whiteSpace:‘nowrap’}}>{user.name}</p>
-<p style={{margin:0,fontSize:11,color:’#64748b’}}>{user.role===‘developer’?‘App Admin’:user.role===‘carrier_admin’?‘Carrier Admin’:‘Driver’}</p>
-</div>
-</div>
-</div>
-)}
-<nav style={{flex:1,overflowY:‘auto’,padding:‘8px’}}>
-{nav.map(g=>(
-<div key={g.label} style={{marginBottom:12}}>
-{!collapsed&&<p style={{color:’#334155’,fontSize:10,fontWeight:700,textTransform:‘uppercase’,margin:‘0 8px 4px’}}>{g.label}</p>}
-{g.items.map(item=>(
-<button key={item.id} onClick={()=>setPage(item.id)}
-style={{width:‘100%’,display:‘flex’,alignItems:‘center’,gap:10,padding:‘8px’,borderRadius:8,border:‘none’,cursor:‘pointer’,marginBottom:2,fontSize:13,fontWeight:500,background:page===item.id?’#1d4ed8’:‘transparent’,color:page===item.id?’#fff’:’#94a3b8’,transition:‘all 0.15s’,justifyContent:collapsed?‘center’:‘flex-start’}}>
-<span style={{fontSize:16,flexShrink:0}}>{item.icon}</span>
-{!collapsed&&<span style={{whiteSpace:‘nowrap’}}>{item.label}</span>}
-</button>
-))}
-</div>
-))}
-</nav>
-<div style={{padding:8,borderTop:‘1px solid #1e293b’}}>
-<button onClick={onLogout} style={{width:‘100%’,display:‘flex’,alignItems:‘center’,gap:10,padding:8,borderRadius:8,border:‘none’,cursor:‘pointer’,fontSize:13,background:‘transparent’,color:’#64748b’,justifyContent:collapsed?‘center’:‘flex-start’}}>
-<span style={{fontSize:16}}>🚪</span>
-{!collapsed&&<span>Sign Out</span>}
-</button>
-</div>
-</div>
-);
+function doLogin(){
+  const email=(document.getElementById('login-email').value||'').toLowerCase().trim();
+  const pw=document.getElementById('login-pw').value||'';
+  const u=STATE.users.find(u=>!u.deleted&&u.password===pw&&(u.email.toLowerCase()===email||u.name.toLowerCase().includes(email)));
+  const err=document.getElementById('login-err');
+  if(u){STATE.user=u;STATE.page='dashboard';render();}
+  else{err.textContent='Invalid email or password.';err.classList.remove('hidden');}
+}
+
+// ── APP SHELL ─────────────────────────────────────────────────────────────────
+function renderApp(){
+  const u=STATE.users.find(x=>x.id===STATE.user.id)||STATE.user;
+  return `
+    <div id="sidebar" class="${STATE.collapsed?'collapsed':''}">
+      ${renderSidebar(u)}
+    </div>
+    <div id="main">
+      ${renderPage(u)}
+    </div>`;
+}
+
+function renderSidebar(u){
+  const c=STATE.collapsed;
+  const isAdm=isAdmin(u);
+  const isDv=isDev(u);
+  const nav=(id,icon,label)=>`
+    <button class="nav-item ${STATE.page===id?'active':''}" data-page="${id}">
+      <span style="font-size:16px;flex-shrink:0">${icon}</span>
+      ${c?'':'<span>'+label+'</span>'}
+    </button>`;
+  const grp=(label,items)=>`
+    <div style="margin-bottom:12px">
+      ${c?'':'<div class="section-label">'+label+'</div>'}
+      ${items}
+    </div>`;
+  return `
+    <div style="display:flex;align-items:center;justify-content:${c?'center':'space-between'};padding:16px 12px;border-bottom:1px solid #1e293b">
+      ${c?'':'<div><div class="sidebar-logo">ETTR</div><div class="sidebar-sub">Fleet Mgmt</div></div>'}
+      <button class="toggle-btn" data-action="toggle-sidebar">${c?'☰':'✕'}</button>
+    </div>
+    ${c?'':'<div style="padding:12px;border-bottom:1px solid #1e293b"><div class="flex items-center gap8"><div class="user-avatar" style="background:'+( u.id==='tim_smith'?'#475569':'#1d4ed8')+'">'+u.name[0]+'</div><div><div style="font-size:12px;font-weight:600">'+u.name+'</div><div style="font-size:11px;color:#64748b">'+(u.role===ROLES.DEV?'App Admin':u.role===ROLES.ADMIN?'Carrier Admin':'Driver')+'</div></div></div></div>'}
+    <nav style="flex:1;overflow-y:auto;padding:8px">
+      ${grp('Main',nav('dashboard','🏠','Dashboard')+nav('profile','👤','My Profile')+nav('truck','🚛','My Truck'))}
+      ${grp('Operations',nav('loads','📦','Loads')+nav('petty_cash','💰','Petty Cash')+nav('fuel','⛽','Fuel & IFTA')+(u.id==='tim_smith'?nav('eld','🕐','ELD Logs'):''))}
+      ${grp('Assets',nav('trailers','🔲','Trailers')+nav('service','🔧','Service Records')+nav('documents','🛡️','Documents'))}
+      ${grp('Insights',nav('reports','📊','Reports'))}
+      ${isAdm?grp('Management',nav('admin','⚙️',isDv?'System Admin':'Carrier Admin')):''}
+    </nav>
+    <div style="padding:8px;border-top:1px solid #1e293b">
+      <button class="nav-item" data-action="logout">
+        <span style="font-size:16px">🚪</span>
+        ${c?'':'<span>Sign Out</span>'}
+      </button>
+    </div>`;
+}
+
+function renderPage(u){
+  switch(STATE.page){
+    case 'dashboard': return renderDashboard(u);
+    case 'profile': return renderProfile(u);
+    case 'truck': return renderTruck(u);
+    case 'petty_cash': return renderPettyCash(u);
+    case 'loads': return renderLoads(u);
+    case 'trailers': return renderTrailers(u);
+    case 'service': return renderService(u);
+    case 'documents': return renderDocuments(u);
+    case 'fuel': return renderFuel(u);
+    case 'eld': return renderELD(u);
+    case 'reports': return renderReports(u);
+    case 'admin': return renderAdmin(u);
+    default: return renderDashboard(u);
+  }
 }
 
 // ── DASHBOARD ─────────────────────────────────────────────────────────────────
-function Dashboard({user,allData,setPage}) {
-const {loads,pettyCash,serviceRecords,trucks} = allData;
-const myLoads = loads.filter(l=>!l.deleted&&(user.role===ROLES.CARRIER_ADMIN||l.driverId===user.id));
-const activeLoads = myLoads.filter(l=>![‘Paid’,‘Cancelled’,‘Searching’].includes(l.status));
-const paidLoads = myLoads.filter(l=>l.status===‘Paid’);
-const revenue = paidLoads.reduce((s,l)=>s+(parseFloat(l.rate)||0),0);
-const myTruck = trucks.find(t=>t.driverId===user.id);
-const timPc = pettyCash.filter(p=>!p.deleted&&p.forDriver===‘tim_smith’);
-const pcOwed = timPc.filter(p=>!p.paid).reduce((s,p)=>s+(parseFloat(p.amount)||0),0);
-const upcoming = serviceRecords.filter(s=>!s.deleted&&s.truckId===myTruck?.id&&s.nextDue&&daysUntil(s.nextDue)<=30&&daysUntil(s.nextDue)>=0);
-const cdlDays = daysUntil(user.cdlExpiry);
-const medDays = daysUntil(user.medCardExpiry);
-return (
-<div style={{display:‘flex’,flexDirection:‘column’,gap:20}}>
-<div>
-<h1 style={{fontSize:24,fontWeight:800,margin:0}}>Welcome back, {user.name.split(’ ‘)[0]} 👋</h1>
-<p style={{color:’#64748b’,fontSize:13,margin:‘4px 0 0’}}>{new Date().toLocaleDateString(‘en-US’,{weekday:‘long’,month:‘long’,day:‘numeric’,year:‘numeric’})}</p>
-</div>
-{(upcoming.length>0||pcOwed>0||(cdlDays!==null&&cdlDays<60)||(medDays!==null&&medDays<60))&&(
-<div style={{display:‘flex’,flexDirection:‘column’,gap:8}}>
-{upcoming.map(s=><div key={s.id} style={{background:‘rgba(180,83,9,0.2)’,border:‘1px solid rgba(180,83,9,0.4)’,borderRadius:8,padding:‘10px 14px’,color:’#fbbf24’,fontSize:13}}>⚠️ {s.type} due in {daysUntil(s.nextDue)} days</div>)}
-{cdlDays!==null&&cdlDays<60&&<div style={{background:‘rgba(220,38,38,0.15)’,border:‘1px solid rgba(220,38,38,0.4)’,borderRadius:8,padding:‘10px 14px’,color:’#f87171’,fontSize:13}}>🛡️ CDL expires in {cdlDays} days!</div>}
-{medDays!==null&&medDays<60&&<div style={{background:‘rgba(220,38,38,0.15)’,border:‘1px solid rgba(220,38,38,0.4)’,borderRadius:8,padding:‘10px 14px’,color:’#f87171’,fontSize:13}}>🛡️ Medical Card expires in {medDays} days!</div>}
-{pcOwed>0&&(
-<div onClick={()=>setPage(‘petty_cash’)} style={{background:‘rgba(234,88,12,0.15)’,border:‘1px solid rgba(234,88,12,0.4)’,borderRadius:8,padding:‘10px 14px’,color:’#fb923c’,fontSize:13,cursor:‘pointer’,display:‘flex’,justifyContent:‘space-between’,alignItems:‘center’}}>
-<span>💰 {user.id===‘tim_smith’?`You owe Bruce ${fmt$(pcOwed)}`:`Tim owes you ${fmt$(pcOwed)}`}</span>
-<span style={{fontSize:12,textDecoration:‘underline’}}>View →</span>
-</div>
-)}
-</div>
-)}
-<div style={{display:‘grid’,gridTemplateColumns:‘repeat(auto-fill,minmax(150px,1fr))’,gap:12}}>
-<StatCard label="Active Loads" value={activeLoads.length} color="#60a5fa"/>
-<StatCard label=“Total Revenue” value={fmt$(revenue)} sub={`${paidLoads.length} paid`} color=”#4ade80”/>
-<StatCard label={user.id===‘tim_smith’?‘You Owe Bruce’:‘Tim Owes You’} value={fmt$(pcOwed)} color=”#fb923c”/>
-</div>
-<div style={{display:‘grid’,gridTemplateColumns:‘repeat(auto-fill,minmax(300px,1fr))’,gap:16}}>
-<Card>
-<div style={{padding:16}}>
-<h3 style={{margin:‘0 0 12px’,fontSize:14,fontWeight:700,display:‘flex’,alignItems:‘center’,gap:6}}>📦 Active Loads</h3>
-{activeLoads.length===0?<p style={{color:’#475569’,fontSize:13}}>No active loads</p>:
-activeLoads.slice(0,4).map(l=>(
-<div key={l.id} style={{display:‘flex’,justifyContent:‘space-between’,alignItems:‘center’,padding:‘8px 0’,borderBottom:‘1px solid #1e293b’}}>
-<div><p style={{margin:0,fontSize:13,fontWeight:600}}>{l.origin} → {l.destination}</p><p style={{margin:‘2px 0 0’,fontSize:11,color:’#64748b’}}>{l.broker}</p></div>
-<div style={{textAlign:‘right’}}><Badge label={l.status} color={STATUS_COLORS[l.status]}/><p style={{margin:‘2px 0 0’,fontSize:12,color:’#4ade80’,fontWeight:600}}>{fmt$(l.rate)}</p></div>
-</div>
-))
-}
-</div>
-</Card>
-{myTruck&&(
-<Card>
-<div style={{padding:16}}>
-<h3 style={{margin:‘0 0 12px’,fontSize:14,fontWeight:700}}>🚛 My Truck — {myTruck.make} {myTruck.unit}</h3>
-{[[‘Year’,myTruck.year||’—’],[‘Mileage’,myTruck.mileage?myTruck.mileage.toLocaleString():’—’],[‘VIN’,myTruck.vin||’—’],[‘ELD’,myTruck.eldProvider||’—’]].map(([k,v])=>(
-<div key={k} style={{display:‘flex’,justifyContent:‘space-between’,padding:‘4px 0’,fontSize:13}}>
-<span style={{color:’#64748b’}}>{k}</span><span>{v}</span>
-</div>
-))}
-</div>
-</Card>
-)}
-</div>
-</div>
-);
+function renderDashboard(u){
+  const myLoads=STATE.loads.filter(l=>!l.deleted&&(isAdmin(u)||l.driverId===u.id));
+  const active=myLoads.filter(l=>!['Paid','Cancelled','Searching'].includes(l.status));
+  const paid=myLoads.filter(l=>l.status==='Paid');
+  const rev=paid.reduce((s,l)=>s+(parseFloat(l.rate)||0),0);
+  const myTruck=STATE.trucks.find(t=>t.driverId===u.id);
+  const timPc=STATE.pettyCash.filter(p=>!p.deleted&&p.forDriver==='tim_smith');
+  const pcOwed=timPc.filter(p=>!p.paid).reduce((s,p)=>s+(parseFloat(p.amount)||0),0);
+  const cdlDays=daysUntil(u.cdlExpiry);
+  const medDays=daysUntil(u.medCardExpiry);
+  const alerts=[
+    cdlDays!==null&&cdlDays<60?alert_('alert-red',`🛡️ CDL expires in ${cdlDays} days!`):'',
+    medDays!==null&&medDays<60?alert_('alert-red',`🛡️ Medical Card expires in ${medDays} days!`):'',
+    pcOwed>0?`<div class="alert alert-orange" data-page="petty_cash" style="cursor:pointer"><span>${u.id==='tim_smith'?'💰 You owe Bruce':'💰 Tim owes you'} ${fmt$(pcOwed)}</span><span style="font-size:12px;text-decoration:underline;margin-left:auto">View →</span></div>`:'',
+  ].filter(Boolean).join('');
+
+  const truckInfo=myTruck?card(`<div class="p16"><div class="fw700 fs14 mb12">🚛 My Truck — ${esc(myTruck.make)} ${esc(myTruck.unit)}</div>
+    ${[['Year',myTruck.year||'—'],['Mileage',myTruck.mileage?Number(myTruck.mileage).toLocaleString():'—'],['VIN',myTruck.vin||'—'],['ELD',myTruck.eldProvider||'—']].map(([k,v])=>`<div class="row"><span class="c-slate">${k}</span><span>${esc(String(v))}</span></div>`).join('')}
+  </div>`):'';
+
+  const loadsCard=card(`<div class="p16"><div class="fw700 fs14 mb12">📦 Active Loads</div>
+    ${active.length===0?'<div class="c-slate fs13">No active loads</div>':
+    active.slice(0,4).map(l=>`<div class="row"><div><div class="fw600 fs13">${esc(l.origin)} → ${esc(l.destination)}</div><div class="fs11 c-slate mt4">${esc(l.broker)}</div></div><div class="text-right">${badge(l.status,STATUS_COLORS[l.status])}<div class="c-green fw600 fs12 mt4">${fmt$(l.rate)}</div></div></div>`).join('')}
+  </div>`);
+
+  return `<div class="section">
+    <div>
+      <div style="font-size:24px;font-weight:800">Welcome back, ${esc(u.name.split(' ')[0])} 👋</div>
+      <div class="c-slate fs13 mt4">${new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'})}</div>
+    </div>
+    ${alerts}
+    <div class="grid4">
+      ${statCard('Active Loads',active.length,'','#60a5fa')}
+      ${statCard('Revenue',fmt$(rev),paid.length+' paid loads','#4ade80')}
+      ${statCard(u.id==='tim_smith'?'You Owe Bruce':'Tim Owes You',fmt$(pcOwed),'','#fb923c')}
+    </div>
+    <div class="grid2">
+      ${loadsCard}
+      ${truckInfo}
+    </div>
+  </div>`;
 }
 
 // ── PROFILE ───────────────────────────────────────────────────────────────────
-function ProfileModule({user,users,saveUsers,currentUser}) {
-const [form,setForm]=useState({…user});
-const [saved,setSaved]=useState(false);
-const set=(k,v)=>setForm(f=>({…f,[k]:v}));
-const handleSave=()=>{saveUsers(prev=>prev.map(u=>u.id===form.id?form:u));setSaved(true);setTimeout(()=>setSaved(false),2500);};
-return (
-<div style={{display:‘flex’,flexDirection:‘column’,gap:20}}>
-<div style={{display:‘flex’,alignItems:‘center’,justifyContent:‘space-between’,flexWrap:‘wrap’,gap:12}}>
-<div style={{display:‘flex’,alignItems:‘center’,gap:16}}>
-<div style={{width:56,height:56,borderRadius:16,background:user.id===‘tim_smith’?’#334155’:’#1d4ed8’,display:‘flex’,alignItems:‘center’,justifyContent:‘center’,fontSize:24,fontWeight:700}}>{user.name[0]}</div>
-<div>
-<h1 style={{fontSize:22,fontWeight:800,margin:0}}>{user.name}</h1>
-<p style={{color:’#64748b’,fontSize:13,margin:‘2px 0 0’}}>{user.carrierRole} • ETTR</p>
-</div>
-</div>
-<Btn onClick={handleSave} color={saved?‘emerald’:‘blue’}>{saved?‘✓ Saved’:‘Save Changes’}</Btn>
-</div>
-<div style={{display:‘grid’,gridTemplateColumns:‘repeat(auto-fill,minmax(280px,1fr))’,gap:16}}>
-<Card>
-<div style={{padding:20}}>
-<h3 style={{margin:‘0 0 16px’,fontSize:14,fontWeight:700}}>👤 Personal Info</h3>
-<div style={{display:‘flex’,flexDirection:‘column’,gap:10}}>
-<Inp label=“Full Name” value={form.name} onChange={v=>set(‘name’,v)}/>
-<Inp label=“Email” value={form.email} onChange={v=>set(‘email’,v)}/>
-<Inp label=“Phone” value={form.phone} onChange={v=>set(‘phone’,v)}/>
-<Inp label=“Address” value={form.address} onChange={v=>set(‘address’,v)}/>
-<Inp label=“Emergency Contact” value={form.emergencyContact} onChange={v=>set(‘emergencyContact’,v)}/>
-<Inp label=“Emergency Phone” value={form.emergencyPhone} onChange={v=>set(‘emergencyPhone’,v)}/>
-</div>
-</div>
-</Card>
-<Card>
-<div style={{padding:20}}>
-<h3 style={{margin:‘0 0 16px’,fontSize:14,fontWeight:700}}>🛡️ CDL & Compliance</h3>
-<div style={{display:‘flex’,flexDirection:‘column’,gap:10}}>
-<Inp label=“CDL Number” value={form.cdl} onChange={v=>set(‘cdl’,v)}/>
-<Inp label=“CDL State” value={form.cdlState} onChange={v=>set(‘cdlState’,v)}/>
-<Inp label=“CDL Expiry” type=“date” value={form.cdlExpiry} onChange={v=>set(‘cdlExpiry’,v)}/>
-<Inp label=“Medical Card Expiry” type=“date” value={form.medCardExpiry} onChange={v=>set(‘medCardExpiry’,v)}/>
-<Inp label=“Hire Date” type=“date” value={form.hireDate} onChange={v=>set(‘hireDate’,v)}/>
-</div>
-</div>
-</Card>
-</div>
-</div>
-);
+function renderProfile(u){
+  return `<div class="section">
+    <div class="flex items-center justify-between wrap gap12">
+      <div class="flex items-center gap12">
+        <div class="user-avatar" style="width:56px;height:56px;border-radius:16px;font-size:24px;background:${u.id==='tim_smith'?'#334155':'#1d4ed8'}">${u.name[0]}</div>
+        <div><div class="page-title">${esc(u.name)}</div><div class="page-sub">${esc(u.carrierRole)} • ETTR</div></div>
+      </div>
+      ${btn('Save Changes','handleAction(\'save-profile\',{})','btn-blue btn-md')}
+    </div>
+    <div class="grid2">
+      ${card(`<div class="p20"><div class="fw700 fs14 mb12">👤 Personal Info</div><div class="flex flex-col gap12">
+        ${inp('Full Name','pf-name',u.name)}
+        ${inp('Email','pf-email',u.email)}
+        ${inp('Phone','pf-phone',u.phone)}
+        ${inp('Address','pf-address',u.address)}
+        ${inp('Emergency Contact','pf-ec',u.emergencyContact)}
+        ${inp('Emergency Phone','pf-ep',u.emergencyPhone)}
+      </div></div>`)}
+      ${card(`<div class="p20"><div class="fw700 fs14 mb12">🛡️ CDL & Compliance</div><div class="flex flex-col gap12">
+        ${inp('CDL Number','pf-cdl',u.cdl)}
+        ${inp('CDL State','pf-cdlstate',u.cdlState)}
+        ${inp('CDL Expiry','pf-cdlexp',u.cdlExpiry,'date')}
+        ${inp('Medical Card Expiry','pf-medexp',u.medCardExpiry,'date')}
+        ${inp('Hire Date','pf-hire',u.hireDate,'date')}
+      </div></div>`)}
+    </div>
+  </div>`;
+}
+
+function saveProfile(){
+  const u=STATE.users.find(x=>x.id===STATE.user.id);
+  if(!u)return;
+  const fields={name:'pf-name',email:'pf-email',phone:'pf-phone',address:'pf-address',emergencyContact:'pf-ec',emergencyPhone:'pf-ep',cdl:'pf-cdl',cdlState:'pf-cdlstate',cdlExpiry:'pf-cdlexp',medCardExpiry:'pf-medexp',hireDate:'pf-hire'};
+  Object.entries(fields).forEach(([k,id])=>{const el=document.getElementById(id);if(el)u[k]=el.value;});
+  save('ettr_users',STATE.users);
+  render();
 }
 
 // ── TRUCK ─────────────────────────────────────────────────────────────────────
-function TruckModule({user,trucks,saveTrucks}) {
-const myTruck=trucks.find(t=>t.driverId===user.id)||trucks[0];
-const [form,setForm]=useState(myTruck||{});
-const [saved,setSaved]=useState(false);
-const set=(k,v)=>setForm(f=>({…f,[k]:v}));
-if(!myTruck) return <p style={{color:’#64748b’}}>No truck assigned.</p>;
-const handleSave=()=>{saveTrucks(prev=>prev.map(t=>t.id===form.id?form:t));setSaved(true);setTimeout(()=>setSaved(false),2500);};
-return (
-<div style={{display:‘flex’,flexDirection:‘column’,gap:20}}>
-<div style={{display:‘flex’,alignItems:‘center’,justifyContent:‘space-between’,flexWrap:‘wrap’,gap:12}}>
-<div>
-<h1 style={{fontSize:22,fontWeight:800,margin:0}}>{form.make} {form.model} {form.unit}</h1>
-<p style={{color:’#64748b’,fontSize:13,margin:‘2px 0 0’}}>{form.year} • {form.color} • {form.vin||‘VIN not set’}</p>
-</div>
-<Btn onClick={handleSave} color={saved?‘emerald’:‘blue’}>{saved?‘✓ Saved’:‘Save Changes’}</Btn>
-</div>
-<div style={{display:‘grid’,gridTemplateColumns:‘repeat(auto-fill,minmax(280px,1fr))’,gap:16}}>
-<Card>
-<div style={{padding:20}}>
-<h3 style={{margin:‘0 0 16px’,fontSize:14,fontWeight:700}}>🚛 Vehicle Info</h3>
-<div style={{display:‘flex’,flexDirection:‘column’,gap:10}}>
-{[[‘Make’,‘make’],[‘Model’,‘model’],[‘Unit #’,‘unit’],[‘VIN’,‘vin’],[‘License Plate’,‘licensePlate’],[‘State’,‘stateReg’],[‘ELD Provider’,‘eldProvider’]].map(([l,k])=>
-<Inp key={k} label={l} value={form[k]} onChange={v=>set(k,v)}/>
-)}
-<Inp label=“Year” type=“number” value={form.year} onChange={v=>set(‘year’,v)}/>
-<Inp label=“Current Mileage” type=“number” value={form.mileage} onChange={v=>set(‘mileage’,v)}/>
-</div>
-</div>
-</Card>
-<Card>
-<div style={{padding:20}}>
-<h3 style={{margin:‘0 0 16px’,fontSize:14,fontWeight:700}}>⚙️ Tires & Brakes</h3>
-<div style={{display:‘flex’,flexDirection:‘column’,gap:10}}>
-<Inp label=“Tire Brand” value={form.tires?.brand} onChange={v=>setForm(f=>({…f,tires:{…f.tires,brand:v}}))}/>
-<Inp label=“Tire Size” value={form.tires?.size} onChange={v=>setForm(f=>({…f,tires:{…f.tires,size:v}}))}/>
-<Inp label=“Front Tread (32nds)” value={form.tires?.frontTread} onChange={v=>setForm(f=>({…f,tires:{…f.tires,frontTread:v}}))}/>
-<Inp label=“Rear Tread (32nds)” value={form.tires?.rearTread} onChange={v=>setForm(f=>({…f,tires:{…f.tires,rearTread:v}}))}/>
-<Sel label=“Brake Type” value={form.brakes?.type} onChange={v=>setForm(f=>({…f,brakes:{…f.brakes,type:v}}))} options={[‘Air Disc’,‘Air Drum’,‘Hydraulic Disc’,‘Hydraulic Drum’]}/>
-<Inp label=“Last Brake Inspection” type=“date” value={form.brakes?.lastInspected} onChange={v=>setForm(f=>({…f,brakes:{…f.brakes,lastInspected:v}}))}/>
-</div>
-</div>
-</Card>
-</div>
-</div>
-);
+function renderTruck(u){
+  const t=STATE.trucks.find(x=>x.driverId===u.id)||STATE.trucks[0];
+  if(!t) return '<div class="c-slate">No truck assigned.</div>';
+  return `<div class="section">
+    <div class="flex items-center justify-between wrap gap12">
+      <div><div class="page-title">${esc(t.make)} ${esc(t.model)} ${esc(t.unit)}</div><div class="page-sub">${t.year||'—'} • ${esc(t.color)} • ${esc(t.vin||'VIN not set')}</div></div>
+      ${btn('Save Changes','handleAction(\'save-truck\',{})','btn-blue btn-md')}
+    </div>
+    <div class="grid2">
+      ${card(`<div class="p20"><div class="fw700 fs14 mb12">🚛 Vehicle Info</div><div class="flex flex-col gap12">
+        ${inp('Make','tr-make',t.make)}${inp('Model','tr-model',t.model)}${inp('Unit #','tr-unit',t.unit)}${inp('VIN','tr-vin',t.vin)}
+        ${inp('Year','tr-year',t.year,'number')}${inp('Mileage','tr-mileage',t.mileage,'number')}
+        ${inp('License Plate','tr-plate',t.licensePlate)}${inp('State','tr-state',t.stateReg)}${inp('ELD Provider','tr-eld',t.eldProvider)}
+      </div></div>`)}
+      ${card(`<div class="p20"><div class="fw700 fs14 mb12">⚙️ Tires & Brakes</div><div class="flex flex-col gap12">
+        ${inp('Tire Brand','tr-tbrand',t.tires?.brand)}${inp('Tire Size','tr-tsize',t.tires?.size)}
+        ${inp('Front Tread (32nds)','tr-tfront',t.tires?.frontTread)}${inp('Rear Tread (32nds)','tr-trear',t.tires?.rearTread)}
+        ${sel('Brake Type','tr-btype',t.brakes?.type,['Air Disc','Air Drum','Hydraulic Disc','Hydraulic Drum'])}
+        ${inp('Last Brake Inspection','tr-binsp',t.brakes?.lastInspected,'date')}
+      </div></div>`)}
+    </div>
+  </div>`;
+}
+
+function saveTruck(){
+  const u=STATE.users.find(x=>x.id===STATE.user.id);
+  const t=STATE.trucks.find(x=>x.driverId===u.id)||STATE.trucks[0];
+  if(!t)return;
+  const fields={make:'tr-make',model:'tr-model',unit:'tr-unit',vin:'tr-vin',year:'tr-year',mileage:'tr-mileage',licensePlate:'tr-plate',stateReg:'tr-state',eldProvider:'tr-eld'};
+  Object.entries(fields).forEach(([k,id])=>{const el=document.getElementById(id);if(el)t[k]=el.value;});
+  if(!t.tires)t.tires={};
+  ['brand','size','frontTread','rearTread'].forEach(k=>{const el=document.getElementById('tr-t'+k.toLowerCase().replace('tread','').slice(0,5));if(el)t.tires[k]=el.value;});
+  t.tires.brand=document.getElementById('tr-tbrand')?.value;
+  t.tires.size=document.getElementById('tr-tsize')?.value;
+  t.tires.frontTread=document.getElementById('tr-tfront')?.value;
+  t.tires.rearTread=document.getElementById('tr-trear')?.value;
+  if(!t.brakes)t.brakes={};
+  t.brakes.type=document.getElementById('tr-btype')?.value;
+  t.brakes.lastInspected=document.getElementById('tr-binsp')?.value;
+  save('ettr_trucks',STATE.trucks);
+  render();
 }
 
 // ── PETTY CASH ────────────────────────────────────────────────────────────────
-function PettyCashModule({currentUser,users,pettyCash,savePettyCash}) {
-const isTim = currentUser.id===‘tim_smith’;
-const isBruce = currentUser.role===ROLES.CARRIER_ADMIN;
-const isAdmin = currentUser.role===ROLES.DEVELOPER||currentUser.role===ROLES.CARRIER_ADMIN;
-const [showAdd,setShowAdd]=useState(false);
-const [form,setForm]=useState({description:’’,amount:’’,date:today(),category:‘Repairs’,forDriver:‘tim_smith’,notes:’’});
-const [filter,setFilter]=useState(‘all’);
-const [viewReceipt,setViewReceipt]=useState(null);
-const fileRef=useRef(); const camRef=useRef(); const targetRef=useRef(null);
-const set=(k,v)=>setForm(f=>({…f,[k]:v}));
-const active=pettyCash.filter(p=>!p.deleted);
-const timItems=active.filter(p=>p.forDriver===‘tim_smith’);
-const myItems=isBruce?active:active.filter(p=>p.forDriver===currentUser.id);
-const base=filter===‘all’?myItems:filter===‘unpaid’?myItems.filter(p=>!p.paid):myItems.filter(p=>p.paid);
-const totalOwed=timItems.filter(p=>!p.paid).reduce((s,p)=>s+(parseFloat(p.amount)||0),0);
-const totalPaid=timItems.filter(p=>p.paid).reduce((s,p)=>s+(parseFloat(p.amount)||0),0);
-const totalOut=timItems.reduce((s,p)=>s+(parseFloat(p.amount)||0),0);
+if(!window._pcFilter) window._pcFilter='all';
+if(!window._pcShowAdd) window._pcShowAdd=false;
 
-const addEntry=()=>{
-if(!form.description||!form.amount) return;
-savePettyCash(prev=>[{id:uid(),…form,amount:parseFloat(form.amount),addedBy:currentUser.id,paid:false,paidDate:null,paidMethod:null,receiptImage:null,receiptName:null,markedPaidByBruce:false,deleted:false},…prev]);
-setForm({description:’’,amount:’’,date:today(),category:‘Repairs’,forDriver:‘tim_smith’,notes:’’});
-setShowAdd(false);
-};
-const markPaid=id=>savePettyCash(prev=>prev.map(p=>p.id===id?{…p,paid:true,paidDate:today(),paidMethod:‘Bruce marked paid’,markedPaidByBruce:true}:p));
-const unmarkPaid=id=>savePettyCash(prev=>prev.map(p=>p.id===id?{…p,paid:false,paidDate:null,paidMethod:null,markedPaidByBruce:false}:p));
-const processFile=(file,id)=>{
-if(!file) return;
-const r=new FileReader();
-r.onload=ev=>savePettyCash(prev=>prev.map(p=>p.id===id?{…p,receiptImage:ev.target.result,receiptName:file.name,paid:true,paidDate:today(),paidMethod:‘Receipt uploaded by Tim’}:p));
-r.readAsDataURL(file);
-};
-const triggerFile=id=>{targetRef.current=id;fileRef.current.value=’’;fileRef.current.click();};
-const triggerCam=id=>{targetRef.current=id;camRef.current.value=’’;camRef.current.click();};
-const softDelete=id=>{if(!window.confirm(‘Delete this entry?’)||!window.confirm(‘DOUBLE confirm - cannot be undone!’)) return; savePettyCash(prev=>prev.map(p=>p.id===id?{…p,deleted:true}:p));};
+function setPcFilter(v){window._pcFilter=v;render();}
 
-return (
-<div style={{display:‘flex’,flexDirection:‘column’,gap:20}}>
-<input ref={fileRef} type=“file” accept=“image/*,application/pdf” style={{display:‘none’}} onChange={e=>{if(targetRef.current) processFile(e.target.files[0],targetRef.current);}}/>
-<input ref={camRef} type=“file” accept=“image/*” capture=“environment” style={{display:‘none’}} onChange={e=>{if(targetRef.current) processFile(e.target.files[0],targetRef.current);}}/>
+function renderPettyCash(u){
+  const isTim=u.id==='tim_smith';
+  const isBruce=u.role===ROLES.ADMIN;
+  const isAdm=isAdmin(u);
+  const filter=window._pcFilter||'all';
+  const active=STATE.pettyCash.filter(p=>!p.deleted);
+  const timItems=active.filter(p=>p.forDriver==='tim_smith');
+  const myItems=isBruce?active:active.filter(p=>p.forDriver===u.id);
+  const base=filter==='all'?myItems:filter==='unpaid'?myItems.filter(p=>!p.paid):myItems.filter(p=>p.paid);
+  const totalOwed=timItems.filter(p=>!p.paid).reduce((s,p)=>s+(parseFloat(p.amount)||0),0);
+  const totalPaid=timItems.filter(p=>p.paid).reduce((s,p)=>s+(parseFloat(p.amount)||0),0);
+  const totalOut=timItems.reduce((s,p)=>s+(parseFloat(p.amount)||0),0);
 
-```
-  {viewReceipt&&(
-    <div onClick={()=>setViewReceipt(null)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:100,padding:16}}>
-      <div onClick={e=>e.stopPropagation()} style={{background:'#1e293b',borderRadius:16,padding:24,width:'100%',maxWidth:500,maxHeight:'90vh',overflowY:'auto'}}>
-        <div style={{display:'flex',justifyContent:'space-between',marginBottom:12}}>
-          <h3 style={{margin:0,fontSize:15}}>{viewReceipt.description}</h3>
-          <button onClick={()=>setViewReceipt(null)} style={{background:'none',border:'none',color:'#64748b',cursor:'pointer',fontSize:20}}>✕</button>
-        </div>
-        {viewReceipt.receiptImage?.startsWith('data:image')
-          ?<img src={viewReceipt.receiptImage} alt="receipt" style={{width:'100%',borderRadius:8}}/>
-          :<div style={{background:'#0f172a',padding:32,textAlign:'center',borderRadius:8,color:'#64748b'}}>📄 {viewReceipt.receiptName}</div>
-        }
-        <Btn onClick={()=>setViewReceipt(null)} color="slate" style={{width:'100%',marginTop:16}}>Close</Btn>
-      </div>
+  const addForm=window._pcShowAdd?card(`<div class="p20"><div class="fw700 fs14 mb12">+ New Expense</div>
+    <div class="grid3">
+      <div style="grid-column:1/-1">${inp('Description *','pc-desc','','text','What did Bruce pay for?')}</div>
+      ${inp('Amount ($)','pc-amount','','number','0.00')}${inp('Date','pc-date',today(),'date')}
+      ${sel('Category','pc-cat','Repairs',EXPENSE_CATS)}
     </div>
-  )}
+    <div class="mt12">${inp('Notes','pc-notes','','text','Additional details...')}</div>
+    <div class="flex gap8 mt16">${btn('Save Entry','handleAction(\'add-pc\',{})','btn-amber btn-md')}${btn('Cancel','window._pcShowAdd=false;render()','btn-slate btn-md')}</div>
+  </div>`):'';
 
-  <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:12}}>
-    <div>
-      <h1 style={{fontSize:22,fontWeight:800,margin:0}}>💰 Petty Cash</h1>
-      <p style={{color:'#64748b',fontSize:13,margin:'2px 0 0'}}>{isTim?'Bruce fronts expenses — you pay him back':'Track what Tim owes & mark items paid'}</p>
-    </div>
-    {isAdmin&&<Btn onClick={()=>setShowAdd(!showAdd)} color="amber">+ Add Expense</Btn>}
-  </div>
+  const tabs=`<div class="tab-bar">
+    ${['all','unpaid','paid'].map(f=>`<button class="tab ${filter===f?'active':''}" data-action="set-pc-filter" data-val="${f}">${f==='all'?`All (${myItems.length})`:f==='unpaid'?`Unpaid (${myItems.filter(p=>!p.paid).length})`:`Paid (${myItems.filter(p=>p.paid).length})`}</button>`).join('')}
+  </div>`;
 
-  <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))',gap:12}}>
-    <StatCard label="💰 Total Fronted" value={fmt$(totalOut)} color="#fbbf24"/>
-    <StatCard label={`🔴 ${isTim?'You Owe':'Tim Owes'}`} value={fmt$(totalOwed)} color="#f87171"/>
-    <StatCard label="✅ Paid Back" value={fmt$(totalPaid)} color="#4ade80"/>
-  </div>
-
-  {isTim&&totalOwed>0&&(
-    <div style={{background:'rgba(234,88,12,0.15)',border:'1px solid rgba(234,88,12,0.4)',borderRadius:12,padding:16}}>
-      <p style={{color:'#fb923c',fontWeight:700,margin:'0 0 4px'}}>🚛 Hey Tim — you owe Bruce {fmt$(totalOwed)}</p>
-      <p style={{color:'#94a3b8',fontSize:12,margin:0}}>Tap 📷 to snap a receipt photo, or 📁 to upload a file. Item marks paid automatically once you do.</p>
-    </div>
-  )}
-  {isBruce&&totalOwed>0&&(
-    <div style={{background:'rgba(29,78,216,0.15)',border:'1px solid rgba(29,78,216,0.4)',borderRadius:12,padding:16}}>
-      <p style={{color:'#93c5fd',fontWeight:700,margin:'0 0 4px'}}>💼 Bruce — Tim owes you {fmt$(totalOwed)}</p>
-      <p style={{color:'#94a3b8',fontSize:12,margin:0}}>Check the box on each item when Tim pays you back. Tally updates automatically.</p>
-    </div>
-  )}
-
-  {showAdd&&isAdmin&&(
-    <Card>
-      <div style={{padding:20}}>
-        <h3 style={{margin:'0 0 16px',fontSize:14,fontWeight:700}}>+ New Expense</h3>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))',gap:10}}>
-          <div style={{gridColumn:'1/-1'}}><Inp label="Description *" value={form.description} onChange={v=>set('description',v)} placeholder="What did Bruce pay for?"/></div>
-          <Inp label="Amount ($) *" type="number" value={form.amount} onChange={v=>set('amount',v)} placeholder="0.00"/>
-          <Inp label="Date" type="date" value={form.date} onChange={v=>set('date',v)}/>
-          <Sel label="Category" value={form.category} onChange={v=>set('category',v)} options={EXPENSE_CATS}/>
-          <div style={{gridColumn:'1/-1'}}><Inp label="Notes" value={form.notes} onChange={v=>set('notes',v)} placeholder="Additional details..."/></div>
-        </div>
-        <div style={{display:'flex',gap:8,marginTop:14}}>
-          <Btn onClick={addEntry} color="amber">Save Entry</Btn>
-          <Btn onClick={()=>setShowAdd(false)} color="slate">Cancel</Btn>
-        </div>
-      </div>
-    </Card>
-  )}
-
-  <div style={{display:'flex',gap:4,background:'rgba(255,255,255,0.04)',borderRadius:8,padding:4,border:'1px solid #334155',width:'fit-content'}}>
-    {['all','unpaid','paid'].map(f=>(
-      <button key={f} onClick={()=>setFilter(f)} style={{padding:'6px 14px',borderRadius:6,border:'none',cursor:'pointer',fontSize:12,fontWeight:500,background:filter===f?'#334155':'transparent',color:filter===f?'#fff':'#64748b'}}>
-        {f==='all'?`All (${myItems.length})`:f==='unpaid'?`Unpaid (${myItems.filter(p=>!p.paid).length})`:`Paid (${myItems.filter(p=>p.paid).length})`}
-      </button>
-    ))}
-  </div>
-
-  <div style={{display:'flex',flexDirection:'column',gap:10}}>
-    {base.length===0&&<Card><div style={{padding:40,textAlign:'center',color:'#475569'}}>No entries found</div></Card>}
-    {base.map(item=>{
-      const driver=users.find(u=>u.id===item.forDriver);
-      return (
-        <Card key={item.id}>
-          <div style={{padding:16,display:'flex',alignItems:'flex-start',gap:12,opacity:item.paid?0.85:1}}>
-            {isBruce&&(
-              <button onClick={()=>item.paid?unmarkPaid(item.id):markPaid(item.id)}
-                style={{width:32,height:32,borderRadius:8,border:`2px solid ${item.paid?'#16a34a':'#475569'}`,background:item.paid?'#16a34a':'transparent',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontSize:16}}>
-                {item.paid&&'✓'}
-              </button>
-            )}
-            <div style={{flex:1,minWidth:0}}>
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:8,flexWrap:'wrap'}}>
-                <div>
-                  <div style={{display:'flex',alignItems:'center',gap:6,flexWrap:'wrap'}}>
-                    <p style={{margin:0,fontSize:14,fontWeight:600}}>{item.description}</p>
-                    <Badge label={item.category} color="#334155"/>
-                    <Badge label={item.paid?'✅ PAID':'⚠️ OWED'} color={item.paid?'#065f46':'#7f1d1d'}/>
-                  </div>
-                  <p style={{margin:'4px 0 0',fontSize:11,color:'#64748b'}}>{fmtDate(item.date)} • For: {driver?.name||item.forDriver}</p>
-                  {item.notes&&<p style={{margin:'4px 0 0',fontSize:11,color:'#475569',fontStyle:'italic'}}>📝 {item.notes}</p>}
-                  {item.paid&&<p style={{margin:'4px 0 0',fontSize:11,color:'#4ade80'}}>✓ Paid {fmtDate(item.paidDate)} — {item.paidMethod}</p>}
-                  {item.receiptName&&<button onClick={()=>setViewReceipt(item)} style={{background:'none',border:'none',color:'#60a5fa',fontSize:11,cursor:'pointer',padding:0,marginTop:4}}>📎 {item.receiptName} — tap to view</button>}
-                  {item.receiptImage?.startsWith('data:image')&&<button onClick={()=>setViewReceipt(item)} style={{background:'none',border:'none',cursor:'pointer',padding:0,marginTop:6,display:'block'}}><img src={item.receiptImage} alt="receipt" style={{height:60,borderRadius:6,border:'1px solid #334155',objectFit:'cover'}}/></button>}
-                </div>
-                <div style={{textAlign:'right',flexShrink:0}}>
-                  <p style={{margin:0,fontSize:22,fontWeight:800,color:item.paid?'#4ade80':'#fbbf24'}}>{fmt$(item.amount)}</p>
-                  {isTim&&!item.paid&&(
-                    <div style={{display:'flex',gap:6,marginTop:8,justifyContent:'flex-end'}}>
-                      <button onClick={()=>triggerCam(item.id)} style={{display:'flex',alignItems:'center',gap:4,padding:'6px 10px',background:'#1d4ed8',border:'none',borderRadius:7,color:'#fff',fontSize:12,cursor:'pointer',fontWeight:500}}>📷 Photo</button>
-                      <button onClick={()=>triggerFile(item.id)} style={{display:'flex',alignItems:'center',gap:4,padding:'6px 10px',background:'#334155',border:'none',borderRadius:7,color:'#fff',fontSize:12,cursor:'pointer',fontWeight:500}}>📁 File</button>
-                    </div>
-                  )}
-                  {isBruce&&item.receiptImage&&<button onClick={()=>setViewReceipt(item)} style={{background:'none',border:'none',color:'#60a5fa',fontSize:12,cursor:'pointer',marginTop:4,display:'block',marginLeft:'auto'}}>📎 View Receipt</button>}
-                  {currentUser.role===ROLES.DEVELOPER&&<button onClick={()=>softDelete(item.id)} style={{background:'none',border:'none',color:'#475569',cursor:'pointer',marginTop:8,fontSize:11,display:'block',marginLeft:'auto'}}>🗑️ Delete</button>}
-                </div>
-              </div>
-              {isBruce&&!item.paid&&<p style={{margin:'8px 0 0',fontSize:11,color:'#334155'}}>☝️ Tap checkbox when Tim pays this</p>}
+  const items=base.map(item=>{
+    const driver=STATE.users.find(x=>x.id===item.forDriver);
+    return card(`<div class="p16 flex items-start gap12" style="opacity:${item.paid?.85:1}">
+      ${isBruce?`<button class="check-box ${item.paid?'checked':''}" data-action="${item.paid?'unmark-paid':'mark-paid'}" data-id="${item.id}">${item.paid?'✓':''}</button>`:''}
+      <div class="flex1">
+        <div class="flex justify-between items-start wrap gap8">
+          <div>
+            <div class="flex items-center gap8 wrap">
+              <span class="fw600 fs13">${esc(item.description)}</span>
+              ${badge(item.category,'#334155')}
+              ${badge(item.paid?'✅ PAID':'⚠️ OWED',item.paid?'#065f46':'#7f1d1d')}
             </div>
+            <div class="fs11 c-slate mt4">${fmtDate(item.date)} • For: ${esc(driver?.name||item.forDriver)}</div>
+            ${item.notes?`<div class="fs11 mt4" style="color:#475569;font-style:italic">📝 ${esc(item.notes)}</div>`:''}
+            ${item.paid?`<div class="fs11 c-green mt4">✓ Paid ${fmtDate(item.paidDate)} — ${esc(item.paidMethod||'manual')}</div>`:''}
+            ${item.receiptName?`<button class="btn btn-slate btn-sm mt4" style="padding:4px 8px" data-action="view-receipt" data-id="${item.id}">📎 ${esc(item.receiptName)}</button>`:''}
+            ${item.receiptImage&&item.receiptImage.startsWith('data:image')?`<button data-action="view-receipt" data-id="${item.id}" style="background:none;border:none;cursor:pointer;margin-top:6px;display:block"><img src="${item.receiptImage}" class="receipt-img" alt="receipt"/></button>`:''}
           </div>
-        </Card>
-      );
-    })}
-  </div>
-
-  {/* Running Tally */}
-  {timItems.length>0&&(
-    <Card>
-      <div style={{padding:20}}>
-        <h3 style={{margin:'0 0 16px',fontSize:14,fontWeight:700}}>📋 {isBruce?'Full Ledger — Running Tally':'Your Repayment Ledger'}</h3>
-        <div style={{display:'flex',flexDirection:'column',gap:0}}>
-          {timItems.map(item=>(
-            <div key={item.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 0',borderBottom:'1px solid #1e293b',opacity:item.paid?0.5:1}}>
-              <span style={{flex:1,marginRight:16,fontSize:13,color:item.paid?'#475569':'#cbd5e1',textDecoration:item.paid?'line-through':'none'}}>{item.description} <span style={{color:'#334155',fontSize:11}}>({fmtDate(item.date)})</span></span>
-              <span style={{fontWeight:600,fontSize:13,color:item.paid?'#4ade80':'#fbbf24'}}>{item.paid?'✓ ':''}{fmt$(item.amount)}</span>
-            </div>
-          ))}
-          <div style={{paddingTop:12,display:'flex',flexDirection:'column',gap:6}}>
-            <div style={{display:'flex',justifyContent:'space-between',fontSize:13}}>
-              <span style={{color:'#64748b'}}>Paid Back</span><span style={{color:'#4ade80',fontWeight:600}}>{fmt$(totalPaid)}</span>
-            </div>
-            <div style={{display:'flex',justifyContent:'space-between',fontSize:16,fontWeight:800,paddingTop:8,borderTop:'1px solid #334155'}}>
-              <span>{isBruce?'Still Owed to Bruce':'You Still Owe Bruce'}</span>
-              <span style={{color:totalOwed>0?'#f87171':'#4ade80'}}>{totalOwed>0?fmt$(totalOwed):'All paid up! 🎉'}</span>
-            </div>
+          <div class="text-right shrink0">
+            <div class="fw800" style="font-size:20px;color:${item.paid?'#4ade80':'#fbbf24'}">${fmt$(item.amount)}</div>
+            ${isTim&&!item.paid?`<div class="flex gap8 mt8 justify-end">
+              <button class="btn btn-blue btn-sm" data-action="upload-receipt-cam" data-id="${item.id}">📷 Photo</button>
+              <button class="btn btn-slate btn-sm" data-action="upload-receipt-file" data-id="${item.id}">📁 File</button>
+            </div>`:''}
+            ${isBruce&&item.receiptImage?`<button class="btn btn-slate btn-sm mt8" data-action="view-receipt" data-id="${item.id}">📎 View Receipt</button>`:''}
+            ${isDev(u)?`<button class="fs11 c-slate mt8" style="background:none;border:none;cursor:pointer;display:block;margin-left:auto" data-action="delete-pc" data-id="${item.id}">🗑️ Delete</button>`:''}
           </div>
         </div>
+        ${isBruce&&!item.paid?`<div class="fs11 mt8" style="color:#334155">☝️ Tap checkbox when Tim pays this</div>`:''}
       </div>
-    </Card>
-  )}
-</div>
-```
+    </div>`);
+  }).join('');
 
-);
+  const ledger=timItems.length>0?card(`<div class="p20">
+    <div class="fw700 fs14 mb12">📋 ${isBruce?'Full Ledger — Running Tally':'Your Repayment Ledger'}</div>
+    ${timItems.map(item=>`<div class="row" style="opacity:${item.paid?.5:1}">
+      <span class="flex1" style="color:${item.paid?'#475569':'#cbd5e1'};text-decoration:${item.paid?'line-through':'none'};font-size:13px;margin-right:16px">${esc(item.description)} <span class="fs11 c-slate">(${fmtDate(item.date)})</span></span>
+      <span class="fw600 fs13" style="color:${item.paid?'#4ade80':'#fbbf24'}">${item.paid?'✓ ':''}${fmt$(item.amount)}</span>
+    </div>`).join('')}
+    <div style="padding-top:12px">
+      <div class="flex justify-between fs13 mb8"><span class="c-slate">Paid Back</span><span class="c-green fw600">${fmt$(totalPaid)}</span></div>
+      <div class="flex justify-between fw800" style="font-size:16px;padding-top:8px;border-top:1px solid #334155">
+        <span>${isBruce?'Still Owed to Bruce':'You Still Owe Bruce'}</span>
+        <span style="color:${totalOwed>0?'#f87171':'#4ade80'}">${totalOwed>0?fmt$(totalOwed):'All paid up! 🎉'}</span>
+      </div>
+    </div>
+  </div>`):'';
+
+  return `<div class="section">
+    <div class="flex justify-between items-center wrap gap12">
+      <div><div class="page-title">💰 Petty Cash</div><div class="page-sub">${isTim?'Bruce fronts expenses — you pay him back':'Track what Tim owes & mark items paid'}</div></div>
+      ${isAdm?btn('+ Add Expense','window._pcShowAdd=!window._pcShowAdd;render()','btn-amber btn-md'):''}
+    </div>
+    <div class="grid4">
+      ${statCard('💰 Total Fronted',fmt$(totalOut),'','#fbbf24')}
+      ${statCard('🔴 '+(isTim?'You Owe':'Tim Owes'),fmt$(totalOwed),'','#f87171')}
+      ${statCard('✅ Paid Back',fmt$(totalPaid),'','#4ade80')}
+    </div>
+    ${isTim&&totalOwed>0?`<div style="background:rgba(234,88,12,.15);border:1px solid rgba(234,88,12,.4);border-radius:12px;padding:16px">
+      <div style="color:#fb923c;font-weight:700;margin-bottom:4px">🚛 Hey Tim — you owe Bruce ${fmt$(totalOwed)}</div>
+      <div style="color:#94a3b8;font-size:12px">Tap 📷 to snap a receipt photo, or 📁 to upload a file. Item marks paid automatically once you do.</div>
+    </div>`:''}
+    ${isBruce&&totalOwed>0?`<div style="background:rgba(29,78,216,.15);border:1px solid rgba(29,78,216,.4);border-radius:12px;padding:16px">
+      <div style="color:#93c5fd;font-weight:700;margin-bottom:4px">💼 Bruce — Tim owes you ${fmt$(totalOwed)}</div>
+      <div style="color:#94a3b8;font-size:12px">Check the box on each item when Tim pays you back. Tally updates automatically.</div>
+    </div>`:''}
+    ${addForm}
+    ${tabs}
+    ${base.length===0?card(`<div class="p16 text-center c-slate">No entries found</div>`):''}
+    ${items}
+    ${ledger}
+    <input type="file" id="receipt-file-input" accept="image/*,application/pdf" style="display:none"/>
+    <input type="file" id="receipt-cam-input" accept="image/*" capture="environment" style="display:none"/>
+  </div>`;
+}
+
+function addPettyCash(){
+  const desc=document.getElementById('pc-desc')?.value?.trim();
+  const amount=parseFloat(document.getElementById('pc-amount')?.value);
+  if(!desc||!amount)return;
+  const entry={id:uid(),description:desc,amount,date:document.getElementById('pc-date')?.value||today(),category:document.getElementById('pc-cat')?.value||'Repairs',notes:document.getElementById('pc-notes')?.value||'',addedBy:STATE.user.id,forDriver:'tim_smith',paid:false,paidDate:null,paidMethod:null,receiptImage:null,receiptName:null,markedPaidByBruce:false,deleted:false};
+  STATE.pettyCash.unshift(entry);
+  save('ettr_pc',STATE.pettyCash);
+  window._pcShowAdd=false;
+  render();
+}
+function markPaid(id){STATE.pettyCash=STATE.pettyCash.map(p=>p.id===id?{...p,paid:true,paidDate:today(),paidMethod:'Bruce marked paid',markedPaidByBruce:true}:p);save('ettr_pc',STATE.pettyCash);render();}
+function unmarkPaid(id){STATE.pettyCash=STATE.pettyCash.map(p=>p.id===id?{...p,paid:false,paidDate:null,paidMethod:null,markedPaidByBruce:false}:p);save('ettr_pc',STATE.pettyCash);render();}
+function deletePc(id){if(!confirm('Delete?')||!confirm('DOUBLE confirm?'))return;STATE.pettyCash=STATE.pettyCash.map(p=>p.id===id?{...p,deleted:true}:p);save('ettr_pc',STATE.pettyCash);render();}
+
+function triggerReceiptUpload(id,type){
+  const inputId=type==='cam'?'receipt-cam-input':'receipt-file-input';
+  const input=document.getElementById(inputId);
+  if(!input)return;
+  input.value='';
+  input.onchange=e=>{
+    const file=e.target.files[0];if(!file)return;
+    const r=new FileReader();
+    r.onload=ev=>{
+      STATE.pettyCash=STATE.pettyCash.map(p=>p.id===id?{...p,receiptImage:ev.target.result,receiptName:file.name,paid:true,paidDate:today(),paidMethod:'Receipt uploaded by Tim'}:p);
+      save('ettr_pc',STATE.pettyCash);render();
+    };
+    r.readAsDataURL(file);
+  };
+  input.click();
+}
+
+function viewReceipt(id){
+  const item=STATE.pettyCash.find(p=>p.id===id);
+  if(!item)return;
+  const overlay=document.createElement('div');
+  overlay.className='modal-overlay';
+  overlay.innerHTML=`<div class="modal">
+    <div class="flex justify-between items-center mb12"><div class="fw700 fs15">${esc(item.description)}</div><button onclick="this.closest('.modal-overlay').remove()" style="background:none;border:none;color:#64748b;cursor:pointer;font-size:20px">✕</button></div>
+    <div class="fs11 c-slate mb12">${esc(item.receiptName||'')} • ${fmtDate(item.paidDate)}</div>
+    ${item.receiptImage?.startsWith('data:image')?`<img src="${item.receiptImage}" style="width:100%;border-radius:8px" alt="receipt"/>`:
+    `<div style="background:#0f172a;padding:32px;text-align:center;border-radius:8px;color:#64748b">📄 ${esc(item.receiptName||'File')}</div>`}
+    <button onclick="this.closest('.modal-overlay').remove()" class="btn btn-slate btn-md btn-full mt16">Close</button>
+  </div>`;
+  overlay.onclick=e=>{if(e.target===overlay)overlay.remove();};
+  document.body.appendChild(overlay);
 }
 
 // ── LOADS ─────────────────────────────────────────────────────────────────────
-function LoadsModule({currentUser,users,loads,saveLoads,trucks}) {
-const isAdmin=currentUser.role===ROLES.DEVELOPER||currentUser.role===ROLES.CARRIER_ADMIN;
-const myLoads=isAdmin?loads.filter(l=>!l.deleted):loads.filter(l=>!l.deleted&&l.driverId===currentUser.id);
-const [showAdd,setShowAdd]=useState(false);
-const [selected,setSelected]=useState(null);
-const [sf,setSf]=useState(‘All’);
-const [form,setForm]=useState({driverId:currentUser.id,broker:‘CNA Transportation’,brokerContact:’’,origin:’’,destination:’’,pickupDate:today(),deliveryDate:’’,rate:’’,miles:’’,commodity:‘Produce’,status:‘Rate Pending’,rcNumber:’’,bolNumber:’’,notes:’’,lumperFee:’’,fuelSurcharge:’’});
-const set=(k,v)=>setForm(f=>({…f,[k]:v}));
-const addLoad=()=>{if(!form.origin||!form.destination)return;saveLoads(prev=>[{id:uid(),…form,createdAt:today(),deleted:false},…prev]);setShowAdd(false);};
-const updateStatus=(id,s)=>saveLoads(prev=>prev.map(l=>l.id===id?{…l,status:s}:l));
-const deleteLoad=(id)=>{if(!window.confirm(‘Delete?’)||!window.confirm(‘DOUBLE confirm?’))return;saveLoads(prev=>prev.map(l=>l.id===id?{…l,deleted:true}:l));setSelected(null);};
-const filtered=sf===‘All’?myLoads:myLoads.filter(l=>l.status===sf);
-return (
-<div style={{display:‘flex’,flexDirection:‘column’,gap:16}}>
-<div style={{display:‘flex’,alignItems:‘center’,justifyContent:‘space-between’,flexWrap:‘wrap’,gap:12}}>
-<div>
-<h1 style={{fontSize:22,fontWeight:800,margin:0}}>📦 Loads</h1>
-<p style={{color:’#64748b’,fontSize:13,margin:‘2px 0 0’}}>{myLoads.filter(l=>![‘Paid’,‘Cancelled’].includes(l.status)).length} active • {myLoads.filter(l=>l.status===‘Paid’).length} paid</p>
-</div>
-<Btn onClick={()=>setShowAdd(!showAdd)} color=“blue”>+ New Load</Btn>
-</div>
-{showAdd&&(
-<Card>
-<div style={{padding:20}}>
-<h3 style={{margin:‘0 0 16px’,fontSize:14,fontWeight:700}}>Add New Load</h3>
-<div style={{display:‘grid’,gridTemplateColumns:‘repeat(auto-fill,minmax(200px,1fr))’,gap:10}}>
-<Sel label=“Broker” value={form.broker} onChange={v=>set(‘broker’,v)} options={BROKERS}/>
-<Inp label=“Broker Contact” value={form.brokerContact} onChange={v=>set(‘brokerContact’,v)}/>
-<Inp label=“Origin” value={form.origin} onChange={v=>set(‘origin’,v)} placeholder=“City, ST”/>
-<Inp label=“Destination” value={form.destination} onChange={v=>set(‘destination’,v)} placeholder=“City, ST”/>
-<Inp label=“Pickup Date” type=“date” value={form.pickupDate} onChange={v=>set(‘pickupDate’,v)}/>
-<Inp label=“Delivery Date” type=“date” value={form.deliveryDate} onChange={v=>set(‘deliveryDate’,v)}/>
-<Inp label=“Rate ($)” type=“number” value={form.rate} onChange={v=>set(‘rate’,v)}/>
-<Inp label=“Miles” type=“number” value={form.miles} onChange={v=>set(‘miles’,v)}/>
-<Inp label=“RC #” value={form.rcNumber} onChange={v=>set(‘rcNumber’,v)}/>
-<Inp label=“BOL #” value={form.bolNumber} onChange={v=>set(‘bolNumber’,v)}/>
-<Inp label=“Lumper Fee ($)” type=“number” value={form.lumperFee} onChange={v=>set(‘lumperFee’,v)}/>
-<Inp label=“Fuel Surcharge ($)” type=“number” value={form.fuelSurcharge} onChange={v=>set(‘fuelSurcharge’,v)}/>
-</div>
-<div style={{marginTop:10}}><Inp label=“Notes” value={form.notes} onChange={v=>set(‘notes’,v)}/></div>
-<div style={{display:‘flex’,gap:8,marginTop:14}}><Btn onClick={addLoad} color="blue">Save Load</Btn><Btn onClick={()=>setShowAdd(false)} color=“slate”>Cancel</Btn></div>
-</div>
-</Card>
-)}
-<div style={{display:‘flex’,gap:6,flexWrap:‘wrap’}}>
-{[‘All’,…LOAD_STATUSES].map(s=>(
-<button key={s} onClick={()=>setSf(s)} style={{padding:‘6px 12px’,borderRadius:99,border:‘none’,cursor:‘pointer’,fontSize:12,fontWeight:500,background:sf===s?’#2563eb’:’#1e293b’,color:sf===s?’#fff’:’#64748b’}}>{s}</button>
-))}
-</div>
-<div style={{display:‘flex’,flexDirection:‘column’,gap:8}}>
-{filtered.length===0&&<Card><div style={{padding:40,textAlign:‘center’,color:’#475569’}}>No loads found</div></Card>}
-{filtered.map(load=>{
-const rpm=load.rate&&load.miles?(parseFloat(load.rate)/parseFloat(load.miles)).toFixed(2):null;
-return (
-<Card key={load.id}>
-<div onClick={()=>setSelected(selected===load.id?null:load.id)} style={{padding:16,cursor:‘pointer’}}>
-<div style={{display:‘flex’,justifyContent:‘space-between’,alignItems:‘flex-start’,flexWrap:‘wrap’,gap:8}}>
-<div>
-<div style={{display:‘flex’,alignItems:‘center’,gap:8,flexWrap:‘wrap’}}>
-<p style={{margin:0,fontSize:14,fontWeight:700}}>{load.origin} → {load.destination}</p>
-<Badge label={load.status} color={STATUS_COLORS[load.status]}/>
-</div>
-<p style={{margin:‘4px 0 0’,fontSize:12,color:’#64748b’}}>{load.broker} • {fmtDate(load.pickupDate)}</p>
-</div>
-<div style={{textAlign:‘right’}}>
-<p style={{margin:0,fontSize:18,fontWeight:800,color:’#4ade80’}}>{fmt$(load.rate)}</p>
-{rpm&&<p style={{margin:‘2px 0 0’,fontSize:11,color:’#475569’}}>${rpm}/mi</p>}
-</div>
-</div>
-{selected===load.id&&(
-<div onClick={e=>e.stopPropagation()} style={{marginTop:16,paddingTop:16,borderTop:‘1px solid #334155’}}>
-<div style={{display:‘grid’,gridTemplateColumns:‘repeat(auto-fill,minmax(120px,1fr))’,gap:8,marginBottom:14}}>
-{[[‘Miles’,load.miles||’—’],[‘RC #’,load.rcNumber||’—’],[‘BOL #’,load.bolNumber||’—’],[‘Lumper’,load.lumperFee?fmt$(load.lumperFee):’—’]].map(([k,v])=>(
-<div key={k}><p style={{color:’#475569’,fontSize:11,margin:0}}>{k}</p><p style={{fontSize:13,margin:‘2px 0 0’}}>{v}</p></div>
-))}
-</div>
-<div style={{display:‘flex’,gap:4,flexWrap:‘wrap’,marginBottom:8,alignItems:‘center’}}>
-<span style={{color:’#475569’,fontSize:11}}>Status:</span>
-{LOAD_STATUSES.map(s=><button key={s} onClick={()=>updateStatus(load.id,s)} style={{padding:‘4px 8px’,borderRadius:6,border:‘none’,cursor:‘pointer’,fontSize:11,background:load.status===s?’#2563eb’:’#334155’,color:’#fff’}}>{s}</button>)}
-</div>
-{currentUser.role===ROLES.DEVELOPER&&<button onClick={()=>deleteLoad(load.id)} style={{background:‘none’,border:‘none’,color:’#475569’,cursor:‘pointer’,fontSize:11}}>🗑️ Delete Load</button>}
-</div>
-)}
-</div>
-</Card>
-);
-})}
-</div>
-</div>
-);
+if(!window._loadFilter) window._loadFilter='All';
+if(!window._loadExpanded) window._loadExpanded=null;
+if(!window._showAddLoad) window._showAddLoad=false;
+
+function setLoadFilter(v){window._loadFilter=v;render();}
+function expandLoad(id){window._loadExpanded=window._loadExpanded===id?null:id;render();}
+function updateLoadStatus(id,status){STATE.loads=STATE.loads.map(l=>l.id===id?{...l,status}:l);save('ettr_loads',STATE.loads);render();}
+function deleteLoad(id){if(!confirm('Delete?')||!confirm('DOUBLE confirm?'))return;STATE.loads=STATE.loads.map(l=>l.id===id?{...l,deleted:true}:l);save('ettr_loads',STATE.loads);window._loadExpanded=null;render();}
+
+function renderLoads(u){
+  const isAdm=isAdmin(u);
+  const myLoads=isAdm?STATE.loads.filter(l=>!l.deleted):STATE.loads.filter(l=>!l.deleted&&l.driverId===u.id);
+  const filter=window._loadFilter||'All';
+  const filtered=filter==='All'?myLoads:myLoads.filter(l=>l.status===filter);
+  const expanded=window._loadExpanded;
+
+  const addForm=window._showAddLoad?card(`<div class="p20"><div class="fw700 fs14 mb12">Add New Load</div>
+    <div class="grid3">
+      ${sel('Broker','ld-broker','CNA Transportation',BROKERS)}
+      ${inp('Broker Contact','ld-contact','')}
+      ${inp('Origin','ld-origin','','text','City, ST')}
+      ${inp('Destination','ld-dest','','text','City, ST')}
+      ${inp('Pickup Date','ld-pickup',today(),'date')}
+      ${inp('Delivery Date','ld-delivery','','date')}
+      ${inp('Rate ($)','ld-rate','','number')}
+      ${inp('Miles','ld-miles','','number')}
+      ${inp('RC #','ld-rc','')}
+      ${inp('BOL #','ld-bol','')}
+      ${inp('Lumper Fee ($)','ld-lumper','','number')}
+      ${inp('Fuel Surcharge ($)','ld-fsc','','number')}
+    </div>
+    <div class="mt12">${inp('Notes','ld-notes','')}</div>
+    <div class="flex gap8 mt16">${btn('Save Load','handleAction(\'add-load\',{})','btn-blue btn-md')}${btn('Cancel','window._showAddLoad=false;render()','btn-slate btn-md')}</div>
+  </div>`):'';
+
+  const filters=`<div class="flex gap4 wrap">
+    ${['All',...LOAD_STATUSES].map(s=>`<button class="filter-pill ${filter===s?'active':''}" data-action="set-load-filter" data-val="${s}">${s}</button>`).join('')}
+  </div>`;
+
+  const items=filtered.map(l=>{
+    const rpm=l.rate&&l.miles?(parseFloat(l.rate)/parseFloat(l.miles)).toFixed(2):null;
+    const isExp=expanded===l.id;
+    return card(`
+      <div class="load-item" data-action="expand-load" data-id="${l.id}">
+        <div class="flex justify-between items-start wrap gap8">
+          <div>
+            <div class="flex items-center gap8 wrap">
+              <span class="fw700 fs14">${esc(l.origin)} → ${esc(l.destination)}</span>
+              ${badge(l.status,STATUS_COLORS[l.status])}
+            </div>
+            <div class="fs12 c-slate mt4">${esc(l.broker)} • ${fmtDate(l.pickupDate)}</div>
+          </div>
+          <div class="text-right">
+            <div class="fw800 fs18 c-green">${fmt$(l.rate)}</div>
+            ${rpm?`<div class="fs11 c-slate">$${rpm}/mi</div>`:''}
+          </div>
+        </div>
+        ${isExp?`<div style="margin-top:16px;padding-top:16px;border-top:1px solid #334155">
+          <div class="grid4 mb12">
+            ${[['Miles',l.miles||'—'],['RC #',l.rcNumber||'—'],['BOL #',l.bolNumber||'—'],['Lumper',l.lumperFee?fmt$(l.lumperFee):'—']].map(([k,v])=>`<div><div class="fs11 c-slate">${k}</div><div class="fs13 mt4">${esc(String(v))}</div></div>`).join('')}
+          </div>
+          <div class="fs11 c-slate mb8">Update status:</div>
+          <div class="flex gap4 wrap mb12">
+            ${LOAD_STATUSES.map(s=>`<button class="filter-pill ${l.status===s?'active':''}" data-action="update-load-status" data-id="${l.id}" data-status="${s}" style="font-size:11px;padding:4px 8px">${s}</button>`).join('')}
+          </div>
+          ${isDev(u)?`<button class="fs11 c-slate" style="background:none;border:none;cursor:pointer" data-action="delete-load" data-id="${l.id}">🗑️ Delete Load</button>`:''}
+        </div>`:''}
+      </div>`);
+  }).join('');
+
+  return `<div class="section">
+    <div class="flex justify-between items-center wrap gap12">
+      <div><div class="page-title">📦 Loads</div><div class="page-sub">${myLoads.filter(l=>!['Paid','Cancelled'].includes(l.status)).length} active • ${myLoads.filter(l=>l.status==='Paid').length} paid</div></div>
+      ${btn('+ New Load','window._showAddLoad=!window._showAddLoad;render()','btn-blue btn-md')}
+    </div>
+    ${addForm}
+    ${filters}
+    ${filtered.length===0?card(`<div class="p16 text-center c-slate">No loads found</div>`):''}
+    ${items}
+  </div>`;
+}
+
+function addLoad(){
+  const origin=document.getElementById('ld-origin')?.value?.trim();
+  const dest=document.getElementById('ld-dest')?.value?.trim();
+  if(!origin||!dest)return;
+  const load={id:uid(),driverId:STATE.user.id,broker:document.getElementById('ld-broker')?.value||'CNA Transportation',brokerContact:document.getElementById('ld-contact')?.value||'',origin,destination:dest,pickupDate:document.getElementById('ld-pickup')?.value||today(),deliveryDate:document.getElementById('ld-delivery')?.value||'',rate:document.getElementById('ld-rate')?.value||'',miles:document.getElementById('ld-miles')?.value||'',rcNumber:document.getElementById('ld-rc')?.value||'',bolNumber:document.getElementById('ld-bol')?.value||'',notes:document.getElementById('ld-notes')?.value||'',lumperFee:document.getElementById('ld-lumper')?.value||'',fuelSurcharge:document.getElementById('ld-fsc')?.value||'',status:'Rate Pending',createdAt:today(),deleted:false};
+  STATE.loads.unshift(load);
+  save('ettr_loads',STATE.loads);
+  window._showAddLoad=false;
+  render();
 }
 
 // ── SERVICE ───────────────────────────────────────────────────────────────────
-function ServiceModule({currentUser,serviceRecords,saveServiceRecords,trucks}) {
-const isAdmin=currentUser.role===ROLES.DEVELOPER||currentUser.role===ROLES.CARRIER_ADMIN;
-const myTruck=trucks.find(t=>t.driverId===currentUser.id);
-const [showAdd,setShowAdd]=useState(false);
-const [form,setForm]=useState({truckId:myTruck?.id||’’,type:‘Oil Change’,vendor:’’,date:today(),mileage:’’,cost:’’,nextDue:’’,nextDueMiles:’’,notes:’’});
-const set=(k,v)=>setForm(f=>({…f,[k]:v}));
-const records=serviceRecords.filter(s=>!s.deleted&&(isAdmin||s.truckId===myTruck?.id));
-const addRecord=()=>{if(!form.type||!form.date)return;saveServiceRecords(prev=>[{id:uid(),…form,addedBy:currentUser.id,deleted:false},…prev]);setShowAdd(false);};
-const deleteRecord=(id)=>{if(!window.confirm(‘Delete?’)||!window.confirm(‘DOUBLE confirm?’))return;saveServiceRecords(prev=>prev.map(s=>s.id===id?{…s,deleted:true}:s));};
-const truckLabel=id=>{const t=trucks.find(t=>t.id===id);return t?`${t.make} ${t.unit||t.model}`:id;};
-return (
-<div style={{display:‘flex’,flexDirection:‘column’,gap:16}}>
-<div style={{display:‘flex’,alignItems:‘center’,justifyContent:‘space-between’,flexWrap:‘wrap’,gap:12}}>
-<div><h1 style={{fontSize:22,fontWeight:800,margin:0}}>🔧 Service Records</h1><p style={{color:’#64748b’,fontSize:13,margin:‘2px 0 0’}}>{records.length} records</p></div>
-<Btn onClick={()=>setShowAdd(!showAdd)} color=“blue”>+ Log Service</Btn>
-</div>
-{showAdd&&(
-<Card>
-<div style={{padding:20}}>
-<div style={{display:‘grid’,gridTemplateColumns:‘repeat(auto-fill,minmax(200px,1fr))’,gap:10}}>
-<Sel label=“Service Type” value={form.type} onChange={v=>set(‘type’,v)} options={SERVICE_TYPES}/>
-<Inp label=“Vendor / Shop” value={form.vendor} onChange={v=>set(‘vendor’,v)} placeholder=“Mike’s Inc, Love’s…”/>
-<Inp label=“Date” type=“date” value={form.date} onChange={v=>set(‘date’,v)}/>
-<Inp label=“Mileage” type=“number” value={form.mileage} onChange={v=>set(‘mileage’,v)}/>
-<Inp label=“Cost ($)” type=“number” value={form.cost} onChange={v=>set(‘cost’,v)}/>
-<Inp label=“Next Due Date” type=“date” value={form.nextDue} onChange={v=>set(‘nextDue’,v)}/>
-<Inp label=“Next Due Miles” type=“number” value={form.nextDueMiles} onChange={v=>set(‘nextDueMiles’,v)}/>
-</div>
-<div style={{marginTop:10}}><Inp label=“Notes” value={form.notes} onChange={v=>set(‘notes’,v)}/></div>
-<div style={{display:‘flex’,gap:8,marginTop:14}}><Btn onClick={addRecord} color="blue">Save Record</Btn><Btn onClick={()=>setShowAdd(false)} color=“slate”>Cancel</Btn></div>
-</div>
-</Card>
-)}
-<div style={{display:‘flex’,flexDirection:‘column’,gap:8}}>
-{records.length===0&&<Card><div style={{padding:40,textAlign:‘center’,color:’#475569’}}>No service records yet</div></Card>}
-{records.map(s=>(
-<Card key={s.id}>
-<div style={{padding:16,display:‘flex’,justifyContent:‘space-between’,alignItems:‘flex-start’,flexWrap:‘wrap’,gap:8}}>
-<div>
-<div style={{display:‘flex’,alignItems:‘center’,gap:8,flexWrap:‘wrap’}}>
-<p style={{margin:0,fontSize:14,fontWeight:700}}>{s.type}</p>
-<Badge label={truckLabel(s.truckId)} color="#334155"/>
-{s.nextDue&&daysUntil(s.nextDue)!==null&&daysUntil(s.nextDue)<=30&&<Badge label={`Due in ${daysUntil(s.nextDue)}d`} color={daysUntil(s.nextDue)<0?’#b91c1c’:’#b45309’}/>}
-</div>
-<p style={{margin:‘4px 0 0’,fontSize:11,color:’#64748b’}}>{fmtDate(s.date)}{s.vendor&&` • ${s.vendor}`}{s.mileage&&` • ${Number(s.mileage).toLocaleString()} mi`}</p>
-{s.nextDue&&<p style={{margin:‘2px 0 0’,fontSize:11,color:’#475569’}}>Next: {fmtDate(s.nextDue)}</p>}
-{s.notes&&<p style={{margin:‘4px 0 0’,fontSize:11,color:’#475569’,fontStyle:‘italic’}}>{s.notes}</p>}
-</div>
-<div style={{display:‘flex’,alignItems:‘center’,gap:8}}>
-{s.cost&&<p style={{margin:0,fontSize:14,fontWeight:600,color:’#4ade80’}}>{fmt$(s.cost)}</p>}
-{currentUser.role===ROLES.DEVELOPER&&<button onClick={()=>deleteRecord(s.id)} style={{background:‘none’,border:‘none’,color:’#475569’,cursor:‘pointer’}}>🗑️</button>}
-</div>
-</div>
-</Card>
-))}
-</div>
-</div>
-);
+if(!window._showAddService) window._showAddService=false;
+
+function renderService(u){
+  const isAdm=isAdmin(u);
+  const myTruck=STATE.trucks.find(t=>t.driverId===u.id);
+  const records=STATE.service.filter(s=>!s.deleted&&(isAdm||s.truckId===myTruck?.id));
+  const tLabel=id=>{const t=STATE.trucks.find(t=>t.id===id);return t?`${t.make} ${t.unit||t.model}`:id;};
+
+  const addForm=window._showAddService?card(`<div class="p20"><div class="fw700 fs14 mb12">Log Service Record</div>
+    <div class="grid3">
+      ${sel('Service Type','sv-type','Oil Change',SERVICE_TYPES)}
+      ${inp('Vendor / Shop','sv-vendor','','text',"Mike's Inc, Love's...")}
+      ${inp('Date','sv-date',today(),'date')}
+      ${inp('Mileage','sv-mileage','','number')}
+      ${inp('Cost ($)','sv-cost','','number')}
+      ${inp('Next Due Date','sv-nextdue','','date')}
+      ${inp('Next Due Miles','sv-nextmiles','','number')}
+    </div>
+    <div class="mt12">${inp('Notes','sv-notes','')}</div>
+    <div class="flex gap8 mt16">${btn('Save Record','handleAction(\'add-service\',{})','btn-blue btn-md')}${btn('Cancel','window._showAddService=false;render()','btn-slate btn-md')}</div>
+  </div>`):'';
+
+  const items=records.map(s=>{
+    const dd=daysUntil(s.nextDue);
+    return card(`<div class="p16 flex justify-between items-start wrap gap8">
+      <div>
+        <div class="flex items-center gap8 wrap">
+          <span class="fw700 fs14">${esc(s.type)}</span>
+          ${badge(tLabel(s.truckId),'#334155')}
+          ${dd!==null&&dd<=30?badge(`Due in ${dd}d`,dd<0?'#b91c1c':'#b45309'):''}
+        </div>
+        <div class="fs11 c-slate mt4">${fmtDate(s.date)}${s.vendor?' • '+esc(s.vendor):''}${s.mileage?' • '+Number(s.mileage).toLocaleString()+' mi':''}</div>
+        ${s.nextDue?`<div class="fs11 mt4" style="color:#475569">Next: ${fmtDate(s.nextDue)}</div>`:''}
+        ${s.notes?`<div class="fs11 mt4" style="color:#475569;font-style:italic">${esc(s.notes)}</div>`:''}
+      </div>
+      <div class="flex items-center gap8">
+        ${s.cost?`<span class="fw600 fs14 c-green">${fmt$(s.cost)}</span>`:''}
+        ${isDev(u)?`<button style="background:none;border:none;color:#475569;cursor:pointer" data-action="delete-service" data-id="${s.id}">🗑️</button>`:''}
+      </div>
+    </div>`);
+  }).join('');
+
+  return `<div class="section">
+    <div class="flex justify-between items-center wrap gap12">
+      <div><div class="page-title">🔧 Service Records</div><div class="page-sub">${records.length} records</div></div>
+      ${btn('+ Log Service','window._showAddService=!window._showAddService;render()','btn-blue btn-md')}
+    </div>
+    ${addForm}
+    ${records.length===0?card(`<div class="p16 text-center c-slate">No service records yet</div>`):''}
+    ${items}
+  </div>`;
 }
+
+function addService(){
+  const u=STATE.users.find(x=>x.id===STATE.user.id);
+  const myTruck=STATE.trucks.find(t=>t.driverId===u.id);
+  const record={id:uid(),truckId:myTruck?.id||'',type:document.getElementById('sv-type')?.value||'Oil Change',vendor:document.getElementById('sv-vendor')?.value||'',date:document.getElementById('sv-date')?.value||today(),mileage:document.getElementById('sv-mileage')?.value||'',cost:document.getElementById('sv-cost')?.value||'',nextDue:document.getElementById('sv-nextdue')?.value||'',nextDueMiles:document.getElementById('sv-nextmiles')?.value||'',notes:document.getElementById('sv-notes')?.value||'',addedBy:STATE.user.id,deleted:false};
+  STATE.service.unshift(record);
+  save('ettr_service',STATE.service);
+  window._showAddService=false;
+  render();
+}
+function deleteService(id){if(!confirm('Delete?')||!confirm('DOUBLE confirm?'))return;STATE.service=STATE.service.map(s=>s.id===id?{...s,deleted:true}:s);save('ettr_service',STATE.service);render();}
 
 // ── DOCUMENTS ─────────────────────────────────────────────────────────────────
-function DocumentsModule({currentUser,documents,saveDocuments,users}) {
-const isAdmin=currentUser.role===ROLES.DEVELOPER||currentUser.role===ROLES.CARRIER_ADMIN;
-const myDocs=isAdmin?documents.filter(d=>!d.deleted):documents.filter(d=>!d.deleted&&d.ownerId===currentUser.id);
-const fileRef=useRef();
-const [form,setForm]=useState({type:‘IFTA Certificate’,description:’’,expiryDate:’’,ownerId:currentUser.id});
-const [pending,setPending]=useState(null);
-const [showAdd,setShowAdd]=useState(false);
-const set=(k,v)=>setForm(f=>({…f,[k]:v}));
-const handleFile=e=>{const file=e.target.files[0];if(!file)return;const r=new FileReader();r.onload=ev=>setPending({name:file.name,data:ev.target.result,type:file.type,size:file.size});r.readAsDataURL(file);};
-const handleSave=()=>{saveDocuments(prev=>[{id:uid(),…form,fileName:pending?.name,fileData:pending?.data,fileType:pending?.type,uploadedAt:today(),uploadedBy:currentUser.id,deleted:false},…prev]);setShowAdd(false);setPending(null);setForm({type:‘IFTA Certificate’,description:’’,expiryDate:’’,ownerId:currentUser.id});};
-const deleteDoc=id=>{if(!window.confirm(‘Delete?’)||!window.confirm(‘DOUBLE confirm?’))return;saveDocuments(prev=>prev.map(d=>d.id===id?{…d,deleted:true}:d));};
-return (
-<div style={{display:‘flex’,flexDirection:‘column’,gap:16}}>
-<div style={{display:‘flex’,alignItems:‘center’,justifyContent:‘space-between’,flexWrap:‘wrap’,gap:12}}>
-<div><h1 style={{fontSize:22,fontWeight:800,margin:0}}>🛡️ Documents</h1><p style={{color:’#64748b’,fontSize:13,margin:‘2px 0 0’}}>DOT compliance vault</p></div>
-<Btn onClick={()=>setShowAdd(!showAdd)} color=“blue”>📁 Upload Doc</Btn>
-</div>
-{showAdd&&(
-<Card>
-<div style={{padding:20}}>
-<div style={{display:‘grid’,gridTemplateColumns:‘repeat(auto-fill,minmax(200px,1fr))’,gap:10}}>
-<Sel label=“Document Type” value={form.type} onChange={v=>set(‘type’,v)} options={DOC_TYPES}/>
-<Inp label=“Description” value={form.description} onChange={v=>set(‘description’,v)} placeholder=“e.g. 2026 Certificate”/>
-<Inp label=“Expiry Date” type=“date” value={form.expiryDate} onChange={v=>set(‘expiryDate’,v)}/>
-</div>
-<div onClick={()=>fileRef.current?.click()} style={{marginTop:10,border:‘2px dashed #334155’,borderRadius:10,padding:24,textAlign:‘center’,cursor:‘pointer’}}>
-{pending?<div style={{color:’#4ade80’}}>✓ {pending.name}</div>:<div style={{color:’#475569’}}>📁 Click to select file<br/><span style={{fontSize:11}}>PDF, JPG, PNG</span></div>}
-<input ref={fileRef} type=“file” accept=“image/*,.pdf” style={{display:‘none’}} onChange={handleFile}/>
-</div>
-<div style={{display:‘flex’,gap:8,marginTop:14}}><Btn onClick={handleSave} color="blue">Save Document</Btn><Btn onClick={()=>{setShowAdd(false);setPending(null);}} color=“slate”>Cancel</Btn></div>
-</div>
-</Card>
-)}
-{myDocs.length===0&&!showAdd&&<Card><div style={{padding:40,textAlign:‘center’,color:’#475569’}}>No documents uploaded yet</div></Card>}
-<div style={{display:‘flex’,flexDirection:‘column’,gap:8}}>
-{myDocs.map(doc=>{
-const expDays=daysUntil(doc.expiryDate);
-return (
-<Card key={doc.id}>
-<div style={{padding:14,display:‘flex’,alignItems:‘center’,justifyContent:‘space-between’,gap:8,flexWrap:‘wrap’}}>
-<div style={{display:‘flex’,alignItems:‘center’,gap:12}}>
-<div style={{width:40,height:40,borderRadius:10,background:’#1d4ed8’,display:‘flex’,alignItems:‘center’,justifyContent:‘center’,fontSize:20,flexShrink:0}}>📄</div>
-<div>
-<p style={{margin:0,fontSize:13,fontWeight:600}}>{doc.description||doc.type}</p>
-<div style={{display:‘flex’,gap:6,alignItems:‘center’,flexWrap:‘wrap’,marginTop:2}}>
-<Badge label={doc.type} color="#1e3a5f"/>
-<span style={{fontSize:11,color:’#475569’}}>Uploaded {fmtDate(doc.uploadedAt)}</span>
-{doc.expiryDate&&<span style={{fontSize:11,color:expDays!==null&&expDays<0?’#f87171’:expDays!==null&&expDays<90?’#fbbf24’:’#475569’}}>Expires {fmtDate(doc.expiryDate)}{expDays!==null&&expDays<0?’ — EXPIRED’:expDays!==null&&expDays<30?` — ${expDays}d left`:’’}</span>}
-</div>
-</div>
-</div>
-<div style={{display:‘flex’,gap:8,alignItems:‘center’}}>
-{doc.fileData&&<a href={doc.fileData} download={doc.fileName} style={{color:’#60a5fa’,fontSize:12,textDecoration:‘none’}}>⬇️ View</a>}
-{currentUser.role===ROLES.DEVELOPER&&<button onClick={()=>deleteDoc(doc.id)} style={{background:‘none’,border:‘none’,color:’#475569’,cursor:‘pointer’}}>🗑️</button>}
-</div>
-</div>
-</Card>
-);
-})}
-</div>
-</div>
-);
+if(!window._showAddDoc) window._showAddDoc=false;
+
+function renderDocuments(u){
+  const isAdm=isAdmin(u);
+  const myDocs=isAdm?STATE.documents.filter(d=>!d.deleted):STATE.documents.filter(d=>!d.deleted&&d.ownerId===u.id);
+
+  const addForm=window._showAddDoc?card(`<div class="p20"><div class="fw700 fs14 mb12">Upload Document</div>
+    <div class="grid3">
+      ${sel('Document Type','dc-type','IFTA Certificate',DOC_TYPES)}
+      ${inp('Description','dc-desc','','text','e.g. 2026 Certificate')}
+      ${inp('Expiry Date','dc-exp','','date')}
+    </div>
+    <div class="upload-zone mt12" onclick="document.getElementById('dc-file').click()">
+      <div style="color:#475569">📁 Click to select file<br/><span class="fs11">PDF, JPG, PNG</span></div>
+      <input type="file" id="dc-file" accept="image/*,.pdf" style="display:none" onchange="window._pendingDoc=this.files[0]"/>
+    </div>
+    <div class="flex gap8 mt16">${btn('Save Document','handleAction(\'add-doc\',{})','btn-blue btn-md')}${btn('Cancel','window._showAddDoc=false;render()','btn-slate btn-md')}</div>
+  </div>`):'';
+
+  const items=myDocs.map(doc=>{
+    const ed=daysUntil(doc.expiryDate);
+    return card(`<div class="p16 flex justify-between items-center wrap gap8">
+      <div class="flex items-center gap12">
+        <div style="width:40px;height:40px;border-radius:10px;background:#1d4ed8;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">📄</div>
+        <div>
+          <div class="fw600 fs13">${esc(doc.description||doc.type)}</div>
+          <div class="flex gap8 items-center flex-wrap mt4">
+            ${badge(doc.type,'#1e3a5f')}
+            <span class="fs11 c-slate">Uploaded ${fmtDate(doc.uploadedAt)}</span>
+            ${doc.expiryDate?`<span class="fs11" style="color:${ed!==null&&ed<0?'#f87171':ed!==null&&ed<90?'#fbbf24':'#475569'}">Exp ${fmtDate(doc.expiryDate)}${ed!==null&&ed<0?' EXPIRED':ed!==null&&ed<30?' — '+ed+'d':''}</span>`:''}
+          </div>
+        </div>
+      </div>
+      <div class="flex gap8 items-center">
+        ${doc.fileData?`<a href="${doc.fileData}" download="${esc(doc.fileName||'document')}" class="c-blue fs12" style="text-decoration:none">⬇️ View</a>`:''}
+        ${isDev(u)?`<button style="background:none;border:none;color:#475569;cursor:pointer" data-action="delete-doc" data-id="${doc.id}">🗑️</button>`:''}
+      </div>
+    </div>`);
+  }).join('');
+
+  return `<div class="section">
+    <div class="flex justify-between items-center wrap gap12">
+      <div><div class="page-title">🛡️ Documents</div><div class="page-sub">DOT compliance vault</div></div>
+      ${btn('📁 Upload Doc','window._showAddDoc=!window._showAddDoc;render()','btn-blue btn-md')}
+    </div>
+    ${addForm}
+    ${myDocs.length===0?card(`<div class="p16 text-center c-slate">No documents uploaded yet</div>`):''}
+    ${items}
+  </div>`;
 }
 
+window._pendingDoc = null;
+function addDoc(){
+  const file=window._pendingDoc;
+  const saveDoc=(data,name,type)=>{
+    const doc={id:uid(),type:document.getElementById('dc-type')?.value||'Other',description:document.getElementById('dc-desc')?.value||'',expiryDate:document.getElementById('dc-exp')?.value||'',ownerId:STATE.user.id,fileName:name,fileData:data,fileType:type,uploadedAt:today(),uploadedBy:STATE.user.id,deleted:false};
+    STATE.documents.unshift(doc);save('ettr_docs',STATE.documents);window._showAddDoc=false;window._pendingDoc=null;render();
+  };
+  if(file){
+    const r=new FileReader();r.onload=ev=>saveDoc(ev.target.result,file.name,file.type);r.readAsDataURL(file);
+  } else {
+    saveDoc(null,'','');
+  }
+}
+function deleteDoc(id){if(!confirm('Delete?')||!confirm('DOUBLE confirm?'))return;STATE.documents=STATE.documents.map(d=>d.id===id?{...d,deleted:true}:d);save('ettr_docs',STATE.documents);render();}
+
 // ── FUEL ──────────────────────────────────────────────────────────────────────
-function FuelModule({currentUser,trucks}) {
-const [logs,saveLogs]=useLS(‘ettr_fuel_logs’,[]);
-const myTruck=trucks.find(t=>t.driverId===currentUser.id);
-const isAdmin=currentUser.role===ROLES.DEVELOPER||currentUser.role===ROLES.CARRIER_ADMIN;
-const [showAdd,setShowAdd]=useState(false);
-const [form,setForm]=useState({date:today(),location:’’,state:’’,gallons:’’,pricePer:’’,total:’’,odometer:’’,nastc:false,notes:’’});
-const set=(k,v)=>setForm(f=>({…f,[k]:v}));
-const myLogs=(isAdmin?logs:logs.filter(l=>l.truckId===myTruck?.id)).filter(l=>!l.deleted);
-const totalGal=myLogs.reduce((s,l)=>s+(parseFloat(l.gallons)||0),0);
-const totalSpent=myLogs.reduce((s,l)=>s+(parseFloat(l.total)||0),0);
-const addLog=()=>{saveLogs(prev=>[{id:uid(),…form,truckId:myTruck?.id,addedBy:currentUser.id,deleted:false},…prev]);setShowAdd(false);};
-const US_STATES=[‘AL’,‘AR’,‘AZ’,‘CA’,‘CO’,‘CT’,‘DE’,‘FL’,‘GA’,‘IA’,‘ID’,‘IL’,‘IN’,‘KS’,‘KY’,‘LA’,‘MA’,‘MD’,‘ME’,‘MI’,‘MN’,‘MO’,‘MS’,‘MT’,‘NC’,‘ND’,‘NE’,‘NH’,‘NJ’,‘NM’,‘NV’,‘NY’,‘OH’,‘OK’,‘OR’,‘PA’,‘RI’,‘SC’,‘SD’,‘TN’,‘TX’,‘UT’,‘VA’,‘VT’,‘WA’,‘WI’,‘WV’,‘WY’];
-return (
-<div style={{display:‘flex’,flexDirection:‘column’,gap:16}}>
-<div style={{display:‘flex’,alignItems:‘center’,justifyContent:‘space-between’,flexWrap:‘wrap’,gap:12}}>
-<div><h1 style={{fontSize:22,fontWeight:800,margin:0}}>⛽ Fuel & IFTA</h1><p style={{color:’#64748b’,fontSize:13,margin:‘2px 0 0’}}>Fuel logs for IFTA tax reporting</p></div>
-<Btn onClick={()=>setShowAdd(!showAdd)} color=“amber”>+ Log Fuel</Btn>
-</div>
-<div style={{display:‘grid’,gridTemplateColumns:‘repeat(auto-fill,minmax(150px,1fr))’,gap:12}}>
-<StatCard label="Total Gallons" value={totalGal.toFixed(1)} color="#fbbf24"/>
-<StatCard label="Total Spent" value={fmt$(totalSpent)} color="#f87171"/>
-<StatCard label="Avg $/Gal" value={totalGal>0?`$${(totalSpent/totalGal).toFixed(3)}`:’—’} color=”#4ade80”/>
-</div>
-<Card>
-<div style={{padding:14,display:‘flex’,alignItems:‘center’,justifyContent:‘space-between’}}>
-<div><p style={{margin:0,fontSize:13,fontWeight:600}}>🗺️ NASTC Fuel Network</p><p style={{margin:‘2px 0 0’,fontSize:11,color:’#64748b’}}>Find discounted fuel stops</p></div>
-<a href=“https://www.nastc.com/fuel-program” target=”_blank” rel=“noreferrer” style={{color:’#60a5fa’,fontSize:12}}>Open Map ↗</a>
-</div>
-</Card>
-{showAdd&&(
-<Card>
-<div style={{padding:20}}>
-<div style={{display:‘grid’,gridTemplateColumns:‘repeat(auto-fill,minmax(160px,1fr))’,gap:10}}>
-<Inp label=“Date” type=“date” value={form.date} onChange={v=>set(‘date’,v)}/>
-<Inp label=“Location / Stop” value={form.location} onChange={v=>set(‘location’,v)} placeholder=“Pilot #123”/>
-<Sel label=“State” value={form.state} onChange={v=>set(‘state’,v)} options={US_STATES}/>
-<Inp label=“Gallons” type=“number” value={form.gallons} onChange={v=>{set(‘gallons’,v);if(form.pricePer)set(‘total’,(parseFloat(v)*parseFloat(form.pricePer)).toFixed(2));}}/>
-<Inp label=“Price/Gal” type=“number” value={form.pricePer} onChange={v=>{set(‘pricePer’,v);if(form.gallons)set(‘total’,(parseFloat(form.gallons)*parseFloat(v)).toFixed(2));}}/>
-<Inp label=“Total ($)” type=“number” value={form.total} onChange={v=>set(‘total’,v)}/>
-<Inp label=“Odometer” type=“number” value={form.odometer} onChange={v=>set(‘odometer’,v)}/>
-</div>
-<div style={{display:‘flex’,gap:8,marginTop:14}}><Btn onClick={addLog} color="amber">Save</Btn><Btn onClick={()=>setShowAdd(false)} color=“slate”>Cancel</Btn></div>
-</div>
-</Card>
-)}
-<div style={{display:‘flex’,flexDirection:‘column’,gap:8}}>
-{myLogs.length===0&&<Card><div style={{padding:40,textAlign:‘center’,color:’#475569’}}>No fuel logs yet</div></Card>}
-{myLogs.slice(0,20).map(l=>(
-<Card key={l.id}>
-<div style={{padding:14,display:‘flex’,justifyContent:‘space-between’,alignItems:‘center’,flexWrap:‘wrap’,gap:8}}>
-<div>
-<p style={{margin:0,fontSize:13,fontWeight:600}}>{l.location||‘Fuel Stop’} <span style={{color:’#64748b’,fontWeight:400}}>({l.state})</span></p>
-<p style={{margin:‘2px 0 0’,fontSize:11,color:’#64748b’}}>{fmtDate(l.date)} • {l.gallons} gal @ ${l.pricePer}/gal{l.nastc&&’ • 🟢 NASTC’}</p>
-</div>
-<div style={{textAlign:‘right’}}>
-<p style={{margin:0,fontSize:15,fontWeight:700,color:’#fbbf24’}}>{fmt$(l.total)}</p>
-{l.odometer&&<p style={{margin:‘2px 0 0’,fontSize:11,color:’#475569’}}>{Number(l.odometer).toLocaleString()} mi</p>}
-</div>
-</div>
-</Card>
-))}
-</div>
-</div>
-);
+if(!window._showAddFuel) window._showAddFuel=false;
+
+function renderFuel(u){
+  const isAdm=isAdmin(u);
+  const myTruck=STATE.trucks.find(t=>t.driverId===u.id);
+  const logs=(isAdm?STATE.fuel:STATE.fuel.filter(l=>l.truckId===myTruck?.id)).filter(l=>!l.deleted);
+  const totalGal=logs.reduce((s,l)=>s+(parseFloat(l.gallons)||0),0);
+  const totalSpent=logs.reduce((s,l)=>s+(parseFloat(l.total)||0),0);
+
+  const addForm=window._showAddFuel?card(`<div class="p20"><div class="fw700 fs14 mb12">Log Fuel Stop</div>
+    <div class="grid3">
+      ${inp('Date','fu-date',today(),'date')}
+      ${inp('Location / Stop','fu-loc','','text','Pilot #123')}
+      ${sel('State','fu-state','IL',US_STATES)}
+      ${inp('Gallons','fu-gal','','number')}
+      ${inp('Price/Gal ($)','fu-ppg','','number')}
+      ${inp('Total ($)','fu-total','','number')}
+      ${inp('Odometer','fu-odo','','number')}
+    </div>
+    <div class="flex gap8 mt16">${btn('Save','handleAction(\'add-fuel\',{})','btn-amber btn-md')}${btn('Cancel','window._showAddFuel=false;render()','btn-slate btn-md')}</div>
+  </div>`):'';
+
+  const items=logs.slice(0,30).map(l=>card(`<div class="p16 flex justify-between items-center wrap gap8">
+    <div>
+      <div class="fw600 fs13">${esc(l.location||'Fuel Stop')} <span class="c-slate">(${esc(l.state)})</span></div>
+      <div class="fs11 c-slate mt4">${fmtDate(l.date)} • ${l.gallons} gal @ $${l.pricePer}/gal</div>
+    </div>
+    <div class="text-right">
+      <div class="fw700 fs15 c-amber">${fmt$(l.total)}</div>
+      ${l.odometer?`<div class="fs11 c-slate">${Number(l.odometer).toLocaleString()} mi</div>`:''}
+    </div>
+  </div>`)).join('');
+
+  return `<div class="section">
+    <div class="flex justify-between items-center wrap gap12">
+      <div><div class="page-title">⛽ Fuel & IFTA</div><div class="page-sub">Fuel logs for IFTA reporting</div></div>
+      ${btn('+ Log Fuel','window._showAddFuel=!window._showAddFuel;render()','btn-amber btn-md')}
+    </div>
+    <div class="grid4">
+      ${statCard('Total Gallons',totalGal.toFixed(1),'','#fbbf24')}
+      ${statCard('Total Spent',fmt$(totalSpent),'','#f87171')}
+      ${statCard('Avg $/Gal',totalGal>0?'$'+(totalSpent/totalGal).toFixed(3):'—','','#4ade80')}
+    </div>
+    ${card(`<div class="p16 flex justify-between items-center"><div><div class="fw600 fs13">🗺️ NASTC Fuel Network</div><div class="fs11 c-slate mt4">Find discounted fuel stops</div></div><a href="https://www.nastc.com/fuel-program" target="_blank" class="c-blue fs12" style="text-decoration:none">Open Map ↗</a></div>`)}
+    ${addForm}
+    ${logs.length===0?card(`<div class="p16 text-center c-slate">No fuel logs yet</div>`):''}
+    ${items}
+  </div>`;
+}
+
+function addFuel(){
+  const myTruck=STATE.trucks.find(t=>t.driverId===STATE.user.id);
+  const log={id:uid(),truckId:myTruck?.id||'',date:document.getElementById('fu-date')?.value||today(),location:document.getElementById('fu-loc')?.value||'',state:document.getElementById('fu-state')?.value||'',gallons:document.getElementById('fu-gal')?.value||'',pricePer:document.getElementById('fu-ppg')?.value||'',total:document.getElementById('fu-total')?.value||'',odometer:document.getElementById('fu-odo')?.value||'',addedBy:STATE.user.id,deleted:false};
+  STATE.fuel.unshift(log);save('ettr_fuel',STATE.fuel);window._showAddFuel=false;render();
 }
 
 // ── ELD ───────────────────────────────────────────────────────────────────────
-function ELDModule({currentUser}) {
-const [logs,saveLogs]=useLS(‘ettr_eld_logs’,[]);
-const fileRef=useRef();
-const [showUpload,setShowUpload]=useState(false);
-const [form,setForm]=useState({date:today(),hosDriving:’’,hosOnDuty:’’,hosSleeper:’’,hosOffDuty:’’,startOdo:’’,endOdo:’’,notes:’’});
-const set=(k,v)=>setForm(f=>({…f,[k]:v}));
-const handleFile=e=>{const file=e.target.files[0];if(!file)return;const r=new FileReader();r.onload=ev=>{saveLogs(prev=>[{id:uid(),…form,fileName:file.name,fileData:ev.target.result,uploadedAt:today(),driverId:currentUser.id,deleted:false},…prev]);setShowUpload(false);};r.readAsDataURL(file);};
-const myLogs=logs.filter(l=>!l.deleted&&l.driverId===currentUser.id);
-return (
-<div style={{display:‘flex’,flexDirection:‘column’,gap:16}}>
-<div style={{display:‘flex’,alignItems:‘center’,justifyContent:‘space-between’,flexWrap:‘wrap’,gap:12}}>
-<div><h1 style={{fontSize:22,fontWeight:800,margin:0}}>🕐 ELD Logs</h1><p style={{color:’#64748b’,fontSize:13,margin:‘2px 0 0’}}>BlueInk Tech • Hours of Service</p></div>
-<Btn onClick={()=>setShowUpload(!showUpload)} color=“blue”>📁 Upload Log</Btn>
-</div>
-<Card>
-<div style={{padding:14,display:‘flex’,justifyContent:‘space-between’,alignItems:‘center’}}>
-<div><p style={{margin:0,fontSize:13,fontWeight:600}}>BlueInk Tech ELD</p><p style={{margin:‘2px 0 0’,fontSize:11,color:’#64748b’}}>Your electronic logging device</p></div>
-<a href=“https://www.blueinktech.com” target=”_blank” rel=“noreferrer” style={{color:’#22d3ee’,fontSize:12}}>Open App ↗</a>
-</div>
-</Card>
-{showUpload&&(
-<Card>
-<div style={{padding:20}}>
-<div style={{display:‘grid’,gridTemplateColumns:‘repeat(auto-fill,minmax(160px,1fr))’,gap:10}}>
-<Inp label=“Date” type=“date” value={form.date} onChange={v=>set(‘date’,v)}/>
-<Inp label=“Driving (hrs)” type=“number” value={form.hosDriving} onChange={v=>set(‘hosDriving’,v)}/>
-<Inp label=“On Duty (hrs)” type=“number” value={form.hosOnDuty} onChange={v=>set(‘hosOnDuty’,v)}/>
-<Inp label=“Sleeper (hrs)” type=“number” value={form.hosSleeper} onChange={v=>set(‘hosSleeper’,v)}/>
-<Inp label=“Off Duty (hrs)” type=“number” value={form.hosOffDuty} onChange={v=>set(‘hosOffDuty’,v)}/>
-<Inp label=“Start Odometer” type=“number” value={form.startOdo} onChange={v=>set(‘startOdo’,v)}/>
-<Inp label=“End Odometer” type=“number” value={form.endOdo} onChange={v=>set(‘endOdo’,v)}/>
-</div>
-<div onClick={()=>fileRef.current?.click()} style={{marginTop:10,border:‘2px dashed #334155’,borderRadius:10,padding:20,textAlign:‘center’,cursor:‘pointer’,color:’#475569’}}>
-📁 Click to attach log file (optional)
-<input ref={fileRef} type=“file” accept=”.pdf,.csv,.xml,image/*” style={{display:‘none’}} onChange={handleFile}/>
-</div>
-<div style={{display:‘flex’,gap:8,marginTop:14}}>
-<Btn onClick={()=>{saveLogs(prev=>[{id:uid(),…form,uploadedAt:today(),driverId:currentUser.id,deleted:false},…prev]);setShowUpload(false);}} color=“blue”>Save Entry</Btn>
-<Btn onClick={()=>setShowUpload(false)} color=“slate”>Cancel</Btn>
-</div>
-</div>
-</Card>
-)}
-<div style={{display:‘flex’,flexDirection:‘column’,gap:8}}>
-{myLogs.length===0&&<Card><div style={{padding:40,textAlign:‘center’,color:’#475569’}}>No ELD logs yet</div></Card>}
-{myLogs.map(l=>(
-<Card key={l.id}>
-<div style={{padding:14,display:‘flex’,justifyContent:‘space-between’,alignItems:‘center’,flexWrap:‘wrap’,gap:8}}>
-<div>
-<p style={{margin:0,fontSize:14,fontWeight:700}}>{fmtDate(l.date)}</p>
-<div style={{display:‘flex’,gap:12,marginTop:4,flexWrap:‘wrap’}}>
-{l.hosDriving&&<span style={{fontSize:11,color:’#94a3b8’}}>🚛 Driving: {l.hosDriving}h</span>}
-{l.hosOnDuty&&<span style={{fontSize:11,color:’#94a3b8’}}>⚙️ On Duty: {l.hosOnDuty}h</span>}
-{l.hosSleeper&&<span style={{fontSize:11,color:’#94a3b8’}}>😴 Sleeper: {l.hosSleeper}h</span>}
-</div>
-{l.fileName&&<p style={{margin:‘4px 0 0’,fontSize:11,color:’#60a5fa’}}>📄 {l.fileName}</p>}
-</div>
-{l.fileData&&<a href={l.fileData} download={l.fileName} style={{color:’#60a5fa’,fontSize:12}}>⬇️ View</a>}
-</div>
-</Card>
-))}
-</div>
-</div>
-);
+if(!window._showAddELD) window._showAddELD=false;
+
+function renderELD(u){
+  const logs=STATE.eld.filter(l=>!l.deleted&&l.driverId===u.id);
+  const addForm=window._showAddELD?card(`<div class="p20"><div class="fw700 fs14 mb12">Upload ELD Log</div>
+    <div class="grid3">
+      ${inp('Date','eld-date',today(),'date')}
+      ${inp('Driving (hrs)','eld-drive','','number')}
+      ${inp('On Duty (hrs)','eld-duty','','number')}
+      ${inp('Sleeper (hrs)','eld-sleep','','number')}
+      ${inp('Off Duty (hrs)','eld-off','','number')}
+      ${inp('Start Odometer','eld-start','','number')}
+      ${inp('End Odometer','eld-end','','number')}
+    </div>
+    <div class="upload-zone mt12" onclick="document.getElementById('eld-file').click()">
+      <div style="color:#475569">📁 Click to attach log file (optional)<br/><span class="fs11">PDF, CSV, XML, Image</span></div>
+      <input type="file" id="eld-file" accept=".pdf,.csv,.xml,image/*" style="display:none" onchange="window._pendingELD=this.files[0]"/>
+    </div>
+    <div class="flex gap8 mt16">${btn('Save Entry','handleAction(\'add-eld\',{})','btn-blue btn-md')}${btn('Cancel','window._showAddELD=false;render()','btn-slate btn-md')}</div>
+  </div>`):'';
+
+  return `<div class="section">
+    <div class="flex justify-between items-center wrap gap12">
+      <div><div class="page-title">🕐 ELD Logs</div><div class="page-sub">BlueInk Tech • Hours of Service</div></div>
+      ${btn('📁 Upload Log','window._showAddELD=!window._showAddELD;render()','btn-blue btn-md')}
+    </div>
+    ${card(`<div class="p16 flex justify-between items-center"><div><div class="fw600 fs13">BlueInk Tech ELD</div><div class="fs11 c-slate mt4">Your electronic logging device</div></div><a href="https://www.blueinktech.com" target="_blank" style="color:#22d3ee;font-size:12px;text-decoration:none">Open App ↗</a></div>`)}
+    ${addForm}
+    ${logs.length===0?card(`<div class="p16 text-center c-slate">No ELD logs yet</div>`):''}
+    ${logs.map(l=>card(`<div class="p16 flex justify-between items-center wrap gap8">
+      <div>
+        <div class="fw700 fs14">${fmtDate(l.date)}</div>
+        <div class="flex gap12 mt4 wrap">
+          ${l.hosDriving?`<span class="fs11 c-slate">🚛 Driving: ${l.hosDriving}h</span>`:''}
+          ${l.hosOnDuty?`<span class="fs11 c-slate">⚙️ On Duty: ${l.hosOnDuty}h</span>`:''}
+          ${l.hosSleeper?`<span class="fs11 c-slate">😴 Sleeper: ${l.hosSleeper}h</span>`:''}
+        </div>
+        ${l.fileName?`<div class="fs11 c-blue mt4">📄 ${esc(l.fileName)}</div>`:''}
+      </div>
+      ${l.fileData?`<a href="${l.fileData}" download="${esc(l.fileName||'eld')}" class="c-blue fs12" style="text-decoration:none">⬇️ View</a>`:''}
+    </div>`)).join('')}
+  </div>`;
+}
+
+window._pendingELD=null;
+function addELD(){
+  const saveLog=(data,name)=>{
+    const log={id:uid(),driverId:STATE.user.id,date:document.getElementById('eld-date')?.value||today(),hosDriving:document.getElementById('eld-drive')?.value||'',hosOnDuty:document.getElementById('eld-duty')?.value||'',hosSleeper:document.getElementById('eld-sleep')?.value||'',hosOffDuty:document.getElementById('eld-off')?.value||'',startOdo:document.getElementById('eld-start')?.value||'',endOdo:document.getElementById('eld-end')?.value||'',fileName:name,fileData:data,uploadedAt:today(),deleted:false};
+    STATE.eld.unshift(log);save('ettr_eld',STATE.eld);window._showAddELD=false;window._pendingELD=null;render();
+  };
+  const file=window._pendingELD;
+  if(file){const r=new FileReader();r.onload=ev=>saveLog(ev.target.result,file.name);r.readAsDataURL(file);}
+  else saveLog(null,'');
 }
 
 // ── REPORTS ───────────────────────────────────────────────────────────────────
-function ReportsModule({currentUser,loads,users}) {
-const isAdmin=currentUser.role===ROLES.DEVELOPER||currentUser.role===ROLES.CARRIER_ADMIN;
-const [period,setPeriod]=useState(‘monthly’);
-const [year,setYear]=useState(new Date().getFullYear());
-const [month,setMonth]=useState(new Date().getMonth()+1);
-const filterLoads=l=>{
-if(l.deleted)return false;
-if(!isAdmin&&l.driverId!==currentUser.id)return false;
-const d=new Date(((l.deliveryDate||l.pickupDate)||‘2000-01-01’)+‘T12:00:00’);
-if(period===‘yearly’)return d.getFullYear()===year;
-if(period===‘monthly’)return d.getFullYear()===year&&d.getMonth()+1===month;
-if(period===‘weekly’){const n=new Date();return d>=(new Date(n-7*86400000));}
-if(period===‘daily’)return (l.deliveryDate||l.pickupDate)===today();
-return true;
-};
-const filtered=loads.filter(filterLoads);
-const paid=filtered.filter(l=>l.status===‘Paid’);
-const revenue=paid.reduce((s,l)=>s+(parseFloat(l.rate)||0),0);
-const miles=filtered.reduce((s,l)=>s+(parseFloat(l.miles)||0),0);
-const MONTHS=[‘Jan’,‘Feb’,‘Mar’,‘Apr’,‘May’,‘Jun’,‘Jul’,‘Aug’,‘Sep’,‘Oct’,‘Nov’,‘Dec’];
-return (
-<div style={{display:‘flex’,flexDirection:‘column’,gap:20}}>
-<h1 style={{fontSize:22,fontWeight:800,margin:0}}>📊 Reports</h1>
-<Card>
-<div style={{padding:16,display:‘flex’,gap:12,flexWrap:‘wrap’,alignItems:‘flex-end’}}>
-<div>
-<p style={{color:’#64748b’,fontSize:11,margin:‘0 0 4px’}}>Period</p>
-<div style={{display:‘flex’,gap:4}}>
-{[‘daily’,‘weekly’,‘monthly’,‘yearly’].map(p=>(
-<button key={p} onClick={()=>setPeriod(p)} style={{padding:‘6px 12px’,borderRadius:7,border:‘none’,cursor:‘pointer’,fontSize:12,fontWeight:600,background:period===p?’#7c3aed’:’#334155’,color:’#fff’}}>
-{p.charAt(0).toUpperCase()+p.slice(1)}
-</button>
-))}
-</div>
-</div>
-{(period===‘monthly’||period===‘yearly’)&&<Sel label=“Year” value={String(year)} onChange={v=>setYear(parseInt(v))} options={[‘2024’,‘2025’,‘2026’,‘2027’]}/>}
-{period===‘monthly’&&<Sel label=“Month” value={String(month)} onChange={v=>setMonth(parseInt(v))} options={MONTHS.map((_,i)=>String(i+1))}/>}
-</div>
-</Card>
-<div style={{display:‘grid’,gridTemplateColumns:‘repeat(auto-fill,minmax(150px,1fr))’,gap:12}}>
-<StatCard label="Revenue" value={fmt$(revenue)} color="#4ade80"/>
-<StatCard label=“Total Loads” value={filtered.length} sub={`${paid.length} paid`} color=”#60a5fa”/>
-<StatCard label="Total Miles" value={miles>0?miles.toLocaleString():0} color=”#fbbf24”/>
-<StatCard label="Rev/Mile" value={miles>0?`$${(revenue/miles).toFixed(2)}`:’-’} color=”#c084fc”/>
-</div>
-<Card>
-<div style={{padding:20}}>
-<h3 style={{margin:‘0 0 16px’,fontSize:14,fontWeight:700}}>Load Breakdown</h3>
-{filtered.length===0?<p style={{color:’#475569’,fontSize:13}}>No loads in this period</p>:filtered.map(l=>(
-<div key={l.id} style={{display:‘flex’,justifyContent:‘space-between’,alignItems:‘center’,padding:‘10px 0’,borderBottom:‘1px solid #1e293b’,flexWrap:‘wrap’,gap:8}}>
-<div>
-<p style={{margin:0,fontSize:13,fontWeight:600}}>{l.origin} → {l.destination}</p>
-<p style={{margin:‘2px 0 0’,fontSize:11,color:’#64748b’}}>{l.broker} • {fmtDate(l.pickupDate)}</p>
-</div>
-<div style={{textAlign:‘right’,display:‘flex’,gap:8,alignItems:‘center’}}>
-<p style={{margin:0,fontSize:14,fontWeight:700,color:’#4ade80’}}>{fmt$(l.rate)}</p>
-<Badge label={l.status} color={STATUS_COLORS[l.status]}/>
-</div>
-</div>
-))}
-</div>
-</Card>
-</div>
-);
-}
+if(!window._rptPeriod) window._rptPeriod='monthly';
+if(!window._rptYear) window._rptYear=new Date().getFullYear();
+if(!window._rptMonth) window._rptMonth=new Date().getMonth()+1;
+function setReportPeriod(v){window._rptPeriod=v;render();}
 
-// ── ADMIN ─────────────────────────────────────────────────────────────────────
-function AdminModule({currentUser,users,saveUsers,trucks}) {
-const isDev=currentUser.role===ROLES.DEVELOPER;
-const [showAdd,setShowAdd]=useState(false);
-const [form,setForm]=useState({name:’’,email:’’,phone:’’,password:‘ettr2024’,role:ROLES.DRIVER,carrierRole:‘Driver’});
-const set=(k,v)=>setForm(f=>({…f,[k]:v}));
-const addUser=()=>{if(!form.name||!form.email)return;saveUsers(prev=>[{id:uid(),…form,deleted:false},…prev]);setShowAdd(false);};
-const toggleDelete=id=>{if(id===currentUser.id){alert(‘Cannot delete yourself.’);return;}const u=users.find(u=>u.id===id);if(!u.deleted){if(!window.confirm(`Deactivate ${u.name}?`)||!window.confirm(‘DOUBLE confirm?’))return;}saveUsers(prev=>prev.map(u=>u.id===id?{…u,deleted:!u.deleted}:u));};
-return (
-<div style={{display:‘flex’,flexDirection:‘column’,gap:20}}>
-<div style={{display:‘flex’,alignItems:‘center’,justifyContent:‘space-between’,flexWrap:‘wrap’,gap:12}}>
-<h1 style={{fontSize:22,fontWeight:800,margin:0}}>⚙️ {isDev?‘System Admin’:‘Carrier Admin’}</h1>
-<Btn onClick={()=>setShowAdd(!showAdd)} color=“blue”>+ Add User</Btn>
-</div>
-<Card>
-<div style={{padding:20}}>
-<h3 style={{margin:‘0 0 12px’,fontSize:14,fontWeight:700}}>🏢 {CARRIER.name}</h3>
-<div style={{display:‘grid’,gridTemplateColumns:‘repeat(auto-fill,minmax(150px,1fr))’,gap:8,fontSize:13}}>
-{[[‘DOT’,CARRIER.dot],[‘HQ’,CARRIER.address],[‘Active Drivers’,users.filter(u=>!u.deleted).length]].map(([k,v])=>(
-<div key={k}><p style={{color:’#64748b’,fontSize:11,margin:0}}>{k}</p><p style={{margin:‘2px 0 0’}}>{v}</p></div>
-))}
-</div>
-</div>
-</Card>
-{showAdd&&(
-<Card>
-<div style={{padding:20}}>
-<div style={{display:‘grid’,gridTemplateColumns:‘repeat(auto-fill,minmax(200px,1fr))’,gap:10}}>
-<Inp label=“Full Name *” value={form.name} onChange={v=>set(‘name’,v)}/>
-<Inp label=“Email *” value={form.email} onChange={v=>set(‘email’,v)}/>
-<Inp label=“Phone” value={form.phone} onChange={v=>set(‘phone’,v)}/>
-<Inp label=“Temp Password” value={form.password} onChange={v=>set(‘password’,v)}/>
-<Sel label=“App Role” value={form.role} onChange={v=>set(‘role’,v)} options={Object.values(ROLES)}/>
-<Sel label=“Carrier Role” value={form.carrierRole} onChange={v=>set(‘carrierRole’,v)} options={[‘Driver’,‘Lease Operator’,‘Owner Operator’,‘Carrier Admin’]}/>
-</div>
-<div style={{display:‘flex’,gap:8,marginTop:14}}><Btn onClick={addUser} color="blue">Create User</Btn><Btn onClick={()=>setShowAdd(false)} color=“slate”>Cancel</Btn></div>
-</div>
-</Card>
-)}
-<div style={{display:‘flex’,flexDirection:‘column’,gap:10}}>
-{users.map(u=>(
-<Card key={u.id}>
-<div style={{padding:16,display:‘flex’,alignItems:‘center’,justifyContent:‘space-between’,gap:8,flexWrap:‘wrap’,opacity:u.deleted?0.5:1}}>
-<div style={{display:‘flex’,alignItems:‘center’,gap:12}}>
-<div style={{width:40,height:40,borderRadius:‘50%’,background:u.id===‘tim_smith’?’#334155’:’#1d4ed8’,display:‘flex’,alignItems:‘center’,justifyContent:‘center’,fontWeight:700,fontSize:14}}>{u.name[0]}</div>
-<div>
-<p style={{margin:0,fontSize:13,fontWeight:600}}>{u.name} {u.id===currentUser.id&&<span style={{color:’#64748b’,fontWeight:400,fontSize:11}}>(you)</span>}</p>
-<p style={{margin:‘2px 0 0’,fontSize:11,color:’#64748b’}}>{u.email} • {u.role}</p>
-</div>
-</div>
-<div style={{display:‘flex’,gap:8,alignItems:‘center’}}>
-<Badge label={u.deleted?‘Inactive’:‘Active’} color={u.deleted?’#7f1d1d’:’#065f46’}/>
-{isDev&&u.id!==currentUser.id&&<button onClick={()=>toggleDelete(u.id)} style={{padding:‘4px 10px’,borderRadius:6,border:‘none’,cursor:‘pointer’,fontSize:12,background:u.deleted?’#15803d’:’#7f1d1d’,color:’#fff’}}>{u.deleted?‘Reactivate’:‘Deactivate’}</button>}
-</div>
-</div>
-</Card>
-))}
-</div>
-</div>
-);
+function renderReports(u){
+  const isAdm=isAdmin(u);
+  const period=window._rptPeriod||'monthly';
+  const year=window._rptYear;
+  const month=window._rptMonth;
+  const filterLoads=l=>{
+    if(l.deleted)return false;
+    if(!isAdm&&l.driverId!==u.id)return false;
+    const d=new Date(((l.deliveryDate||l.pickupDate)||'2000-01-01')+'T12:00:00');
+    if(period==='yearly')return d.getFullYear()===year;
+    if(period==='monthly')return d.getFullYear()===year&&d.getMonth()+1===month;
+    if(period==='weekly'){const n=new Date();return d>=(new Date(n-7*86400000));}
+    if(period==='daily')return (l.deliveryDate||l.pickupDate)===today();
+    return true;
+  };
+  const filtered=STATE.loads.filter(filterLoads);
+  const paid=filtered.filter(l=>l.status==='Paid');
+  const revenue=paid.reduce((s,l)=>s+(parseFloat(l.rate)||0),0);
+  const miles=filtered.reduce((s,l)=>s+(parseFloat(l.miles)||0),0);
+  const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  return `<div class="section">
+    <div class="page-title">📊 Reports</div>
+    ${card(`<div class="p16 flex gap12 wrap items-end">
+      <div>
+        <div class="inp-label mb4">Period</div>
+        <div class="flex gap4">
+          ${['daily','weekly','monthly','yearly'].map(p=>`<button class="btn btn-sm ${period===p?'btn-blue':'btn-slate'}" data-action="set-report-period" data-val="${p}">${p.charAt(0).toUpperCase()+p.slice(1)}</button>`).join('')}
+        </div>
+      </div>
+      ${(period==='monthly'||period==='yearly')?sel('Year','rpt-year',String(year),['2024','2025','2026','2027']):''}
+      ${period==='monthly'?sel('Month','rpt-month',String(month),MONTHS.map((_,i)=>String(i+1))):''}
+    </div>`)}
+    <div class="grid4">
+      ${statCard('Revenue',fmt$(revenue),'','#4ade80')}
+      ${statCard('Total Loads',filtered.length,paid.length+' paid','#60a5fa')}
+      ${statCard('Miles',miles>0?miles.toLocaleString():0,'','#fbbf24')}
+      ${statCard('Rev/Mile',miles>0?'$'+(revenue/miles).toFixed(2):'-','','#c084fc')}
+    </div>
+    ${card(`<div class="p20"><div class="fw700 fs14 mb12">Load Breakdown</div>
+      ${filtered.length===0?'<div class="c-slate fs13">No loads in this period</div>':
+      filtered.map(l=>`<div class="row"><div><div class="fw600 fs13">${esc(l.origin)} → ${esc(l.destination)}</div><div class="fs11 c-slate">${esc(l.broker)} • ${fmtDate(l.pickupDate)}</div></div><div class="flex gap8 items-center">${badge(l.status,STATUS_COLORS[l.status])}<div class="fw700 fs14 c-green">${fmt$(l.rate)}</div></div></div>`).join('')}
+    </div>`)}
+  </div>`;
 }
 
 // ── TRAILERS ──────────────────────────────────────────────────────────────────
-function TrailersModule({currentUser,trailers,saveTrailers}) {
-const isAdmin=currentUser.role===ROLES.DEVELOPER||currentUser.role===ROLES.CARRIER_ADMIN;
-const [showAdd,setShowAdd]=useState(false);
-const [form,setForm]=useState({number:’’,type:‘Dry Van’,year:’’,make:’’,vin:’’,plate:’’,state:’’,length:‘53’,annualInspection:’’,notes:’’});
-const set=(k,v)=>setForm(f=>({…f,[k]:v}));
-const active=trailers.filter(t=>!t.deleted);
-const addTrailer=()=>{if(!form.number)return;saveTrailers(prev=>[{id:uid(),…form,deleted:false},…prev]);setShowAdd(false);};
-const del=id=>{if(!window.confirm(‘Delete?’)||!window.confirm(‘DOUBLE confirm?’))return;saveTrailers(prev=>prev.map(t=>t.id===id?{…t,deleted:true}:t));};
-return (
-<div style={{display:‘flex’,flexDirection:‘column’,gap:16}}>
-<div style={{display:‘flex’,alignItems:‘center’,justifyContent:‘space-between’,flexWrap:‘wrap’,gap:12}}>
-<div><h1 style={{fontSize:22,fontWeight:800,margin:0}}>🔲 Trailers</h1><p style={{color:’#64748b’,fontSize:13,margin:‘2px 0 0’}}>{active.length} in fleet</p></div>
-{isAdmin&&<Btn onClick={()=>setShowAdd(!showAdd)} color=“blue”>+ Add Trailer</Btn>}
-</div>
-{showAdd&&(
-<Card>
-<div style={{padding:20}}>
-<div style={{display:‘grid’,gridTemplateColumns:‘repeat(auto-fill,minmax(160px,1fr))’,gap:10}}>
-<Inp label=“Trailer # *” value={form.number} onChange={v=>set(‘number’,v)} placeholder=“e.g. T-101”/>
-<Sel label=“Type” value={form.type} onChange={v=>set(‘type’,v)} options={TRAILER_TYPES}/>
-<Inp label=“Year” type=“number” value={form.year} onChange={v=>set(‘year’,v)}/>
-<Inp label=“VIN” value={form.vin} onChange={v=>set(‘vin’,v)}/>
-<Inp label=“License Plate” value={form.plate} onChange={v=>set(‘plate’,v)}/>
-<Inp label=“State” value={form.state} onChange={v=>set(‘state’,v)}/>
-<Inp label=“Length (ft)” value={form.length} onChange={v=>set(‘length’,v)}/>
-<Inp label=“Annual Inspection” type=“date” value={form.annualInspection} onChange={v=>set(‘annualInspection’,v)}/>
-</div>
-<div style={{display:‘flex’,gap:8,marginTop:14}}><Btn onClick={addTrailer} color="blue">Save Trailer</Btn><Btn onClick={()=>setShowAdd(false)} color=“slate”>Cancel</Btn></div>
-</div>
-</Card>
-)}
-<div style={{display:‘grid’,gridTemplateColumns:‘repeat(auto-fill,minmax(280px,1fr))’,gap:12}}>
-{active.length===0&&<Card><div style={{padding:40,textAlign:‘center’,color:’#475569’}}>No trailers in fleet yet</div></Card>}
-{active.map(t=>{
-const inspDays=daysUntil(t.annualInspection);
-return (
-<Card key={t.id}>
-<div style={{padding:16}}>
-<div style={{display:‘flex’,justifyContent:‘space-between’,marginBottom:10}}>
-<div>
-<p style={{margin:0,fontSize:18,fontWeight:800}}>{t.number}</p>
-<Badge label={t.type} color="#1d4ed8"/>
-</div>
-{isAdmin&&currentUser.role===ROLES.DEVELOPER&&<button onClick={()=>del(t.id)} style={{background:‘none’,border:‘none’,color:’#475569’,cursor:‘pointer’}}>🗑️</button>}
-</div>
-<div style={{display:‘grid’,gridTemplateColumns:‘1fr 1fr’,gap:4,fontSize:12}}>
-{t.year&&<div><span style={{color:’#64748b’}}>Year: </span>{t.year}</div>}
-{t.vin&&<div><span style={{color:’#64748b’}}>VIN: </span>{t.vin}</div>}
-{t.plate&&<div><span style={{color:’#64748b’}}>Plate: </span>{t.plate}</div>}
-{t.length&&<div><span style={{color:’#64748b’}}>Length: </span>{t.length}ft</div>}
-</div>
-{t.annualInspection&&(
-<div style={{marginTop:10,padding:‘6px 10px’,borderRadius:7,fontSize:11,background:inspDays!==null&&inspDays<30?‘rgba(185,28,28,0.2)’:inspDays!==null&&inspDays<90?‘rgba(180,83,9,0.2)’:‘rgba(255,255,255,0.05)’,color:inspDays!==null&&inspDays<30?’#f87171’:inspDays!==null&&inspDays<90?’#fbbf24’:’#64748b’}}>
-📅 Inspection: {fmtDate(t.annualInspection)} {inspDays!==null&&`(${inspDays<0?'EXPIRED':inspDays+' days'})`}
-</div>
-)}
-</div>
-</Card>
-);
-})}
-</div>
-</div>
-);
+if(!window._showAddTrailer) window._showAddTrailer=false;
+
+function renderTrailers(u){
+  const isAdm=isAdmin(u);
+  const active=STATE.trailers.filter(t=>!t.deleted);
+  const addForm=window._showAddTrailer?card(`<div class="p20"><div class="fw700 fs14 mb12">New Trailer</div>
+    <div class="grid3">
+      ${inp('Trailer # *','trl-num','','text','e.g. T-101')}
+      ${sel('Type','trl-type','Dry Van',TRAILER_TYPES)}
+      ${inp('Year','trl-year','','number')}
+      ${inp('VIN','trl-vin','')}
+      ${inp('License Plate','trl-plate','')}
+      ${inp('State','trl-state','')}
+      ${inp('Length (ft)','trl-len','53')}
+      ${inp('Annual Inspection','trl-insp','','date')}
+    </div>
+    <div class="flex gap8 mt16">${btn('Save Trailer','handleAction(\'add-trailer\',{})','btn-blue btn-md')}${btn('Cancel','window._showAddTrailer=false;render()','btn-slate btn-md')}</div>
+  </div>`):'';
+
+  return `<div class="section">
+    <div class="flex justify-between items-center wrap gap12">
+      <div><div class="page-title">🔲 Trailers</div><div class="page-sub">${active.length} in fleet</div></div>
+      ${isAdm?btn('+ Add Trailer','window._showAddTrailer=!window._showAddTrailer;render()','btn-blue btn-md'):''}
+    </div>
+    ${addForm}
+    <div class="grid2">
+      ${active.length===0?card(`<div class="p16 text-center c-slate">No trailers in fleet yet</div>`):''}
+      ${active.map(t=>{
+        const id=daysUntil(t.annualInspection);
+        return card(`<div class="p16">
+          <div class="flex justify-between mb12">
+            <div><div class="fw800 fs18">${esc(t.number)}</div>${badge(t.type,'#1d4ed8')}</div>
+            ${isDev(u)?`<button style="background:none;border:none;color:#475569;cursor:pointer" data-action="delete-trailer" data-id="${t.id}">🗑️</button>`:''}
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:12px">
+            ${t.year?`<div><span class="c-slate">Year: </span>${esc(String(t.year))}</div>`:''}
+            ${t.vin?`<div><span class="c-slate">VIN: </span>${esc(t.vin)}</div>`:''}
+            ${t.plate?`<div><span class="c-slate">Plate: </span>${esc(t.plate)}</div>`:''}
+            ${t.length?`<div><span class="c-slate">Length: </span>${esc(t.length)}ft</div>`:''}
+          </div>
+          ${t.annualInspection?`<div class="mt12 fs11" style="padding:6px 10px;border-radius:7px;background:${id!==null&&id<30?'rgba(185,28,28,.2)':id!==null&&id<90?'rgba(180,83,9,.2)':'rgba(255,255,255,.05)'};color:${id!==null&&id<30?'#f87171':id!==null&&id<90?'#fbbf24':'#64748b'}">📅 Inspection: ${fmtDate(t.annualInspection)} ${id!==null?'('+( id<0?'EXPIRED':id+' days')+')':''}</div>`:''}
+        </div>`);
+      }).join('')}
+    </div>
+  </div>`;
 }
 
-// ── MAIN APP ──────────────────────────────────────────────────────────────────
-function App() {
-const [currentUser,setCurrentUser]=useState(null);
-const [page,setPage]=useState(‘dashboard’);
-const [collapsed,setCollapsed]=useState(window.innerWidth<768);
-const [users,saveUsers]=useLS(‘ettr_users’,INITIAL_USERS);
-const [pettyCash,savePettyCash]=useLS(‘ettr_petty_cash’,INITIAL_PETTY_CASH);
-const [loads,saveLoads]=useLS(‘ettr_loads’,[]);
-const [trailers,saveTrailers]=useLS(‘ettr_trailers’,[]);
-const [serviceRecords,saveServiceRecords]=useLS(‘ettr_service’,[]);
-const [documents,saveDocuments]=useLS(‘ettr_documents’,[]);
-const [trucks,saveTrucks]=useLS(‘ettr_trucks’,INITIAL_TRUCKS);
-
-if(!currentUser) return <LoginScreen users={users} onLogin={u=>{setCurrentUser(u);setPage(‘dashboard’);}}/>;
-const liveUser=users.find(u=>u.id===currentUser.id)||currentUser;
-const allData={loads,pettyCash,serviceRecords,trailers,trucks,documents,users};
-const sideW=collapsed?60:220;
-
-const renderPage=()=>{
-switch(page){
-case ‘dashboard’: return <Dashboard user={liveUser} allData={allData} setPage={setPage}/>;
-case ‘profile’: return <ProfileModule user={liveUser} users={users} saveUsers={saveUsers} currentUser={liveUser}/>;
-case ‘truck’: return <TruckModule user={liveUser} trucks={trucks} saveTrucks={saveTrucks}/>;
-case ‘petty_cash’: return <PettyCashModule currentUser={liveUser} users={users} pettyCash={pettyCash} savePettyCash={savePettyCash}/>;
-case ‘loads’: return <LoadsModule currentUser={liveUser} users={users} loads={loads} saveLoads={saveLoads} trucks={trucks}/>;
-case ‘trailers’: return <TrailersModule currentUser={liveUser} trailers={trailers} saveTrailers={saveTrailers}/>;
-case ‘service’: return <ServiceModule currentUser={liveUser} serviceRecords={serviceRecords} saveServiceRecords={saveServiceRecords} trucks={trucks}/>;
-case ‘documents’: return <DocumentsModule currentUser={liveUser} documents={documents} saveDocuments={saveDocuments} users={users}/>;
-case ‘fuel’: return <FuelModule currentUser={liveUser} trucks={trucks}/>;
-case ‘eld’: return <ELDModule currentUser={liveUser}/>;
-case ‘reports’: return <ReportsModule currentUser={liveUser} loads={loads} users={users}/>;
-case ‘admin’: return <AdminModule currentUser={liveUser} users={users} saveUsers={saveUsers} trucks={trucks} saveTrucks={saveTrucks}/>;
-default: return <Dashboard user={liveUser} allData={allData} setPage={setPage}/>;
+function addTrailer(){
+  const num=document.getElementById('trl-num')?.value?.trim();
+  if(!num)return;
+  const t={id:uid(),number:num,type:document.getElementById('trl-type')?.value||'Dry Van',year:document.getElementById('trl-year')?.value||'',vin:document.getElementById('trl-vin')?.value||'',plate:document.getElementById('trl-plate')?.value||'',state:document.getElementById('trl-state')?.value||'',length:document.getElementById('trl-len')?.value||'53',annualInspection:document.getElementById('trl-insp')?.value||'',deleted:false};
+  STATE.trailers.unshift(t);save('ettr_trailers',STATE.trailers);window._showAddTrailer=false;render();
 }
-};
+function deleteTrailer(id){if(!confirm('Delete?')||!confirm('DOUBLE confirm?'))return;STATE.trailers=STATE.trailers.map(t=>t.id===id?{...t,deleted:true}:t);save('ettr_trailers',STATE.trailers);render();}
 
-return (
-<div style={{minHeight:‘100vh’,background:’#0a0f1e’}}>
-<Sidebar user={liveUser} page={page} setPage={setPage} onLogout={()=>setCurrentUser(null)} collapsed={collapsed} setCollapsed={setCollapsed}/>
-<main style={{marginLeft:sideW,transition:‘margin 0.2s’,padding:24,minHeight:‘100vh’}}>
-<div style={{maxWidth:1100,margin:‘0 auto’}}>
-{renderPage()}
-</div>
-</main>
-</div>
-);
+// ── ADMIN ─────────────────────────────────────────────────────────────────────
+if(!window._showAddUser) window._showAddUser=false;
+
+function renderAdmin(u){
+  const isDv=isDev(u);
+  const addForm=window._showAddUser?card(`<div class="p20"><div class="fw700 fs14 mb12">Add New User</div>
+    <div class="grid3">
+      ${inp('Full Name *','au-name','')}${inp('Email *','au-email','')}${inp('Phone','au-phone','')}
+      ${inp('Temp Password','au-pw','ettr2024')}
+      ${sel('App Role','au-role',ROLES.DRIVER,Object.values(ROLES))}
+      ${sel('Carrier Role','au-crole','Driver',['Driver','Lease Operator','Owner Operator','Carrier Admin'])}
+    </div>
+    <div class="flex gap8 mt16">${btn('Create User','handleAction(\'add-user\',{})','btn-blue btn-md')}${btn('Cancel','window._showAddUser=false;render()','btn-slate btn-md')}</div>
+  </div>`):'';
+
+  return `<div class="section">
+    <div class="flex justify-between items-center wrap gap12">
+      <div class="page-title">⚙️ ${isDv?'System Admin':'Carrier Admin'}</div>
+      ${btn('+ Add User','window._showAddUser=!window._showAddUser;render()','btn-blue btn-md')}
+    </div>
+    ${card(`<div class="p20"><div class="fw700 fs14 mb12">🏢 Edgerton Truck & Trailer Repair</div>
+      <div class="grid3">
+        ${[['DOT','US DOT 1978980'],['HQ','Bonduel, WI'],['Active Drivers',STATE.users.filter(u=>!u.deleted).length]].map(([k,v])=>`<div><div class="fs11 c-slate">${k}</div><div class="fs13 mt4">${esc(String(v))}</div></div>`).join('')}
+      </div>
+    </div>`)}
+    ${addForm}
+    ${STATE.users.map(usr=>card(`<div class="p16 flex justify-between items-center wrap gap8" style="opacity:${usr.deleted?.5:1}">
+      <div class="flex items-center gap12">
+        <div class="user-avatar" style="width:40px;height:40px;background:${usr.id==='tim_smith'?'#334155':'#1d4ed8'};font-size:14px">${usr.name[0]}</div>
+        <div>
+          <div class="fw600 fs13">${esc(usr.name)} ${usr.id===u.id?'<span style="color:#64748b;font-size:11px">(you)</span>':''}</div>
+          <div class="fs11 c-slate">${esc(usr.email)} • ${esc(usr.role)}</div>
+        </div>
+      </div>
+      <div class="flex gap8 items-center">
+        ${badge(usr.deleted?'Inactive':'Active',usr.deleted?'#7f1d1d':'#065f46')}
+        ${isDv&&usr.id!==u.id?`<button class="btn btn-sm ${usr.deleted?'btn-green':'btn-red'}" data-action="toggle-user" data-id="${usr.id}">${usr.deleted?'Reactivate':'Deactivate'}</button>`:''}
+      </div>
+    </div>`)).join('')}
+  </div>`;
 }
 
-ReactDOM.render(<App/>, document.getElementById(‘root’));
+function addUser(){
+  const name=document.getElementById('au-name')?.value?.trim();
+  const email=document.getElementById('au-email')?.value?.trim();
+  if(!name||!email)return;
+  const u={id:uid(),name,email,phone:document.getElementById('au-phone')?.value||'',password:document.getElementById('au-pw')?.value||'ettr2024',role:document.getElementById('au-role')?.value||ROLES.DRIVER,carrierRole:document.getElementById('au-crole')?.value||'Driver',cdl:'',cdlState:'',cdlExpiry:'',medCardExpiry:'',hireDate:'',address:'',emergencyContact:'',emergencyPhone:'',truckId:'',deleted:false};
+  STATE.users.push(u);save('ettr_users',STATE.users);window._showAddUser=false;render();
+}
+function toggleUser(id){
+  if(id===STATE.user.id){alert('Cannot deactivate yourself.');return;}
+  const u=STATE.users.find(x=>x.id===id);
+  if(!u.deleted&&(!confirm(`Deactivate ${u.name}?`)||!confirm('DOUBLE confirm?')))return;
+  STATE.users=STATE.users.map(x=>x.id===id?{...x,deleted:!x.deleted}:x);
+  save('ettr_users',STATE.users);render();
+}
+
+// ── REPORT CONTROLS (live) ────────────────────────────────────────────────────
+document.addEventListener('change', e => {
+  if(e.target.id==='rpt-year'){window._rptYear=parseInt(e.target.value);render();}
+  if(e.target.id==='rpt-month'){window._rptMonth=parseInt(e.target.value);render();}
+  if(e.target.id==='fu-gal'||e.target.id==='fu-ppg'){
+    const g=parseFloat(document.getElementById('fu-gal')?.value||0);
+    const p=parseFloat(document.getElementById('fu-ppg')?.value||0);
+    if(g&&p){const t=document.getElementById('fu-total');if(t)t.value=(g*p).toFixed(2);}
+  }
+});
+
+// ── BOOT ─────────────────────────────────────────────────────────────────────
+render();
 </script>
 
 </body>
