@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/ETTR/static/css/main.b3c3f589.css",
+    "main.js": "/ETTR/static/js/main.e25c4761.js",
+    "index.html": "/ETTR/index.html",
+    "main.b3c3f589.css.map": "/ETTR/static/css/main.b3c3f589.css.map",
+    "main.e25c4761.js.map": "/ETTR/static/js/main.e25c4761.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.b3c3f589.css",
+    "static/js/main.e25c4761.js"
+  ]
+}
