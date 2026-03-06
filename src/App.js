@@ -614,7 +614,8 @@ marginBottom:16,flexWrap:“wrap”,gap:10}}>
 // NEW LOAD — upload rate con first
 // ─────────────────────────────────────────────────────────────────────────────
 function NewLoad({users,user,isCarrier,shippers,setShippers,onSave,onCancel,setPage}){
-const fileRef = useRef(null);
+const fileRef = useRef(null);  // for any file (PDF, image, screenshot)
+const camRef  = useRef(null);  // camera capture only
 const [rcFile,setRcFile] = useState(null);
 const [rcUrl,setRcUrl] = useState(null);
 const [mode,setMode] = useState(“upload”); // upload | manual
@@ -695,48 +696,117 @@ alignItems:“center”,marginBottom:20,flexWrap:“wrap”,gap:8}}>
       fontSize:12,marginBottom:14}}>{err}</div>
   )}
 
-  {/* ── STEP 1: UPLOAD RATE CON ── */}
-  <div style={card({marginBottom:16,borderColor:C.accent,background:"#0d2040"})}>
-    <div style={{fontSize:12,fontWeight:900,color:C.accent,letterSpacing:1,marginBottom:6}}>
-      STEP 1 — RATE CONFIRMATION
-    </div>
-    <div style={{fontSize:11,color:C.dim,marginBottom:14}}>
-      Upload or photograph the rate confirmation from the broker. This starts the load workflow.
+  {/* ── STEP 1: RATE CON — import from email, photo, or file ── */}
+  <div style={card({marginBottom:16,borderColor:C.accent,background:"#0a1929"})}>
+    <div style={{fontSize:13,fontWeight:900,color:C.accent,letterSpacing:1,marginBottom:10}}>
+      STEP 1 — IMPORT RATE CONFIRMATION
     </div>
 
-    <input type="file" accept="image/*,application/pdf" capture="environment"
-      ref={fileRef} onChange={e=>handleFile(e.target.files[0])} style={{display:"none"}}/>
+    {/* How-to instructions */}
+    <div style={{background:"#0f2744",borderRadius:10,padding:16,marginBottom:18,
+      border:`1px solid #1e3a5f`}}>
+      <div style={{fontSize:11,color:"#93c5fd",fontWeight:900,marginBottom:10,letterSpacing:1}}>
+        HOW TO GET YOUR RATE CON INTO THE APP:
+      </div>
+      <div style={{display:"flex",flexDirection:"column",gap:10}}>
+        {[
+          { icon:"📧", title:"From Email (most common)",
+            steps:["Open your email app","Find the rate con email from the broker",
+                   "Tap the PDF attachment — it downloads to your phone",
+                   "Come back here and tap 'Import File' below","Pick that PDF — done"] },
+          { icon:"📷", title:"Photo of a Printed Rate Con",
+            steps:["Have the paper rate con in front of you",
+                   "Tap 'Take Photo' below","Point camera at it — done"] },
+          { icon:"🖼️", title:"Screenshot of the Email",
+            steps:["Take a screenshot of the rate con in your email",
+                   "Tap 'Import File' below","Pick the screenshot from your photos"] },
+        ].map(m=>(
+          <div key={m.title} style={{background:"#0c1f38",borderRadius:8,padding:12}}>
+            <div style={{fontSize:12,fontWeight:800,color:"#e2e8f0",marginBottom:6}}>
+              {m.icon} {m.title}
+            </div>
+            <ol style={{margin:0,paddingLeft:18}}>
+              {m.steps.map((s,i)=>(
+                <li key={i} style={{fontSize:11,color:C.dim,marginBottom:2}}>{s}</li>
+              ))}
+            </ol>
+          </div>
+        ))}
+      </div>
+    </div>
 
-    <div style={{display:"flex",gap:10,flexWrap:"wrap",marginBottom:12}}>
+    {/* TWO separate inputs: one for files/PDFs, one for camera */}
+    {/* File input — accepts everything including PDF from email */}
+    <input type="file" accept="*/*"
+      ref={fileRef}
+      onChange={e=>handleFile(e.target.files[0])}
+      style={{display:"none"}}/>
+    {/* Camera-only input */}
+    <input type="file" accept="image/*" capture="environment"
+      ref={camRef}
+      onChange={e=>handleFile(e.target.files[0])}
+      style={{display:"none"}}/>
+
+    <div style={{display:"flex",gap:10,flexWrap:"wrap",marginBottom:16}}>
       <button onClick={()=>fileRef.current?.click()}
-        style={{...btn(C.accent,"#fff"),fontSize:13,padding:"12px 24px",
-          border:"2px solid #60a5fa"}}>
-        📷 Take Photo / Upload Rate Con
+        style={{...btn("#1d4ed8","#fff"),fontSize:13,padding:"14px 22px",
+          border:"2px solid #3b82f6",display:"flex",alignItems:"center",gap:8}}>
+        <span style={{fontSize:20}}>📎</span>
+        <div style={{textAlign:"left"}}>
+          <div>Import File / PDF</div>
+          <div style={{fontSize:10,fontWeight:400,opacity:0.8}}>
+            From your downloads, email, or files app
+          </div>
+        </div>
       </button>
-      <button onClick={()=>setMode(mode==="manual"?"upload":"manual")}
-        style={{...ghost,fontSize:11}}>
-        {mode==="manual"?"↑ Back to Upload":"⌨ Manual Entry Instead"}
+
+      <button onClick={()=>camRef.current?.click()}
+        style={{...btn("#0f766e","#fff"),fontSize:13,padding:"14px 22px",
+          border:"2px solid #14b8a6",display:"flex",alignItems:"center",gap:8}}>
+        <span style={{fontSize:20}}>📷</span>
+        <div style={{textAlign:"left"}}>
+          <div>Take a Photo</div>
+          <div style={{fontSize:10,fontWeight:400,opacity:0.8}}>
+            Of a printed rate con
+          </div>
+        </div>
       </button>
     </div>
 
-    {rcFile&&(
-      <div style={{marginTop:8}}>
-        <div style={{fontSize:12,color:C.green,fontWeight:700,marginBottom:8}}>
-          ✓ {rcFile.name}
+    {/* File preview */}
+    {rcFile?(
+      <div style={{background:"#0f2744",borderRadius:10,padding:14,
+        border:`1px solid ${C.green}50`}}>
+        <div style={{fontSize:13,color:C.green,fontWeight:800,marginBottom:8}}>
+          ✓ RATE CON IMPORTED: {rcFile.name}
         </div>
         {rcUrl&&(
-          <img src={rcUrl} alt="Rate Con"
-            style={{width:"100%",maxHeight:240,objectFit:"contain",
-              borderRadius:8,border:`1px solid ${C.border}`}}/>
+          <img src={rcUrl} alt="Rate Con Preview"
+            style={{width:"100%",maxHeight:280,objectFit:"contain",
+              borderRadius:8,border:`1px solid ${C.border}`,marginBottom:8}}/>
         )}
+        {!rcUrl&&(
+          <div style={{fontSize:11,color:C.dim}}>
+            📄 PDF imported — fill in the load details below from this rate con.
+          </div>
+        )}
+        <button onClick={()=>{setRcFile(null);setRcUrl(null);}}
+          style={{...ghost,fontSize:11,marginTop:8}}>✕ Remove — pick different file</button>
+      </div>
+    ):(
+      <div style={{textAlign:"center",padding:"20px 0",
+        border:`2px dashed ${C.border}`,borderRadius:10,color:C.border,fontSize:12}}>
+        No file imported yet — use the buttons above
       </div>
     )}
 
-    {!rcFile&&mode==="upload"&&(
-      <div style={{fontSize:11,color:C.muted,fontStyle:"italic"}}>
-        No file yet — or switch to manual entry below.
-      </div>
-    )}
+    <div style={{marginTop:12,textAlign:"right"}}>
+      <button onClick={()=>setMode(mode==="manual"?"upload":"manual")}
+        style={{background:"none",border:"none",color:C.dim,cursor:"pointer",
+          fontSize:11,fontFamily:"inherit"}}>
+        {mode==="manual"?"↑ Back to file import":"⌨ Skip — I'll enter details manually instead"}
+      </button>
+    </div>
   </div>
 
   {/* ── STEP 2: LOAD DETAILS ── */}
