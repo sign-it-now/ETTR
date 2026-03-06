@@ -150,7 +150,7 @@ const sw = collapsed ? 60 : 220;
 
 const pp = {currentUser:live,users,setUsers,trucks,setTrucks,trailers,setTrailers,
 serviceRecords,setServiceRecords,documents,setDocuments,pettyCash,setPettyCash,
-loads,setLoads,isCarrier};
+loads,setLoads,isCarrier,setPage};
 
 const NAV=[
 {k:“dashboard”,i:“🏠”,l:“Dashboard”},
@@ -230,6 +230,19 @@ return(
 );
 }
 
+// ─── HOME BUTTON — appears on every page ──────────────────────────────────────
+function HomeBtn({setPage}){
+return(
+<button onClick={()=>setPage(“dashboard”)}
+title=“Go to Dashboard”
+style={{background:”#1e293b”,border:“1px solid #334155”,color:”#60a5fa”,borderRadius:8,
+padding:“7px 14px”,cursor:“pointer”,fontFamily:“inherit”,fontSize:12,fontWeight:800,
+display:“flex”,alignItems:“center”,gap:6,whiteSpace:“nowrap”}}>
+🏠 Home
+</button>
+);
+}
+
 // ─── DASHBOARD ────────────────────────────────────────────────────────────────
 function Dashboard({currentUser,loads,pettyCash,users,isCarrier,setPage}){
 const my=isCarrier?loads.filter(l=>!l.deleted):loads.filter(l=>!l.deleted&&l.driverId===currentUser.id);
@@ -282,7 +295,7 @@ return(
 }
 
 // ─── LOADS MODULE — MASTER CONTROLLER ─────────────────────────────────────────
-function LoadsModule({currentUser,users,setUsers,loads,setLoads,trucks,isCarrier}){
+function LoadsModule({currentUser,users,setUsers,loads,setLoads,trucks,isCarrier,setPage}){
 const[view,setView]=useState(“list”);
 const[sel,setSel]=useState(null);
 const[filterStage,setFilterStage]=useState(“all”);
@@ -330,16 +343,17 @@ const totalCut=all.reduce((s,l)=>s+calcLoad(l,users).carrierCut,0);
 const totalCollected=all.filter(l=>l.stage===“paid”).reduce((s,l)=>s+(l.paidAmount||l.grossRate),0);
 const totalOS=all.filter(l=>l.stage===“invoiced”).reduce((s,l)=>s+l.grossRate,0);
 
-if(view===“new”) return <NewLoad users={users} currentUser={currentUser} isCarrier={isCarrier} onSave={load=>{setLoads([load,…loads]);setView(“list”);}} onCancel={()=>setView(“list”)}/>;
-if(view===“detail”&&sel) return <LoadDetail load={sel} users={users} currentUser={currentUser} isCarrier={isCarrier} onUpdate={updateLoad} onAdvance={advanceStage} onDelete={softDelete} delConfirm={delConfirm} setDelConfirm={setDelConfirm} uploadDoc={uploadDoc} fileRefs={fileRefs} onBack={()=>setView(“list”)}/>;
-if(view===“commSettings”&&isCarrier) return <CommissionSettings users={users} setUsers={setUsers} onBack={()=>setView(“list”)}/>;
-if(view===“masterInvoice”&&isCarrier) return <MasterInvoiceList loads={loads} users={users} onBack={()=>setView(“list”)} onOpen={load=>{setSel(load);setView(“detail”);}}/>;
+if(view===“new”) return <NewLoad users={users} currentUser={currentUser} isCarrier={isCarrier} setPage={setPage} onSave={load=>{setLoads([load,…loads]);setView(“list”);}} onCancel={()=>setView(“list”)}/>;
+if(view===“detail”&&sel) return <LoadDetail load={sel} users={users} currentUser={currentUser} isCarrier={isCarrier} onUpdate={updateLoad} onAdvance={advanceStage} onDelete={softDelete} delConfirm={delConfirm} setDelConfirm={setDelConfirm} uploadDoc={uploadDoc} fileRefs={fileRefs} setPage={setPage} onBack={()=>setView(“list”)}/>;
+if(view===“commSettings”&&isCarrier) return <CommissionSettings users={users} setUsers={setUsers} setPage={setPage} onBack={()=>setView(“list”)}/>;
+if(view===“masterInvoice”&&isCarrier) return <MasterInvoiceList loads={loads} users={users} setPage={setPage} onBack={()=>setView(“list”)} onOpen={load=>{setSel(load);setView(“detail”);}}/>;
 
 return(
 <div>
 <div style={{display:“flex”,justifyContent:“space-between”,alignItems:“center”,marginBottom:16,flexWrap:“wrap”,gap:10}}>
 <div><div style={{fontSize:20,fontWeight:900,color:”#fff”}}>{isCarrier?“All Loads — ETTR”:` My Loads — ${currentUser.name}`}</div><div style={{fontSize:11,color:”#475569”}}>{visible.length} load(s)</div></div>
-<div style={{display:“flex”,gap:8,flexWrap:“wrap”}}>
+<div style={{display:“flex”,gap:8,flexWrap:“wrap”,alignItems:“center”}}>
+<HomeBtn setPage={setPage}/>
 <button onClick={()=>setView(“new”)} style={btn()}>+ NEW LOAD</button>
 {isCarrier&&<button onClick={()=>setView(“commSettings”)} style={btn(”#334155”,”#94a3b8”)}>⚙️ Commission</button>}
 {isCarrier&&<button onClick={()=>setView(“masterInvoice”)} style={btn(”#7c3aed”,”#fff”)}>📋 Invoice List</button>}
@@ -403,8 +417,9 @@ return(
 }
 
 // ─── NEW LOAD FORM ────────────────────────────────────────────────────────────
-function NewLoad({users,currentUser,isCarrier,onSave,onCancel}){
+function NewLoad({users,currentUser,isCarrier,setPage,onSave,onCancel}){
 const drivers=users.filter(u=>!u.deleted);
+const[mode,setMode]=useState(“upload”); // “upload” | “manual”
 const[form,setForm]=useState({
 driverId:isCarrier?“tim_smith”:currentUser.id,
 broker:“CNA Transportation”,brokerCustom:””,brokerContact:””,
@@ -415,27 +430,31 @@ lumperAmount:0,palletAmount:0,detentionAmount:0,notes:””
 });
 const[err,setErr]=useState(””);
 const fileRef=useRef(null);
+const[rateConFile,setRateConFile]=useState(null);
 const[rateConPreview,setRateConPreview]=useState(null);
-const[rateConName,setRateConName]=useState(null);
 
 const handleRateCon=(file)=>{
 if(!file)return;
-setRateConName(file.name);
+setRateConFile(file);
 if(file.type.startsWith(“image/”)){setRateConPreview(URL.createObjectURL(file));}
 else setRateConPreview(null);
+// Once a file is uploaded, show the detail form below it
+setMode(“upload”);
 };
 
 const handle=()=>{
-if(!form.loadNumber||!form.grossRate||!form.origin||!form.destination){setErr(“Load #, rate, origin, destination required.”);return;}
+if(mode===“upload”&&!rateConFile){setErr(“Please upload or photo the rate confirmation to continue, OR switch to manual entry.”);return;}
+if(mode===“manual”&&(!form.loadNumber||!form.grossRate||!form.origin||!form.destination)){setErr(“Load #, rate, origin, and destination are required.”);return;}
 const load={
 id:`load-${Date.now()}`,driverId:form.driverId,
-broker:form.broker,brokerCustom:form.brokerCustom,brokerContact:form.brokerContact,
+broker:form.broker===“Custom (type below)”?form.broker:form.broker,
+brokerCustom:form.brokerCustom,brokerContact:form.brokerContact,
 loadNumber:form.loadNumber,origin:form.origin,destination:form.destination,
 commodity:form.commodity,pickupDate:form.pickupDate,deliveryDate:form.deliveryDate,
-grossRate:parseFloat(form.grossRate),stage:“rate_con_requested”,
+grossRate:parseFloat(form.grossRate)||0,stage:“rate_con_requested”,
 comcheck:form.hasComcheck?{number:form.ccNum,amount:parseFloat(form.ccAmt)||0,dateIssued:form.ccDate,issuedTo:form.driverId}:null,
 docs:{
-rateCon:{name:rateConName,url:rateConPreview},
+rateCon:{name:rateConFile?.name||null,url:rateConPreview||null},
 rateConSigned:{name:null,url:null},bolUnsigned:{name:null,url:null},
 bolSigned:{name:null,url:null},pod:{name:null,url:null},
 lumper:{name:null,url:null},invoice:{name:null,url:null},
@@ -450,32 +469,60 @@ onSave(load);
 };
 
 const F=({l,k,type=“text”,ph})=><div><span style={lbl}>{l}</span><input type={type} placeholder={ph} value={form[k]||””} onChange={e=>setForm({…form,[k]:e.target.value})} style={inp}/></div>;
-
 const isCustomBroker=form.broker===“Custom (type below)”;
 
 return(
 <div style={{maxWidth:700}}>
-<div style={{display:“flex”,justifyContent:“space-between”,alignItems:“center”,marginBottom:20}}>
-<div style={{fontSize:20,fontWeight:900,color:”#fff”}}>+ New Load</div>
-<button onClick={onCancel} style={ghost}>← Back</button>
+{/* Header with Home */}
+<div style={{display:“flex”,justifyContent:“space-between”,alignItems:“center”,marginBottom:20,flexWrap:“wrap”,gap:8}}>
+<div style={{fontSize:20,fontWeight:900,color:”#fff”}}>📋 New Load</div>
+<div style={{display:“flex”,gap:8}}>
+<HomeBtn setPage={setPage}/>
+<button onClick={onCancel} style={ghost}>← Back to Loads</button>
 </div>
-{err&&<div style={{background:”#7f1d1d20”,border:“1px solid #ef444440”,borderRadius:8,padding:“10px 14px”,color:”#fca5a5”,fontSize:12,marginBottom:14}}>{err}</div>}
+</div>
 
 ```
-  {/* Rate Con Upload — first thing */}
-  <div style={{...card({marginBottom:16,borderColor:"#3b82f640"})}}>
-    <div style={{fontSize:10,color:"#3b82f6",fontWeight:800,letterSpacing:1.5,marginBottom:10}}>📋 STEP 1 — UPLOAD RATE CONFIRMATION (optional but recommended)</div>
-    <div style={{fontSize:11,color:"#475569",marginBottom:12}}>Upload a photo or file of the rate con to auto-start the process. You can still fill in details manually below.</div>
+  {err&&<div style={{background:"#7f1d1d20",border:"1px solid #ef444440",borderRadius:8,padding:"10px 14px",color:"#fca5a5",fontSize:12,marginBottom:14}}>{err}</div>}
+
+  {/* PRIMARY PATH — Upload Rate Con */}
+  <div style={{...card({marginBottom:16,borderColor:"#3b82f6",background:"#1e3a5f20"})}}>
+    <div style={{fontSize:12,color:"#60a5fa",fontWeight:900,letterSpacing:1,marginBottom:6}}>📷 UPLOAD RATE CONFIRMATION — START HERE</div>
+    <div style={{fontSize:11,color:"#94a3b8",marginBottom:14}}>
+      Take a photo or upload the rate con file. This starts the load. Fill in any details below that didn't auto-populate.
+    </div>
     <input type="file" accept="image/*,application/pdf" capture="environment" ref={fileRef} onChange={e=>handleRateCon(e.target.files[0])} style={{display:"none"}}/>
-    <button onClick={()=>fileRef.current?.click()} style={{...btn("#334155","#93c5fd"),border:"1px solid #1e40af"}}>📷 Upload / Photo Rate Con</button>
-    {rateConName&&<div style={{fontSize:12,color:"#22c55e",marginTop:8}}>✓ {rateConName}</div>}
-    {rateConPreview&&<img src={rateConPreview} alt="Rate Con Preview" style={{marginTop:10,width:"100%",maxHeight:200,objectFit:"contain",borderRadius:8,border:"1px solid #334155"}}/>}
+    <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+      <button onClick={()=>fileRef.current?.click()} style={{...btn("#1e40af","#fff"),fontSize:13,padding:"12px 24px",border:"2px solid #3b82f6"}}>
+        📷 Take Photo / Upload File
+      </button>
+      <button onClick={()=>setMode(mode==="manual"?"upload":"manual")} style={{...ghost,fontSize:11,color:"#64748b"}}>
+        {mode==="manual"?"↑ Back to Upload":"⌨ Manual Entry Instead"}
+      </button>
+    </div>
+    {rateConFile&&(
+      <div style={{marginTop:12}}>
+        <div style={{fontSize:12,color:"#22c55e",fontWeight:700,marginBottom:8}}>✓ {rateConFile.name} — uploaded</div>
+        {rateConPreview&&<img src={rateConPreview} alt="Rate Con" style={{width:"100%",maxHeight:220,objectFit:"contain",borderRadius:8,border:"1px solid #1e40af"}}/>}
+      </div>
+    )}
   </div>
 
+  {/* Manual entry notice */}
+  {mode==="manual"&&(
+    <div style={{...card({marginBottom:12,borderColor:"#f59e0b30",background:"#78350f10"})}}>
+      <div style={{fontSize:11,color:"#f59e0b",fontWeight:700}}>⌨ MANUAL ENTRY MODE — No rate con uploaded yet</div>
+      <div style={{fontSize:10,color:"#475569",marginTop:4}}>You can still upload the rate con file later from inside the load record. Fill in all fields below.</div>
+    </div>
+  )}
+
+  {/* Detail form — shows after upload OR in manual mode */}
   <div style={card()}>
-    <div style={{fontSize:10,color:"#60a5fa",fontWeight:800,letterSpacing:1.5,marginBottom:14}}>📝 STEP 2 — LOAD DETAILS</div>
+    <div style={{fontSize:10,color:"#60a5fa",fontWeight:800,letterSpacing:1.5,marginBottom:14}}>
+      {rateConFile?"📝 CONFIRM LOAD DETAILS FROM RATE CON":"📝 LOAD DETAILS"}
+    </div>
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
-      {isCarrier&&<div><span style={lbl}>DRIVER</span><select value={form.driverId} onChange={e=>setForm({...form,driverId:e.target.value})} style={inp}>{drivers.map(d=><option key={d.id} value={d.id}>{d.name}</option>)}</select></div>}
+      {isCarrier&&<div><span style={lbl}>ASSIGN DRIVER</span><select value={form.driverId} onChange={e=>setForm({...form,driverId:e.target.value})} style={inp}>{drivers.map(d=><option key={d.id} value={d.id}>{d.name}</option>)}</select></div>}
       <div>
         <span style={lbl}>BROKER</span>
         <select value={form.broker} onChange={e=>setForm({...form,broker:e.target.value})} style={inp}>
@@ -483,15 +530,15 @@ return(
           <option value="Custom (type below)">Custom (type below)</option>
         </select>
       </div>
-      {isCustomBroker&&<div><span style={lbl}>BROKER NAME (custom)</span><input value={form.brokerCustom||""} onChange={e=>setForm({...form,brokerCustom:e.target.value})} style={inp} placeholder="Enter broker name"/></div>}
-      <F l="LOAD / REFERENCE #" k="loadNumber" ph="Load number from rate con"/>
+      {isCustomBroker&&<div><span style={lbl}>BROKER NAME</span><input value={form.brokerCustom||""} onChange={e=>setForm({...form,brokerCustom:e.target.value})} style={inp} placeholder="Type broker name — saves for reuse"/></div>}
+      <F l="LOAD / REFERENCE #" k="loadNumber" ph="From rate con"/>
       <F l="BROKER BILLING EMAIL" k="brokerContact" type="email" ph="billing@broker.com"/>
-      <F l="PICKUP LOCATION (City, State)" k="origin" ph="Mars Hill, ME"/>
-      <F l="DELIVERY LOCATION (City, State)" k="destination" ph="South Plainfield, NJ"/>
+      <F l="PICKUP LOCATION" k="origin" ph="City, State"/>
+      <F l="DELIVERY LOCATION" k="destination" ph="City, State"/>
       <F l="COMMODITY" k="commodity" ph="General Freight"/>
       <F l="PICKUP DATE" k="pickupDate" type="date"/>
       <F l="DELIVERY DATE" k="deliveryDate" type="date"/>
-      <F l="GROSS RATE — Rate Confirmation ($)" k="grossRate" type="number" ph="0.00"/>
+      <F l="GROSS RATE ($)" k="grossRate" type="number" ph="0.00"/>
       <F l="NOTES" k="notes" ph="Optional"/>
     </div>
 
@@ -508,8 +555,8 @@ return(
       </div>}
     </div>
 
-    <div style={{display:"flex",gap:10,marginTop:18}}>
-      <button onClick={handle} style={btn()}>✓ CREATE LOAD</button>
+    <div style={{display:"flex",gap:10,marginTop:18,flexWrap:"wrap"}}>
+      <button onClick={handle} style={{...btn("#22c55e"),fontSize:13,padding:"11px 24px"}}>✓ CREATE LOAD</button>
       <button onClick={onCancel} style={ghost}>Cancel</button>
     </div>
   </div>
@@ -520,7 +567,7 @@ return(
 }
 
 // ─── LOAD DETAIL — 10-STAGE PIPELINE ─────────────────────────────────────────
-function LoadDetail({load,users,currentUser,isCarrier,onUpdate,onAdvance,onDelete,delConfirm,setDelConfirm,uploadDoc,fileRefs,onBack}){
+function LoadDetail({load,users,currentUser,isCarrier,onUpdate,onAdvance,onDelete,delConfirm,setDelConfirm,uploadDoc,fileRefs,setPage,onBack}){
 const[showInvoice,setShowInvoice]=useState(false);
 const[showPay,setShowPay]=useState(false);
 const[payAmt,setPayAmt]=useState(load.paidAmount||load.grossRate||””);
@@ -571,7 +618,10 @@ return(
 {showInvoice&&<ETTRInvoice load={load} driver={driver} users={users} onClose={()=>{setShowInvoice(false);}} onSend={()=>{setShowEmailOptions(true);setShowInvoice(false);}} onMarkInvoiced={()=>{onUpdate(load.id,{stage:“invoiced”,stageHistory:{…load.stageHistory,invoiced:today()}});setShowInvoice(false);}}/>}
 
 ```
-  <button onClick={onBack} style={{...ghost,marginBottom:16}}>← Back to Loads</button>
+  <div style={{display:"flex",gap:8,marginBottom:16,flexWrap:"wrap"}}>
+    <HomeBtn setPage={setPage}/>
+    <button onClick={onBack} style={ghost}>← Back to Loads</button>
+  </div>
 
   {/* Stage status bar */}
   <div style={{background:`${sc}15`,border:`1px solid ${sc}40`,borderRadius:10,padding:"14px 18px",marginBottom:16}}>
@@ -590,35 +640,57 @@ return(
       </div>
     </div>
 
-    {/* Action button for current stage */}
-    {canAct&&!isLastStage&&(
-      <div style={{marginTop:14}}>
-        {showPay?(
+    {/* ── STAGE NAVIGATION: BACK + FORWARD ── */}
+    <div style={{marginTop:14,display:"flex",gap:10,flexWrap:"wrap",alignItems:"center"}}>
+
+      {/* BACK button — always available except first stage */}
+      {sidx>0&&!isLastStage&&(
+        <button onClick={()=>onAdvance(load.id,STAGE_KEYS[sidx-1])}
+          style={{...btn("#334155","#94a3b8"),border:"1px solid #475569"}}>
+          ← Go Back a Step
+        </button>
+      )}
+
+      {/* FORWARD — main action */}
+      {!isLastStage&&(
+        showPay?(
           <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
-            <span style={{fontSize:12,color:"#94a3b8"}}>Amount received from broker:</span>
-            <input type="number" value={payAmt} onChange={e=>setPayAmt(e.target.value)} style={{...inp,width:140,border:"1px solid #22c55e"}} placeholder="Amount"/>
+            <span style={{fontSize:12,color:"#94a3b8"}}>Amount received from broker ($):</span>
+            <input type="number" value={payAmt} onChange={e=>setPayAmt(e.target.value)}
+              style={{...inp,width:140,border:"1px solid #22c55e"}} placeholder="Amount"/>
             <button onClick={confirmPaid} style={btn("#22c55e")}>✓ CONFIRM PAYMENT</button>
             <button onClick={()=>setShowPay(false)} style={ghost}>Cancel</button>
           </div>
         ):showEmailOptions?(
           <div style={{display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
-            <span style={{fontSize:12,color:"#94a3b8"}}>Send invoice via:</span>
+            <span style={{fontSize:12,color:"#94a3b8"}}>Send billing package via:</span>
             <button onClick={()=>openEmail("gmail")} style={btn("#ea4335")}>📧 Gmail</button>
             <button onClick={()=>openEmail("zoho")} style={btn("#e04a28")}>📧 Zoho Mail</button>
-            <button onClick={()=>openEmail("default")} style={btn("#334155","#94a3b8")}>📧 Default Mail App</button>
-            <button onClick={()=>setShowEmailOptions(false)} style={ghost}>Cancel</button>
+            <button onClick={()=>openEmail("default")} style={btn("#334155","#94a3b8")}>📧 Device Mail</button>
+            <button onClick={()=>setShowEmailOptions(false)} style={ghost}>✕ Cancel</button>
           </div>
         ):(
-          <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-            <button onClick={handleAdvance} style={{...btn(sc),fontSize:13,padding:"10px 22px"}}>
-              {currentStage?.confirmLabel} →
-            </button>
-            {load.stage==="rate_con_accepted"&&isCarrier&&<span style={{fontSize:11,color:"#475569",alignSelf:"center"}}>Assign driver then dispatch</span>}
+          <div style={{display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
+            {canAct&&(
+              <button onClick={handleAdvance} style={{...btn(sc),fontSize:13,padding:"11px 26px",boxShadow:`0 0 16px ${sc}50`}}>
+                {currentStage?.confirmLabel} →
+              </button>
+            )}
+            {load.stage==="rate_con_accepted"&&isCarrier&&
+              <span style={{fontSize:11,color:"#475569"}}>Assign driver above, then dispatch</span>}
+            {!canAct&&<span style={{fontSize:11,color:"#475569",fontStyle:"italic"}}>
+              Waiting for {currentStage?.actor==="driver"?"driver":"carrier"} action
+            </span>}
           </div>
-        )}
-      </div>
-    )}
-    {load.stage==="paid"&&<div style={{marginTop:10,fontSize:13,color:"#22c55e",fontWeight:800}}>✓ LOAD COMPLETE · PAID {load.paidAt||""}</div>}
+        )
+      )}
+
+      {load.stage==="paid"&&(
+        <div style={{fontSize:13,color:"#22c55e",fontWeight:800}}>
+          ✓ LOAD COMPLETE — PAID {load.paidAt||""}
+        </div>
+      )}
+    </div>
   </div>
 
   {/* Stage history timeline */}
@@ -748,21 +820,59 @@ return(
       })}
     </div>
 
-    {/* Generate invoice button */}
-    <div style={{marginTop:16,background:"#0f172a",border:"1px solid #7c3aed40",borderRadius:10,padding:14}}>
-      <div style={{fontSize:10,color:"#a78bfa",fontWeight:800,letterSpacing:1.5,marginBottom:8}}>🧾 ETTR INVOICE — BILLING PACKAGE</div>
-      <div style={{fontSize:11,color:"#475569",marginBottom:10}}>Generate the ETTR invoice and bundle it with BOL, POD, rate con, and receipts for broker submission.</div>
-      <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-        <button onClick={()=>setShowInvoice(true)} style={btn("#7c3aed")}>🧾 GENERATE / PREVIEW INVOICE</button>
-        <button onClick={()=>{window.print();}} style={btn("#334155","#94a3b8")}>🖨️ Print Package</button>
-        <button onClick={()=>setShowEmailOptions(true)} style={btn("#ec4899")}>📤 Email to Broker</button>
+    {/* ── BILLING PACKAGE — available to BOTH driver and carrier after delivery ── */}
+    <div style={{marginTop:16,background:"#0f172a",border:"2px solid #7c3aed60",borderRadius:12,padding:18}}>
+      <div style={{fontSize:12,color:"#a78bfa",fontWeight:900,letterSpacing:1,marginBottom:4}}>
+        🧾 BILLING PACKAGE — SUBMIT TO BROKER
       </div>
-      {showEmailOptions&&<div style={{marginTop:12,display:"flex",gap:8,flexWrap:"wrap"}}>
-        <button onClick={()=>openEmail("gmail")} style={btn("#ea4335")}>Gmail</button>
-        <button onClick={()=>openEmail("zoho")} style={btn("#e04a28")}>Zoho Mail</button>
-        <button onClick={()=>openEmail("default")} style={btn("#334155","#94a3b8")}>Device Mail App</button>
-        <button onClick={()=>setShowEmailOptions(false)} style={ghost}>✕</button>
-      </div>}
+      <div style={{fontSize:11,color:"#64748b",marginBottom:14}}>
+        Driver OR carrier can submit. Package includes: ETTR Invoice · Rate Confirmation · Signed BOL · POD · Lumper receipts · Any incidentals.
+      </div>
+
+      {/* Doc checklist — show what's attached */}
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:16}}>
+        {[
+          {k:"rateCon",l:"Rate Confirmation"},
+          {k:"rateConSigned",l:"Signed Rate Con"},
+          {k:"bolSigned",l:"Signed BOL"},
+          {k:"pod",l:"POD — Proof of Delivery"},
+          {k:"lumper",l:"Lumper Receipt"},
+          {k:"invoice",l:"ETTR Invoice"},
+        ].map(d=>{
+          const doc=load.docs?.[d.k];
+          const has=doc?.name;
+          return(
+            <div key={d.k} style={{display:"flex",alignItems:"center",gap:8,background:"#1e293b",borderRadius:7,padding:"8px 12px",border:`1px solid ${has?"#22c55e30":"#334155"}`}}>
+              <span style={{fontSize:14}}>{has?"✅":"⬜"}</span>
+              <div>
+                <div style={{fontSize:11,color:has?"#22c55e":"#475569",fontWeight:700}}>{d.l}</div>
+                {has&&<div style={{fontSize:10,color:"#64748b"}}>{doc.name}</div>}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+        <button onClick={()=>setShowInvoice(true)} style={btn("#7c3aed")}>
+          🧾 Preview ETTR Invoice
+        </button>
+        <button onClick={()=>{window.print();}} style={btn("#1e293b","#94a3b8","border:1px solid #334155")}>
+          🖨️ Print Full Package
+        </button>
+        <button onClick={()=>setShowEmailOptions(true)} style={btn("#ec4899")}>
+          📤 Email Package to Broker
+        </button>
+      </div>
+      {showEmailOptions&&(
+        <div style={{marginTop:12,display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
+          <span style={{fontSize:11,color:"#94a3b8"}}>Open in:</span>
+          <button onClick={()=>openEmail("gmail")} style={btn("#ea4335")}>Gmail</button>
+          <button onClick={()=>openEmail("zoho")} style={btn("#e04a28")}>Zoho Mail</button>
+          <button onClick={()=>openEmail("default")} style={btn("#334155","#94a3b8")}>Device Mail App</button>
+          <button onClick={()=>setShowEmailOptions(false)} style={ghost}>✕</button>
+        </div>
+      )}
     </div>
   </Sec>
 
@@ -864,16 +974,16 @@ return(
 }
 
 // ─── MASTER INVOICE LIST ──────────────────────────────────────────────────────
-function MasterInvoiceList({loads,users,onBack,onOpen}){
+function MasterInvoiceList({loads,users,setPage,onBack,onOpen}){
 const invoiced=loads.filter(l=>!l.deleted&&[“invoiced”,“paid”].includes(l.stage));
 const totalInvoiced=invoiced.reduce((s,l)=>s+l.grossRate,0);
 const totalPaid=invoiced.filter(l=>l.stage===“paid”).reduce((s,l)=>s+(l.paidAmount||l.grossRate),0);
 const outstanding=invoiced.filter(l=>l.stage===“invoiced”).reduce((s,l)=>s+l.grossRate,0);
 return(
 <div>
-<div style={{display:“flex”,justifyContent:“space-between”,alignItems:“center”,marginBottom:20}}>
+<div style={{display:“flex”,justifyContent:“space-between”,alignItems:“center”,marginBottom:20,flexWrap:“wrap”,gap:8}}>
 <div style={{fontSize:20,fontWeight:900,color:”#fff”}}>📋 Master Invoice List</div>
-<button onClick={onBack} style={ghost}>← Back</button>
+<div style={{display:“flex”,gap:8}}><HomeBtn setPage={setPage}/><button onClick={onBack} style={ghost}>← Back</button></div>
 </div>
 <div style={{display:“grid”,gridTemplateColumns:“1fr 1fr 1fr”,gap:14,marginBottom:20}}>
 {[{l:“TOTAL INVOICED”,v:fmt(totalInvoiced),c:”#60a5fa”},{l:“COLLECTED / PAID”,v:fmt(totalPaid),c:”#22c55e”},{l:“OUTSTANDING”,v:fmt(outstanding),c:”#ef4444”}]
@@ -899,14 +1009,14 @@ return(
 }
 
 // ─── COMMISSION SETTINGS ──────────────────────────────────────────────────────
-function CommissionSettings({users,setUsers,onBack}){
+function CommissionSettings({users,setUsers,setPage,onBack}){
 const drivers=users.filter(u=>u.role!==ROLES.CARRIER_ADMIN&&!u.deleted);
 const upd=(id,p)=>setUsers(users.map(u=>u.id===id?{…u,commissionPct:p}:u));
 return(
 <div style={{maxWidth:520}}>
-<div style={{display:“flex”,justifyContent:“space-between”,alignItems:“center”,marginBottom:20}}>
+<div style={{display:“flex”,justifyContent:“space-between”,alignItems:“center”,marginBottom:20,flexWrap:“wrap”,gap:8}}>
 <div style={{fontSize:20,fontWeight:900,color:”#fff”}}>⚙️ Commission Settings</div>
-<button onClick={onBack} style={ghost}>← Back</button>
+<div style={{display:“flex”,gap:8}}><HomeBtn setPage={setPage}/><button onClick={onBack} style={ghost}>← Back</button></div>
 </div>
 <div style={{…card({marginBottom:14}),fontSize:11,color:”#475569”}}>Both Bruce and every driver always see the full gross rate on every load. The commission is taken from the top before the driver net is calculated. Only Bruce can change these rates.</div>
 {drivers.map(driver=>{
@@ -937,7 +1047,7 @@ return(
 }
 
 // ─── PETTY CASH ───────────────────────────────────────────────────────────────
-function PettyCash({currentUser,pettyCash,setPettyCash,isCarrier}){
+function PettyCash({currentUser,pettyCash,setPettyCash,isCarrier,setPage}){
 const[showAdd,setShowAdd]=useState(false);
 const[ne,setNe]=useState({date:today(),description:””,vendor:””,amount:””,category:“Repairs & Maintenance”,notes:””});
 const[delC,setDelC]=useState({id:null,step:0});
@@ -953,7 +1063,7 @@ const handleRec=(id,file)=>{if(!file)return;const url=URL.createObjectURL(file);
 const softDel=id=>{if(delC.id===id&&delC.step===1){setPettyCash(pettyCash.map(p=>p.id===id?{…p,deleted:true}:p));setDelC({id:null,step:0});}else setDelC({id,step:1});};
 return(
 <div>
-<div style={{fontSize:20,fontWeight:900,color:”#fff”,marginBottom:20}}>💼 Petty Cash Ledger</div>
+<div style={{display:“flex”,justifyContent:“space-between”,alignItems:“center”,marginBottom:20,flexWrap:“wrap”,gap:8}}><div style={{fontSize:20,fontWeight:900,color:”#fff”}}>💼 Petty Cash Ledger</div><HomeBtn setPage={setPage}/></div>
 <div style={{display:“grid”,gridTemplateColumns:“1fr 1fr 1fr”,gap:14,marginBottom:24}}>
 {[{l:“OWED TO BRUCE”,v:fmt(owed),c:”#ef4444”},{l:“TOTAL PAID BACK”,v:fmt(paid),c:”#22c55e”},{l:“OPEN ITEMS”,v:active.filter(p=>p.status===“unpaid”).length,c:”#f59e0b”}]
 .map(c=><div key={c.l} style={card()}><div style={{fontSize:9,color:”#64748b”,letterSpacing:1.5,marginBottom:4}}>{c.l}</div><div style={{fontSize:22,fontWeight:900,color:c.c}}>{c.v}</div></div>)}
@@ -1007,7 +1117,7 @@ return(
 }
 
 // ─── FUEL LOG ─────────────────────────────────────────────────────────────────
-function FuelLog({currentUser,trucks}){
+function FuelLog({currentUser,trucks,setPage}){
 const[entries,setEntries]=useState([]);
 const[showAdd,setShowAdd]=useState(false);
 const[nf,setNf]=useState({date:today(),state:“IL”,gallons:””,ppg:””,location:””,truckId:trucks[0]?.id||””,notes:””});
@@ -1016,7 +1126,7 @@ const STATES=[“AL”,“AK”,“AZ”,“AR”,“CA”,“CO”,“CT”,“
 return(
 <div>
 <div style={{display:“flex”,justifyContent:“space-between”,alignItems:“center”,marginBottom:20}}>
-<div><div style={{fontSize:20,fontWeight:900,color:”#fff”}}>⛽ Fuel Log</div><a href=“https://www.nastc.com/fuel-network/” target=”_blank” rel=“noreferrer” style={{fontSize:11,color:”#60a5fa”}}>NASTC Fuel Network ↗</a></div>
+<div><div style={{fontSize:20,fontWeight:900,color:”#fff”}}>⛽ Fuel Log</div><a href=“https://www.nastc.com/fuel-network/” target=”_blank” rel=“noreferrer” style={{fontSize:11,color:”#60a5fa”}}>NASTC Fuel Network ↗</a></div><HomeBtn setPage={setPage}/>
 <button onClick={()=>setShowAdd(!showAdd)} style={btn()}>{showAdd?“✕ Cancel”:”+ Log Fuel”}</button>
 </div>
 {showAdd&&<div style={{…card({marginBottom:18,borderColor:”#1e40af”})}}>
@@ -1038,7 +1148,7 @@ return(
 }
 
 // ─── TRUCK PROFILE ────────────────────────────────────────────────────────────
-function TruckProfile({currentUser,trucks,setTrucks}){
+function TruckProfile({currentUser,trucks,setTrucks,setPage}){
 const myT=trucks.find(t=>t.driverId===currentUser.id)||trucks[0];
 const[form,setForm]=useState({…myT});
 const[saved,setSaved]=useState(false);
@@ -1046,7 +1156,7 @@ const save=()=>{setTrucks(trucks.map(t=>t.id===form.id?{…form}:t));setSaved(tr
 const F=({l,k,type=“text”,nest})=><div><span style={lbl}>{l}</span><input type={type} value={nest?(form[nest]?.[k]||””):(form[k]||””)} onChange={e=>nest?setForm({…form,[nest]:{…form[nest],[k]:e.target.value}}):setForm({…form,[k]:e.target.value})} style={inp}/></div>;
 return(
 <div style={{maxWidth:720}}>
-<div style={{fontSize:20,fontWeight:900,color:”#fff”,marginBottom:20}}>🚛 Truck — {form.unit||form.make}</div>
+<div style={{display:“flex”,justifyContent:“space-between”,alignItems:“center”,marginBottom:20,flexWrap:“wrap”,gap:8}}><div style={{fontSize:20,fontWeight:900,color:”#fff”}}>🚛 Truck — {form.unit||form.make}</div><HomeBtn setPage={setPage}/></div>
 <div style={card()}>
 <div style={{display:“grid”,gridTemplateColumns:“1fr 1fr”,gap:14}}>
 <F l="MAKE" k="make"/><F l="MODEL" k="model"/><F l="YEAR" k="year" type="number"/><F l="COLOR" k="color"/>
@@ -1068,14 +1178,14 @@ return(
 }
 
 // ─── TRAILERS ─────────────────────────────────────────────────────────────────
-function Trailers({currentUser,trailers,setTrailers,isCarrier}){
+function Trailers({currentUser,trailers,setTrailers,isCarrier,setPage}){
 const[showAdd,setShowAdd]=useState(false);
 const[nt,setNt]=useState({unit:””,make:””,year:””,vin:””,plate:””,type:“Dry Van”,notes:””});
 const add=()=>{setTrailers([…trailers,{id:`trailer-${Date.now()}`,…nt,deleted:false}]);setNt({unit:””,make:””,year:””,vin:””,plate:””,type:“Dry Van”,notes:””});setShowAdd(false);};
 return(
 <div>
 <div style={{display:“flex”,justifyContent:“space-between”,alignItems:“center”,marginBottom:20}}>
-<div style={{fontSize:20,fontWeight:900,color:”#fff”}}>Trailers</div>
+<div style={{fontSize:20,fontWeight:900,color:”#fff”}}>🔲 Trailers</div><HomeBtn setPage={setPage}/>
 {isCarrier&&<button onClick={()=>setShowAdd(!showAdd)} style={btn()}>{showAdd?“✕ Cancel”:”+ Add Trailer”}</button>}
 </div>
 {showAdd&&<div style={{…card({marginBottom:18,borderColor:”#1e40af”})}}>
@@ -1094,7 +1204,7 @@ return(
 }
 
 // ─── SERVICE RECORDS ──────────────────────────────────────────────────────────
-function ServiceRecs({currentUser,serviceRecords,setServiceRecords,trucks,isCarrier}){
+function ServiceRecs({currentUser,serviceRecords,setServiceRecords,trucks,isCarrier,setPage}){
 const[showAdd,setShowAdd]=useState(false);
 const[nr,setNr]=useState({date:today(),truckId:trucks[0]?.id||””,type:“Oil Change”,vendor:””,cost:””,mileage:””,notes:””,nextDueDate:””,nextDueMileage:””});
 const add=()=>{setServiceRecords([…serviceRecords,{id:`svc-${Date.now()}`,…nr,cost:parseFloat(nr.cost)||0,deleted:false}]);setShowAdd(false);};
@@ -1102,7 +1212,7 @@ const SVC=[“Oil Change”,“Tire Rotation”,“Brake Service”,“PM Inspec
 return(
 <div>
 <div style={{display:“flex”,justifyContent:“space-between”,alignItems:“center”,marginBottom:20}}>
-<div style={{fontSize:20,fontWeight:900,color:”#fff”}}>🔧 Service Records</div>
+<div style={{fontSize:20,fontWeight:900,color:”#fff”}}>🔧 Service Records</div><HomeBtn setPage={setPage}/>
 <button onClick={()=>setShowAdd(!showAdd)} style={btn()}>{showAdd?“✕ Cancel”:”+ Add Record”}</button>
 </div>
 {showAdd&&<div style={{…card({marginBottom:18,borderColor:”#1e40af”})}}>
@@ -1126,7 +1236,7 @@ return<div key={rec.id} style={card()}><div style={{display:“flex”,justifyCo
 }
 
 // ─── DOCUMENTS ────────────────────────────────────────────────────────────────
-function DocsModule({currentUser,documents,setDocuments,isCarrier}){
+function DocsModule({currentUser,documents,setDocuments,isCarrier,setPage}){
 const[showAdd,setShowAdd]=useState(false);
 const[nd,setNd]=useState({name:””,type:“CDL”,expiry:””,notes:””});
 const add=()=>{setDocuments([…documents,{id:`doc-${Date.now()}`,…nd,uploadDate:today(),fileName:null,driverId:currentUser.id,deleted:false}]);setShowAdd(false);};
@@ -1134,7 +1244,7 @@ const DTYPES=[“CDL”,“Medical Examiner Certificate”,“Form 2290 (HVUT)�
 return(
 <div>
 <div style={{display:“flex”,justifyContent:“space-between”,alignItems:“center”,marginBottom:20}}>
-<div style={{fontSize:20,fontWeight:900,color:”#fff”}}>📄 Documents</div>
+<div style={{fontSize:20,fontWeight:900,color:”#fff”}}>📄 Documents</div><HomeBtn setPage={setPage}/>
 <button onClick={()=>setShowAdd(!showAdd)} style={btn()}>{showAdd?“✕ Cancel”:”+ Add Document”}</button>
 </div>
 {showAdd&&<div style={{…card({marginBottom:18,borderColor:”#1e40af”})}}>
@@ -1158,7 +1268,7 @@ return<div key={doc.id} style={{…card({borderColor:expiring?”#f59e0b40”:�
 }
 
 // ─── REPORTS ──────────────────────────────────────────────────────────────────
-function Reports({currentUser,loads,pettyCash,serviceRecords,users,isCarrier}){
+function Reports({currentUser,loads,pettyCash,serviceRecords,users,isCarrier,setPage}){
 const[period,setPeriod]=useState(“monthly”);
 const[dFilter,setDFilter]=useState(“all”);
 const my=isCarrier?(dFilter===“all”?loads:loads.filter(l=>l.driverId===dFilter)).filter(l=>!l.deleted):loads.filter(l=>!l.deleted&&l.driverId===currentUser.id);
@@ -1171,7 +1281,7 @@ const pcOwed=pettyCash.filter(p=>!p.deleted&&p.status===“unpaid”).reduce((s,
 const svc=serviceRecords.filter(r=>!r.deleted).reduce((s,r)=>s+(r.cost||0),0);
 return(
 <div>
-<div style={{fontSize:20,fontWeight:900,color:”#fff”,marginBottom:20}}>📊 Reports</div>
+<div style={{display:“flex”,justifyContent:“space-between”,alignItems:“center”,marginBottom:20,flexWrap:“wrap”,gap:8}}><div style={{fontSize:20,fontWeight:900,color:”#fff”}}>📊 Reports</div><HomeBtn setPage={setPage}/></div>
 <div style={{display:“flex”,gap:8,marginBottom:20,flexWrap:“wrap”}}>
 {[“daily”,“weekly”,“monthly”,“yearly”].map(p=><button key={p} onClick={()=>setPeriod(p)} style={{padding:“7px 16px”,borderRadius:7,border:“none”,cursor:“pointer”,fontFamily:“inherit”,fontWeight:800,fontSize:12,background:period===p?”#1e40af”:”#1e293b”,color:period===p?”#fff”:”#475569”}}>{p.toUpperCase()}</button>)}
 {isCarrier&&<select value={dFilter} onChange={e=>setDFilter(e.target.value)} style={{…inp,width:“auto”}}>
@@ -1203,14 +1313,14 @@ return<div key={driver.id} style={{display:“flex”,justifyContent:“space-be
 }
 
 // ─── PROFILE ──────────────────────────────────────────────────────────────────
-function Profile({currentUser,users,setUsers}){
+function Profile({currentUser,users,setUsers,setPage}){
 const[form,setForm]=useState({…currentUser});
 const[saved,setSaved]=useState(false);
 const save=()=>{setUsers(users.map(u=>u.id===currentUser.id?{…u,…form}:u));setSaved(true);setTimeout(()=>setSaved(false),2000);};
 const F=({l,k,type=“text”})=><div><span style={lbl}>{l}</span><input type={type} value={form[k]||””} onChange={e=>setForm({…form,[k]:e.target.value})} style={inp}/></div>;
 return(
 <div style={{maxWidth:680}}>
-<div style={{fontSize:20,fontWeight:900,color:”#fff”,marginBottom:20}}>👤 My Profile</div>
+<div style={{display:“flex”,justifyContent:“space-between”,alignItems:“center”,marginBottom:20,flexWrap:“wrap”,gap:8}}><div style={{fontSize:20,fontWeight:900,color:”#fff”}}>👤 My Profile</div><HomeBtn setPage={setPage}/></div>
 <div style={card()}>
 <div style={{display:“grid”,gridTemplateColumns:“1fr 1fr”,gap:14}}>
 <F l="FULL NAME" k="name"/><F l="EMAIL" k="email" type="email"/>
@@ -1226,13 +1336,13 @@ return(
 }
 
 // ─── ADMIN ────────────────────────────────────────────────────────────────────
-function Admin({currentUser,users,setUsers,trucks,setTrucks}){
+function Admin({currentUser,users,setUsers,trucks,setTrucks,setPage}){
 const[showAdd,setShowAdd]=useState(false);
 const[nu,setNu]=useState({name:””,email:””,phone:””,password:“ettr2024”,role:ROLES.DRIVER,carrierRole:“Driver”,commissionPct:20});
 const add=()=>{if(!nu.name||!nu.email)return;setUsers([…users,{id:`user-${Date.now()}`,…nu,truckId:null,cdl:””,cdlState:””,cdlExpiry:””,medCardExpiry:””,hireDate:””,address:””,emergencyContact:””,emergencyPhone:””,deleted:false}]);setShowAdd(false);};
 return(
 <div>
-<div style={{fontSize:20,fontWeight:900,color:”#fff”,marginBottom:20}}>🛡️ Carrier Admin</div>
+<div style={{display:“flex”,justifyContent:“space-between”,alignItems:“center”,marginBottom:20,flexWrap:“wrap”,gap:8}}><div style={{fontSize:20,fontWeight:900,color:”#fff”}}>🛡️ Carrier Admin</div><HomeBtn setPage={setPage}/></div>
 <div style={{...card({marginBottom:16})}}>
 <div style={{fontSize:10,color:”#60a5fa”,fontWeight:800,letterSpacing:1.5,marginBottom:14}}>USERS & DRIVERS</div>
 {users.filter(u=>!u.deleted).map(u=><div key={u.id} style={{display:“flex”,justifyContent:“space-between”,alignItems:“center”,padding:“10px 0”,borderBottom:“1px solid #1e293b”}}>
