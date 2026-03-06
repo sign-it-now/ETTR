@@ -1562,43 +1562,126 @@ maxWidth:600,color:”#111”,fontFamily:“Georgia,serif”,padding:44}}>
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PETTY CASH
+// RULES:
+//  - Uploading a receipt / invoice does NOT mark anything paid — it is a supporting doc only
+//  - Mark Paid is a separate button — either Tim OR Bruce can click it
+//  - When adding a new expense, you can attach the invoice/bill right at entry time
+//  - Camera and file picker are two separate buttons so camera actually opens
 // ─────────────────────────────────────────────────────────────────────────────
 function PettyCash({user,petty,setPetty,isCarrier,setPage}){
 const [showAdd,setShowAdd]=useState(false);
-const [ne,setNe]=useState({date:today(),description:””,vendor:””,amount:””,category:“Repairs & Maintenance”,notes:””});
-const fRefs=useRef({});
-const [rcModal,setRcModal]=useState(null);
+const [ne,setNe]=useState({
+date:today(),description:””,vendor:””,amount:””,
+category:“Repairs & Maintenance”,paidBy:“Bruce”,notes:””,
+attachUrl:null,attachName:null
+});
 const [del,setDel]=useState({id:null,step:0});
+const [viewModal,setViewModal]=useState(null);
 
-const active=petty.filter(p=>!p.deleted);
-const owed=active.filter(p=>p.status===“unpaid”).reduce((s,p)=>s+p.amount,0);
-const paid=active.filter(p=>p.status===“paid”).reduce((s,p)=>s+p.amount,0);
+// ONE file ref and ONE camera ref per entry, plus refs for the “add new” form
+const fileRefs = useRef({});  // file picker refs per entry id
+const camRefs  = useRef({});  // camera refs per entry id
+const newFileRef = useRef(null);
+const newCamRef  = useRef(null);
 
-const add=()=>{
-if(!ne.description||!ne.amount||isNaN(parseFloat(ne.amount)))return;
-setPetty([…petty,{id:`pc-${Date.now()}`,…ne,amount:parseFloat(ne.amount),
-paidBy:“Bruce”,status:“unpaid”,receiptUrl:null,receiptName:null,paidDate:null,deleted:false}]);
-setNe({date:today(),description:””,vendor:””,amount:””,category:“Repairs & Maintenance”,notes:””});
+const active = petty.filter(p=>!p.deleted);
+const owed   = active.filter(p=>p.status===“unpaid”).reduce((s,p)=>s+p.amount,0);
+const paid   = active.filter(p=>p.status===“paid”).reduce((s,p)=>s+p.amount,0);
+
+// ── Add new entry ──
+const handleNewAttach = file => {
+if(!file) return;
+const url = URL.createObjectURL(file);
+setNe(prev=>({…prev,attachUrl:url,attachName:file.name}));
+};
+
+const addEntry = () => {
+if(!ne.description||!ne.amount||isNaN(parseFloat(ne.amount))) return;
+setPetty(prev=>[…prev,{
+id:`pc-${Date.now()}`,
+date:ne.date, description:ne.description, vendor:ne.vendor,
+amount:parseFloat(ne.amount), category:ne.category,
+paidBy:ne.paidBy, notes:ne.notes,
+// attachUrl/attachName = the invoice/bill Bruce paid (supporting doc for the EXPENSE)
+attachUrl:ne.attachUrl, attachName:ne.attachName,
+// receiptUrl/receiptName = proof of repayment (added later when Tim pays Bruce back)
+receiptUrl:null, receiptName:null,
+status:“unpaid”, paidDate:null, paidBy2:null,
+deleted:false
+}]);
+setNe({date:today(),description:””,vendor:””,amount:””,
+category:“Repairs & Maintenance”,paidBy:“Bruce”,notes:””,
+attachUrl:null,attachName:null});
 setShowAdd(false);
 };
-const markPaid=id=>setPetty(petty.map(p=>p.id===id?{…p,status:“paid”,paidDate:today()}:p));
-const markUnpaid=id=>setPetty(petty.map(p=>p.id===id?{…p,status:“unpaid”,paidDate:null}:p));
-const handleRec=(id,file)=>{if(!file)return;const url=URL.createObjectURL(file);setPetty(petty.map(p=>p.id===id?{…p,receiptUrl:url,receiptName:file.name}:p));};
-const softDel=id=>{if(del.id===id&&del.step===1){setPetty(petty.map(p=>p.id===id?{…p,deleted:true}:p));setDel({id:null,step:0});}else setDel({id,step:1});};
+
+// ── Attach supporting doc to existing entry (does NOT mark paid) ──
+const attachDoc = (id, file) => {
+if(!file) return;
+const url = URL.createObjectURL(file);
+setPetty(prev=>prev.map(p=>p.id===id
+?{…p,receiptUrl:url,receiptName:file.name}
+:p
+));
+// Note: status is NOT changed here — attaching a doc is just documentation
+};
+
+// ── Mark paid — separate explicit action by either user ──
+const markPaid   = id => setPetty(prev=>prev.map(p=>p.id===id
+?{…p,status:“paid”,paidDate:today(),paidBy2:user.name} :p));
+const markUnpaid = id => setPetty(prev=>prev.map(p=>p.id===id
+?{…p,status:“unpaid”,paidDate:null,paidBy2:null} :p));
+
+// ── Soft delete ──
+const softDel = id => {
+if(del.id===id&&del.step===1){
+setPetty(prev=>prev.map(p=>p.id===id?{…p,deleted:true}:p));
+setDel({id:null,step:0});
+} else {
+setDel({id,step:1});
+}
+};
+
+const DocBtns = ({entryId,fileRef,camRef,onFile}) => (
+<>
+{/* Hidden file input — opens files app / downloads */}
+<input type=“file” accept=”*/*”
+ref={fileRef}
+onChange={e=>onFile(e.target.files[0])}
+style={{display:“none”}}/>
+{/* Hidden camera input */}
+<input type=“file” accept=“image/*” capture=“environment”
+ref={camRef}
+onChange={e=>onFile(e.target.files[0])}
+style={{display:“none”}}/>
+<button onClick={()=>fileRef.current?.click()}
+style={{…ghost,fontSize:11,padding:“7px 12px”,
+display:“flex”,alignItems:“center”,gap:5}}>
+<span>📎</span> Import File
+</button>
+<button onClick={()=>camRef.current?.click()}
+style={{…ghost,fontSize:11,padding:“7px 12px”,
+display:“flex”,alignItems:“center”,gap:5}}>
+<span>📷</span> Take Photo
+</button>
+</>
+);
 
 return(
 <div>
+{/* Header */}
 <div style={{display:“flex”,justifyContent:“space-between”,
 alignItems:“center”,marginBottom:20,flexWrap:“wrap”,gap:8}}>
 <div style={{fontSize:22,fontWeight:900,color:”#fff”}}>💼 Petty Cash</div>
 <button onClick={()=>setShowAdd(!showAdd)} style={btn()}>
-{showAdd?“✕ Cancel”:”+ Add Entry”}
+{showAdd?“✕ Cancel”:”+ Log Expense”}
 </button>
 </div>
 
 ```
+  {/* Totals */}
   <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:14,marginBottom:20}}>
-    {[{l:"OWED TO BRUCE",v:fmt(owed),c:C.red},
+    {[{l:"TOTAL OWED TO BRUCE",v:fmt(owed),c:C.red},
       {l:"PAID BACK",v:fmt(paid),c:C.green},
       {l:"OPEN ITEMS",v:active.filter(p=>p.status==="unpaid").length,c:C.yellow}]
       .map(s=>(
@@ -1609,112 +1692,302 @@ alignItems:“center”,marginBottom:20,flexWrap:“wrap”,gap:8}}>
       ))}
   </div>
 
+  {/* ── ADD NEW ENTRY FORM ── */}
   {showAdd&&(
-    <div style={card({marginBottom:18,borderColor:C.accent})}>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
-        {[{l:"DATE",k:"date",type:"date"},{l:"AMOUNT ($)",k:"amount",type:"number",ph:"0.00"},
-          {l:"DESCRIPTION",k:"description",ph:"What was it for?"},{l:"VENDOR",k:"vendor",ph:"Where"}]
-          .map(f=>(
-            <div key={f.k}>
-              <span style={lbl}>{f.l}</span>
-              <input type={f.type||"text"} placeholder={f.ph}
-                value={ne[f.k]||""}
-                onChange={e=>setNe({...ne,[f.k]:e.target.value})} style={inp}/>
-            </div>
-          ))}
+    <div style={card({marginBottom:20,borderColor:C.accent,background:"#0a1929"})}>
+      <div style={{fontSize:11,color:C.accent,fontWeight:900,letterSpacing:1,marginBottom:14}}>
+        LOG EXPENSE — Bruce paid for something Tim owes back
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:14}}>
+        <div>
+          <span style={lbl}>DATE PAID</span>
+          <input type="date" value={ne.date}
+            onChange={e=>setNe({...ne,date:e.target.value})} style={inp}/>
+        </div>
+        <div>
+          <span style={lbl}>AMOUNT ($)</span>
+          <input type="number" placeholder="0.00" value={ne.amount}
+            onChange={e=>setNe({...ne,amount:e.target.value})} style={inp}/>
+        </div>
+        <div style={{gridColumn:"span 2"}}>
+          <span style={lbl}>DESCRIPTION — what was it for?</span>
+          <input placeholder="e.g. Truck repair at Mike's Inc, tires, supplies..."
+            value={ne.description}
+            onChange={e=>setNe({...ne,description:e.target.value})} style={inp}/>
+        </div>
+        <div>
+          <span style={lbl}>VENDOR / WHERE</span>
+          <input placeholder="Shop name, store, etc."
+            value={ne.vendor}
+            onChange={e=>setNe({...ne,vendor:e.target.value})} style={inp}/>
+        </div>
         <div>
           <span style={lbl}>CATEGORY</span>
-          <select value={ne.category} onChange={e=>setNe({...ne,category:e.target.value})} style={inp}>
+          <select value={ne.category}
+            onChange={e=>setNe({...ne,category:e.target.value})} style={inp}>
             {PETTY_CATS.map(c=><option key={c}>{c}</option>)}
           </select>
         </div>
         <div>
-          <span style={lbl}>NOTES</span>
-          <input value={ne.notes} onChange={e=>setNe({...ne,notes:e.target.value})} style={inp}/>
+          <span style={lbl}>PAID BY</span>
+          <select value={ne.paidBy}
+            onChange={e=>setNe({...ne,paidBy:e.target.value})} style={inp}>
+            <option>Bruce</option>
+            <option>Tim</option>
+          </select>
+        </div>
+        <div>
+          <span style={lbl}>NOTES (optional)</span>
+          <input value={ne.notes}
+            onChange={e=>setNe({...ne,notes:e.target.value})} style={inp}/>
         </div>
       </div>
-      <button onClick={add} style={{...btn(C.green),marginTop:14}}>✓ Save Entry</button>
+
+      {/* Attach the invoice/bill for this expense */}
+      <div style={{background:C.bg,borderRadius:10,padding:14,
+        border:`1px solid ${C.border}`,marginBottom:14}}>
+        <div style={{fontSize:11,color:C.dim,fontWeight:800,marginBottom:4,letterSpacing:1}}>
+          ATTACH INVOICE OR BILL (optional but recommended)
+        </div>
+        <div style={{fontSize:11,color:C.muted,marginBottom:10}}>
+          Upload the receipt, invoice, or bill Bruce paid. This is the supporting document for this expense — it does NOT mark anything paid.
+        </div>
+        {ne.attachName&&(
+          <div style={{fontSize:12,color:"#93c5fd",fontWeight:700,marginBottom:8}}>
+            📎 {ne.attachName}
+            <button onClick={()=>setNe({...ne,attachUrl:null,attachName:null})}
+              style={{background:"none",border:"none",color:C.dim,
+                cursor:"pointer",marginLeft:8,fontSize:11}}>✕</button>
+          </div>
+        )}
+        {ne.attachUrl&&ne.attachUrl.startsWith("blob:")&&(
+          <img src={ne.attachUrl} alt="Invoice preview"
+            style={{width:"100%",maxHeight:160,objectFit:"contain",
+              borderRadius:8,marginBottom:10,border:`1px solid ${C.border}`}}/>
+        )}
+        {/* Separate file and camera inputs for the new entry form */}
+        <input type="file" accept="*/*"
+          ref={newFileRef}
+          onChange={e=>handleNewAttach(e.target.files[0])}
+          style={{display:"none"}}/>
+        <input type="file" accept="image/*" capture="environment"
+          ref={newCamRef}
+          onChange={e=>handleNewAttach(e.target.files[0])}
+          style={{display:"none"}}/>
+        <div style={{display:"flex",gap:10}}>
+          <button onClick={()=>newFileRef.current?.click()}
+            style={{...ghost,fontSize:11,display:"flex",alignItems:"center",gap:5}}>
+            <span>📎</span> Import File / PDF
+          </button>
+          <button onClick={()=>newCamRef.current?.click()}
+            style={{...ghost,fontSize:11,display:"flex",alignItems:"center",gap:5}}>
+            <span>📷</span> Take Photo
+          </button>
+        </div>
+      </div>
+
+      <button onClick={addEntry} style={btn(C.green)}>
+        ✓ Save Expense
+      </button>
     </div>
   )}
 
+  {/* ── ENTRY LIST ── */}
   <div style={{display:"flex",flexDirection:"column",gap:12}}>
-    {active.map(entry=>(
-      <div key={entry.id} style={card({borderColor:entry.status==="paid"?"#22c55e30":"#ef444430"})}>
-        <div style={{display:"flex",justifyContent:"space-between",flexWrap:"wrap",gap:8}}>
-          <div style={{flex:1}}>
-            <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:4,alignItems:"center"}}>
-              <span style={{background:entry.status==="paid"?"#22c55e20":"#ef444420",
-                color:entry.status==="paid"?C.green:C.red,
-                border:`1px solid ${entry.status==="paid"?"#22c55e40":"#ef444440"}`,
-                borderRadius:5,padding:"2px 9px",fontSize:10,fontWeight:800}}>
-                {entry.status==="paid"?"✓ PAID":"OWED"}
-              </span>
-              <span style={{fontSize:10,color:C.dim}}>{entry.date}</span>
-              <span style={{fontSize:10,background:"#1e40af20",color:"#93c5fd",
-                border:"1px solid #1e40af30",borderRadius:4,padding:"1px 7px"}}>
-                {entry.category}
-              </span>
-            </div>
-            <div style={{fontSize:15,fontWeight:800,color:C.text}}>{entry.description}</div>
-            {entry.vendor&&<div style={{fontSize:12,color:C.dim}}>📍 {entry.vendor}</div>}
-            {entry.notes&&<div style={{fontSize:11,color:C.muted,marginTop:2}}>{entry.notes}</div>}
-          </div>
-          <div style={{textAlign:"right"}}>
-            <div style={{fontSize:24,fontWeight:900,color:entry.status==="paid"?C.green:C.red}}>
-              {fmt(entry.amount)}
-            </div>
-            {entry.paidDate&&<div style={{fontSize:10,color:C.dim}}>Paid: {entry.paidDate}</div>}
-          </div>
-        </div>
-        <div style={{display:"flex",gap:8,marginTop:12,flexWrap:"wrap",alignItems:"center"}}>
-          <input type="file" accept="image/*,application/pdf" capture="environment"
-            ref={el=>{fRefs.current[entry.id]=el;}}
-            onChange={e=>handleRec(entry.id,e.target.files[0])} style={{display:"none"}}/>
-          <button onClick={()=>fRefs.current[entry.id]?.click()} style={ghost}>
-            📷 {entry.receiptName?"Replace":"Upload Receipt"}
-          </button>
-          {entry.receiptUrl&&(
-            <button onClick={()=>setRcModal(entry)}
-              style={{...ghost,color:"#93c5fd",borderColor:"#1e40af"}}>👁 View</button>
-          )}
-          {isCarrier&&entry.status==="unpaid"&&(
-            <button onClick={()=>markPaid(entry.id)} style={btn(C.green)}>✓ Mark Paid</button>
-          )}
-          {isCarrier&&entry.status==="paid"&&(
-            <button onClick={()=>markUnpaid(entry.id)} style={ghost}>↩ Unmark</button>
-          )}
-          {!isCarrier&&entry.status==="unpaid"&&entry.receiptUrl&&(
-            <button onClick={()=>markPaid(entry.id)} style={btn(C.green)}>
-              ✓ Mark Paid (receipt attached)
-            </button>
-          )}
-          <button onClick={()=>softDel(entry.id)}
-            style={{background:del.id===entry.id?"#7f1d1d":"transparent",
-              color:del.id===entry.id?"#fca5a5":C.muted,
-              border:`1px solid ${del.id===entry.id?"#ef444450":C.border}`,
-              borderRadius:7,padding:"7px 12px",cursor:"pointer",
-              fontFamily:"inherit",fontSize:11,fontWeight:700}}>
-            {del.id===entry.id?"⚠️ Confirm?":"🗑 Remove"}
-          </button>
-        </div>
+    {active.length===0&&(
+      <div style={{...card({textAlign:"center",color:C.border,padding:40})}}>
+        No petty cash entries yet.
       </div>
-    ))}
+    )}
+    {active.map(entry=>{
+      const isPaid = entry.status==="paid";
+      if(!fileRefs.current[entry.id]) fileRefs.current[entry.id]=null;
+      if(!camRefs.current[entry.id])  camRefs.current[entry.id]=null;
+      return(
+        <div key={entry.id}
+          style={card({borderColor:isPaid?"#22c55e30":"#ef444430"})}>
+
+          {/* Top row: status + amounts */}
+          <div style={{display:"flex",justifyContent:"space-between",
+            flexWrap:"wrap",gap:8,marginBottom:10}}>
+            <div style={{flex:1}}>
+              <div style={{display:"flex",gap:8,flexWrap:"wrap",
+                marginBottom:6,alignItems:"center"}}>
+                <span style={{
+                  background:isPaid?"#22c55e20":"#ef444420",
+                  color:isPaid?C.green:C.red,
+                  border:`1px solid ${isPaid?"#22c55e40":"#ef444440"}`,
+                  borderRadius:5,padding:"3px 10px",
+                  fontSize:11,fontWeight:900,letterSpacing:0.5}}>
+                  {isPaid?"✓ PAID":"⚠ OWED"}
+                </span>
+                <span style={{fontSize:10,color:C.dim}}>{entry.date}</span>
+                <span style={{fontSize:10,background:"#1e40af20",color:"#93c5fd",
+                  border:"1px solid #1e40af30",borderRadius:4,padding:"1px 7px"}}>
+                  {entry.category}
+                </span>
+                <span style={{fontSize:10,color:C.dim}}>
+                  Paid by: <strong style={{color:C.text}}>{entry.paidBy}</strong>
+                </span>
+              </div>
+              <div style={{fontSize:16,fontWeight:800,color:C.text}}>
+                {entry.description}
+              </div>
+              {entry.vendor&&(
+                <div style={{fontSize:12,color:C.dim}}>📍 {entry.vendor}</div>
+              )}
+              {entry.notes&&(
+                <div style={{fontSize:11,color:C.muted,marginTop:2}}>{entry.notes}</div>
+              )}
+              {isPaid&&entry.paidDate&&(
+                <div style={{fontSize:11,color:C.green,marginTop:4}}>
+                  ✓ Marked paid {entry.paidDate}
+                  {entry.paidBy2&&` by ${entry.paidBy2}`}
+                </div>
+              )}
+            </div>
+            <div style={{textAlign:"right"}}>
+              <div style={{fontSize:26,fontWeight:900,
+                color:isPaid?C.green:C.red}}>
+                {fmt(entry.amount)}
+              </div>
+            </div>
+          </div>
+
+          {/* Supporting documents section */}
+          <div style={{background:C.bg,borderRadius:10,padding:14,
+            border:`1px solid ${C.border}`,marginBottom:12}}>
+            <div style={{fontSize:10,color:C.dim,fontWeight:800,
+              letterSpacing:1,marginBottom:10}}>SUPPORTING DOCUMENTS</div>
+
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+              {/* Original invoice/bill (attached when expense was created) */}
+              <div style={{background:C.card2,borderRadius:8,padding:10}}>
+                <div style={{fontSize:10,color:C.dim,marginBottom:6,fontWeight:700}}>
+                  ORIGINAL INVOICE / BILL
+                </div>
+                {entry.attachName?(
+                  <div>
+                    <div style={{fontSize:11,color:"#93c5fd",marginBottom:6}}>
+                      📎 {entry.attachName}
+                    </div>
+                    {entry.attachUrl&&(
+                      <button onClick={()=>setViewModal({url:entry.attachUrl,title:entry.description+" — Invoice"})}
+                        style={{...ghost,fontSize:10,padding:"5px 10px"}}>
+                        👁 View
+                      </button>
+                    )}
+                  </div>
+                ):(
+                  <div style={{fontSize:11,color:C.border}}>Not attached</div>
+                )}
+              </div>
+
+              {/* Payment receipt (proof Tim paid Bruce back) */}
+              <div style={{background:C.card2,borderRadius:8,padding:10}}>
+                <div style={{fontSize:10,color:C.dim,marginBottom:6,fontWeight:700}}>
+                  PAYMENT RECEIPT / PROOF PAID
+                </div>
+                {entry.receiptName?(
+                  <div>
+                    <div style={{fontSize:11,color:"#93c5fd",marginBottom:6}}>
+                      📎 {entry.receiptName}
+                    </div>
+                    {entry.receiptUrl&&(
+                      <button onClick={()=>setViewModal({url:entry.receiptUrl,title:entry.description+" — Receipt"})}
+                        style={{...ghost,fontSize:10,padding:"5px 10px"}}>
+                        👁 View
+                      </button>
+                    )}
+                  </div>
+                ):(
+                  <div style={{fontSize:11,color:C.border,marginBottom:6}}>
+                    Not uploaded yet
+                  </div>
+                )}
+                {/* Upload receipt — does NOT mark paid */}
+                <input type="file" accept="*/*"
+                  ref={el=>fileRefs.current[entry.id]=el}
+                  onChange={e=>attachDoc(entry.id,e.target.files[0])}
+                  style={{display:"none"}}/>
+                <input type="file" accept="image/*" capture="environment"
+                  ref={el=>camRefs.current[entry.id]=el}
+                  onChange={e=>attachDoc(entry.id,e.target.files[0])}
+                  style={{display:"none"}}/>
+                <div style={{display:"flex",gap:6,flexWrap:"wrap",marginTop:6}}>
+                  <button onClick={()=>fileRefs.current[entry.id]?.click()}
+                    style={{...ghost,fontSize:10,padding:"5px 10px",
+                      display:"flex",alignItems:"center",gap:4}}>
+                    <span>📎</span> File
+                  </button>
+                  <button onClick={()=>camRefs.current[entry.id]?.click()}
+                    style={{...ghost,fontSize:10,padding:"5px 10px",
+                      display:"flex",alignItems:"center",gap:4}}>
+                    <span>📷</span> Photo
+                  </button>
+                </div>
+                <div style={{fontSize:9,color:C.border,marginTop:4,fontStyle:"italic"}}>
+                  Uploading does NOT mark paid
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Action buttons */}
+          <div style={{display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
+            {/* MARK PAID — explicit button, either Tim or Bruce */}
+            {!isPaid&&(
+              <button onClick={()=>markPaid(entry.id)}
+                style={{...btn(C.green),fontSize:12,padding:"9px 18px"}}>
+                ✓ Mark Paid
+              </button>
+            )}
+            {isPaid&&(
+              <button onClick={()=>markUnpaid(entry.id)}
+                style={{...ghost,fontSize:11}}>
+                ↩ Unmark Paid
+              </button>
+            )}
+            {/* Remove — double confirm */}
+            <button onClick={()=>softDel(entry.id)}
+              style={{
+                background:del.id===entry.id?"#7f1d1d20":"transparent",
+                color:del.id===entry.id?"#fca5a5":C.muted,
+                border:`1px solid ${del.id===entry.id?"#ef444450":C.border}`,
+                borderRadius:7,padding:"7px 12px",cursor:"pointer",
+                fontFamily:"inherit",fontSize:11,fontWeight:700}}>
+              {del.id===entry.id?"⚠️ Confirm Remove":"🗑 Remove"}
+            </button>
+            {del.id===entry.id&&(
+              <button onClick={()=>setDel({id:null,step:0})} style={ghost}>
+                Cancel
+              </button>
+            )}
+          </div>
+        </div>
+      );
+    })}
   </div>
 
-  {rcModal&&(
-    <div onClick={()=>setRcModal(null)} style={{position:"fixed",inset:0,
-      background:"#000c",display:"flex",alignItems:"center",
-      justifyContent:"center",zIndex:999}}>
-      <div onClick={e=>e.stopPropagation()} style={card({maxWidth:600,width:"90%"})}>
-        <div style={{display:"flex",justifyContent:"space-between",marginBottom:12}}>
+  {/* View doc modal */}
+  {viewModal&&(
+    <div onClick={()=>setViewModal(null)}
+      style={{position:"fixed",inset:0,background:"#000d",
+        display:"flex",alignItems:"center",justifyContent:"center",zIndex:999}}>
+      <div onClick={e=>e.stopPropagation()}
+        style={card({maxWidth:640,width:"90%",maxHeight:"90vh",overflowY:"auto"})}>
+        <div style={{display:"flex",justifyContent:"space-between",
+          alignItems:"center",marginBottom:12}}>
           <div style={{fontSize:12,fontWeight:800,color:"#93c5fd"}}>
-            {rcModal.description}
+            {viewModal.title}
           </div>
-          <button onClick={()=>setRcModal(null)}
-            style={{background:"none",border:"none",color:C.dim,cursor:"pointer",fontSize:18}}>✕</button>
+          <button onClick={()=>setViewModal(null)}
+            style={{background:"none",border:"none",
+              color:C.dim,cursor:"pointer",fontSize:20}}>✕</button>
         </div>
-        <img src={rcModal.receiptUrl} alt="Receipt"
-          style={{width:"100%",borderRadius:8,maxHeight:480,objectFit:"contain"}}/>
+        <img src={viewModal.url} alt="Document"
+          style={{width:"100%",borderRadius:8,
+            maxHeight:500,objectFit:"contain"}}/>
       </div>
     </div>
   )}
