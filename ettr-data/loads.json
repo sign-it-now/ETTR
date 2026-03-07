@@ -23,12 +23,16 @@
         "contactName": "Gloria Reyes",
         "contactPhone": "214-555-0198"
       },
-      "rate": { "amount": 2100.00, "type": "flat", "miles": 921 },
+      "rate": {
+        "amount": 2100,
+        "type": "flat",
+        "miles": 921
+      },
       "charges": [
         {
           "id": "chg-001-001",
           "type": "fuel_surcharge",
-          "amount": 45.00,
+          "amount": 45,
           "description": "Fuel surcharge per rate con",
           "receiptDocumentId": null
         }
@@ -54,7 +58,7 @@
       "notes": [
         {
           "id": "note-001-001",
-          "text": "Receiver was fast — in and out in 45 minutes. No issues.",
+          "text": "Receiver was fast â in and out in 45 minutes. No issues.",
           "createdAt": "2025-01-09T15:30:00Z",
           "createdBy": "driver-tim-anderson"
         }
@@ -85,12 +89,16 @@
         "contactName": "Marcus Hill",
         "contactPhone": "901-555-0233"
       },
-      "rate": { "amount": 1450.00, "type": "flat", "miles": 467 },
+      "rate": {
+        "amount": 1450,
+        "type": "flat",
+        "miles": 467
+      },
       "charges": [
         {
           "id": "chg-002-001",
           "type": "lumper",
-          "amount": 75.00,
+          "amount": 75,
           "description": "Unloading fee at Mid-South terminal",
           "receiptDocumentId": "doc-002-lr"
         }
@@ -148,13 +156,17 @@
         "contactName": "Denise Fontaine",
         "contactPhone": "314-555-0292"
       },
-      "rate": { "amount": 1650.00, "type": "flat", "miles": 533 },
+      "rate": {
+        "amount": 1650,
+        "type": "flat",
+        "miles": 533
+      },
       "charges": [
         {
           "id": "chg-003-001",
           "type": "detention",
-          "amount": 150.00,
-          "description": "2 hrs detention at receiver — dock was full on arrival",
+          "amount": 150,
+          "description": "2 hrs detention at receiver â dock was full on arrival",
           "receiptDocumentId": null
         }
       ],
@@ -179,7 +191,7 @@
       "notes": [
         {
           "id": "note-003-001",
-          "text": "2 hr detention at receiver. Had to wait for dock space — they were backed up from the morning rush. Detention confirmed by dock supervisor.",
+          "text": "2 hr detention at receiver. Had to wait for dock space â they were backed up from the morning rush. Detention confirmed by dock supervisor.",
           "createdAt": "2025-04-23T11:00:00Z",
           "createdBy": "driver-tim-anderson"
         }
@@ -210,13 +222,17 @@
         "contactName": "Ana Gutierrez",
         "contactPhone": "773-555-0210"
       },
-      "rate": { "amount": 1550.00, "type": "flat", "miles": 411 },
+      "rate": {
+        "amount": 1550,
+        "type": "flat",
+        "miles": 411
+      },
       "charges": [
         {
           "id": "chg-004-001",
           "type": "lumper",
-          "amount": 100.00,
-          "description": "Unloading at Chicago Central — lumper service required",
+          "amount": 100,
+          "description": "Unloading at Chicago Central â lumper service required",
           "receiptDocumentId": "doc-004-lr"
         }
       ],
@@ -273,7 +289,11 @@
         "contactName": "Walt Brzenk",
         "contactPhone": "412-555-0244"
       },
-      "rate": { "amount": 875.00, "type": "flat", "miles": 185 },
+      "rate": {
+        "amount": 875,
+        "type": "flat",
+        "miles": 185
+      },
       "charges": [],
       "documents": [
         {
@@ -327,12 +347,16 @@
         "contactName": "Jessica Romero",
         "contactPhone": "303-555-0277"
       },
-      "rate": { "amount": 1800.00, "type": "flat", "miles": 600 },
+      "rate": {
+        "amount": 1800,
+        "type": "flat",
+        "miles": 600
+      },
       "charges": [
         {
           "id": "chg-006-001",
           "type": "toll",
-          "amount": 18.50,
+          "amount": 18.5,
           "description": "I-70 tolls through Kansas",
           "receiptDocumentId": null
         }
@@ -382,7 +406,11 @@
         "contactName": "DeShawn Williams",
         "contactPhone": "404-555-0321"
       },
-      "rate": { "amount": 975.00, "type": "flat", "miles": 249 },
+      "rate": {
+        "amount": 975,
+        "type": "flat",
+        "miles": 249
+      },
       "charges": [],
       "documents": [
         {
@@ -436,7 +464,11 @@
         "contactName": "Courtney Briggs",
         "contactPhone": "615-555-0265"
       },
-      "rate": { "amount": 1050.00, "type": "flat", "miles": 281 },
+      "rate": {
+        "amount": 1050,
+        "type": "flat",
+        "miles": 281
+      },
       "charges": [],
       "documents": [
         {
@@ -483,7 +515,11 @@
         "contactName": "Amy Kowalski",
         "contactPhone": "414-555-0112"
       },
-      "rate": { "amount": 650.00, "type": "flat", "miles": 92 },
+      "rate": {
+        "amount": 650,
+        "type": "flat",
+        "miles": 92
+      },
       "charges": [],
       "documents": [
         {
@@ -522,7 +558,11 @@
         "contactName": "Nancy Hoffman",
         "contactPhone": "513-555-0377"
       },
-      "rate": { "amount": 1100.00, "type": "flat", "miles": 340 },
+      "rate": {
+        "amount": 1100,
+        "type": "flat",
+        "miles": 340
+      },
       "charges": [],
       "documents": [
         {
@@ -537,13 +577,19 @@
       "notes": [
         {
           "id": "note-010-001",
-          "text": "Need to assign a driver ASAP — pickup is Dec 10.",
+          "text": "Need to assign a driver ASAP â pickup is Dec 10.",
           "createdAt": "2025-12-07T09:05:00Z",
+          "createdBy": "driver-tim-anderson"
+        },
+        {
+          "id": "note-mmgrpp4z-yc6sg",
+          "text": "sampletest",
+          "createdAt": "2026-03-07T20:20:28.931Z",
           "createdBy": "driver-tim-anderson"
         }
       ],
       "createdAt": "2025-12-07T08:30:00Z",
-      "updatedAt": "2025-12-07T09:05:00Z"
+      "updatedAt": "2026-03-07T20:20:28.931Z"
     }
   ]
 }
