@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useData } from '../context/DataContext';
 import { saveGithubConfig } from '../services/storage';
 import { validateConfig, parseRepoUrl, runDiagnostics } from '../services/githubSync';
@@ -44,6 +44,25 @@ export default function SettingsScreen({ nav }) {
   const [configLoading, setConfigLoading] = useState(false);
   const [diagResults, setDiagResults] = useState(null);
   const [diagLoading, setDiagLoading] = useState(false);
+
+  // Setup link
+  const [setupLinkCopied, setSetupLinkCopied] = useState(false);
+
+  const generateSetupLink = useCallback(() => {
+    const payload = btoa(JSON.stringify({ repoUrl: githubConfig?.repoUrl, token: githubConfig?.token }));
+    return `${window.location.origin}${window.location.pathname}#setup=${payload}`;
+  }, [githubConfig]);
+
+  async function handleCopySetupLink() {
+    try {
+      await navigator.clipboard.writeText(generateSetupLink());
+      setSetupLinkCopied(true);
+      setTimeout(() => setSetupLinkCopied(false), 3000);
+    } catch {
+      // fallback: show the link in a prompt so they can copy manually
+      window.prompt('Copy this setup link:', generateSetupLink());
+    }
+  }
 
   // Driver management
   const [addingDriver, setAddingDriver] = useState(false);
@@ -206,6 +225,29 @@ export default function SettingsScreen({ nav }) {
             </div>
           )}
         </Section>
+
+        {/* Device Setup Link — admin only */}
+        {currentUser?.role === 'admin' && githubConfig && (
+          <Section title="Device Setup Link">
+            <p className="text-xs text-slate-400 mb-4">
+              Send this link to any new device. Opening it will auto-configure and connect the app instantly — no manual entry needed.
+              Keep it private: anyone with the link can access your data.
+            </p>
+            <button
+              onClick={handleCopySetupLink}
+              className={`w-full font-semibold py-3 rounded-xl text-sm transition-colors ${
+                setupLinkCopied
+                  ? 'bg-emerald-600 text-white'
+                  : 'bg-blue-600 hover:bg-blue-500 text-white'
+              }`}
+            >
+              {setupLinkCopied ? 'Link Copied!' : 'Copy Setup Link'}
+            </button>
+            <p className="text-xs text-slate-600 mt-2 text-center">
+              Paste into iMessage, email, or any messaging app to send to a driver's device.
+            </p>
+          </Section>
+        )}
 
         {/* Drivers */}
         <Section title="Drivers">

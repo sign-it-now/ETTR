@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { saveGithubConfig } from '../services/storage';
 import { validateConfig, parseRepoUrl } from '../services/githubSync';
 import { useData } from '../context/DataContext';
@@ -11,27 +11,42 @@ export default function SetupScreen({ onComplete }) {
   const [loading, setLoading] = useState(false);
   const [showToken, setShowToken] = useState(false);
 
-  async function handleSave() {
+  async function performSetup(rUrl, tok) {
     setError('');
-    if (!repoUrl.trim()) { setError('Repository URL is required'); return; }
-    if (!token.trim()) { setError('GitHub token is required'); return; }
-
-    const parsed = parseRepoUrl(repoUrl);
+    const parsed = parseRepoUrl(rUrl);
     if (!parsed) { setError('Invalid repo URL. Use: https://github.com/owner/repo'); return; }
-
     setLoading(true);
-    const result = await validateConfig(repoUrl, token);
+    const result = await validateConfig(rUrl, tok);
     setLoading(false);
-
-    if (!result.valid) {
-      setError(result.error);
-      return;
-    }
-
-    const config = { repoUrl: repoUrl.trim(), token: token.trim(), owner: parsed.owner, repo: parsed.repo };
+    if (!result.valid) { setError(result.error); return; }
+    const config = { repoUrl: rUrl.trim(), token: tok.trim(), owner: parsed.owner, repo: parsed.repo };
     saveGithubConfig(config);
     saveConfig(config);
+    window.location.hash = '';
     onComplete();
+  }
+
+  // Auto-setup from magic link: #setup=BASE64_JSON
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash.startsWith('#setup=')) {
+      try {
+        const { repoUrl: r, token: t } = JSON.parse(atob(hash.slice(7)));
+        if (r && t) {
+          setRepoUrl(r);
+          setToken(t);
+          performSetup(r, t);
+        }
+      } catch {
+        setError('Invalid setup link.');
+      }
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function handleSave() {
+    if (!repoUrl.trim()) { setError('Repository URL is required'); return; }
+    if (!token.trim()) { setError('GitHub token is required'); return; }
+    await performSetup(repoUrl.trim(), token.trim());
   }
 
   return (
