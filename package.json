@@ -2,6 +2,7 @@
   "name": "ettr-fleet-app",
   "version": "1.0.0",
   "description": "ETTR Fleet Management System - Edgerton Truck & Trailer Repair",
+  "homepage": "https://sign-it-now.github.io/ETTR",
   "private": true,
   "dependencies": {
     "react": "^18.2.0",
