@@ -48,8 +48,71 @@ function formatMoney(n) {
   return '$' + Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 0 });
 }
 
+function SyncButton({ syncStatus, online, lastSynced, onSync }) {
+  // Label and color based on current state
+  if (!online) {
+    return (
+      <button
+        onClick={onSync}
+        className="text-xs bg-amber-900/50 border border-amber-700/50 text-amber-400 px-3 py-1.5 rounded-full font-medium"
+      >
+        Offline
+      </button>
+    );
+  }
+  if (syncStatus === 'syncing') {
+    return (
+      <button disabled className="text-xs bg-blue-900/50 text-blue-400 px-3 py-1.5 rounded-full font-medium animate-pulse">
+        Syncing...
+      </button>
+    );
+  }
+  if (syncStatus === 'queued') {
+    return (
+      <button
+        onClick={onSync}
+        className="text-xs bg-amber-900/50 border border-amber-700/50 text-amber-400 px-3 py-1.5 rounded-full font-medium"
+        title="Changes queued — tap to retry"
+      >
+        Retry Sync
+      </button>
+    );
+  }
+  if (syncStatus === 'error') {
+    return (
+      <button
+        onClick={onSync}
+        className="text-xs bg-red-900/50 border border-red-700/50 text-red-400 px-3 py-1.5 rounded-full font-medium"
+      >
+        Sync Error
+      </button>
+    );
+  }
+  if (syncStatus === 'synced' && lastSynced) {
+    const mins = Math.floor((Date.now() - new Date(lastSynced).getTime()) / 60000);
+    const ago = mins < 1 ? 'just now' : mins < 60 ? `${mins}m ago` : `${Math.floor(mins / 60)}h ago`;
+    return (
+      <button
+        onClick={onSync}
+        className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-400 px-3 py-1.5 rounded-full font-medium transition-colors"
+        title="Tap to sync"
+      >
+        ✓ {ago}
+      </button>
+    );
+  }
+  return (
+    <button
+      onClick={onSync}
+      className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-full font-medium transition-colors"
+    >
+      Sync
+    </button>
+  );
+}
+
 export default function DashboardScreen({ nav }) {
-  const { loads, drivers, brokers, currentUser, logout, pullFromGitHub, syncStatus } = useData();
+  const { loads, drivers, brokers, currentUser, logout, pullFromGitHub, syncStatus, lastSynced, online } = useData();
   const [filter, setFilter] = useState('all');
 
   const isAdmin = currentUser?.role === 'admin';
@@ -85,24 +148,28 @@ export default function DashboardScreen({ nav }) {
       {/* Header */}
       <div className="sticky top-0 bg-slate-950/95 backdrop-blur border-b border-slate-800 px-4 py-3 z-40">
         <div className="flex items-center justify-between max-w-2xl mx-auto">
-          <div className="flex items-center gap-3">
-            <span className="text-xl font-black text-white">ETTR</span>
+          <div className="flex items-center gap-2">
+            <span className="text-xl font-black text-white tracking-tight">ETTR</span>
             <span className="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">
               {currentUser?.name}
             </span>
+            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+              isAdmin ? 'bg-blue-900/50 text-blue-400' : 'bg-slate-800 text-slate-500'
+            }`}>
+              {isAdmin ? 'Admin' : 'Driver'}
+            </span>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              onClick={pullFromGitHub}
-              disabled={syncStatus === 'syncing'}
-              className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-full font-medium transition-colors disabled:opacity-50"
-            >
-              {syncStatus === 'syncing' ? 'Syncing...' : 'Sync'}
-            </button>
+            <SyncButton
+              syncStatus={syncStatus}
+              online={online}
+              lastSynced={lastSynced}
+              onSync={pullFromGitHub}
+            />
             {isAdmin && (
               <button
                 onClick={() => nav('settings')}
-                className="text-slate-400 hover:text-white p-1.5"
+                className="text-slate-400 hover:text-white p-1.5 text-lg leading-none"
                 title="Settings"
               >
                 &#9881;
@@ -110,7 +177,7 @@ export default function DashboardScreen({ nav }) {
             )}
             <button
               onClick={logout}
-              className="text-slate-500 hover:text-white text-xs p-1.5"
+              className="text-slate-500 hover:text-white text-xs px-2 py-1.5"
             >
               Out
             </button>
@@ -118,21 +185,39 @@ export default function DashboardScreen({ nav }) {
         </div>
       </div>
 
+      {/* Offline banner */}
+      {!online && (
+        <div className="bg-amber-900/30 border-b border-amber-800/50 px-4 py-2 text-center">
+          <span className="text-amber-400 text-xs font-semibold">
+            Offline — changes will sync when connection returns
+          </span>
+        </div>
+      )}
+
       <div className="max-w-2xl mx-auto px-4 pb-24">
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3 mt-4 mb-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 text-center">
+          <button
+            onClick={() => setFilter('active')}
+            className="bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl p-3 text-center transition-colors"
+          >
             <div className="text-2xl font-black text-blue-400">{inProgress}</div>
             <div className="text-xs text-slate-500 mt-0.5">In Progress</div>
-          </div>
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 text-center">
+          </button>
+          <button
+            onClick={() => setFilter('delivered')}
+            className="bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl p-3 text-center transition-colors"
+          >
             <div className="text-2xl font-black text-emerald-400">{readyToInvoice}</div>
             <div className="text-xs text-slate-500 mt-0.5">Ready to Invoice</div>
-          </div>
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 text-center">
+          </button>
+          <button
+            onClick={() => setFilter('rate_con_received')}
+            className="bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl p-3 text-center transition-colors"
+          >
             <div className="text-2xl font-black text-amber-400">{needsAction}</div>
             <div className="text-xs text-slate-500 mt-0.5">Needs Action</div>
-          </div>
+          </button>
         </div>
 
         {/* Filter pills */}
@@ -166,7 +251,9 @@ export default function DashboardScreen({ nav }) {
         <div className="space-y-3">
           {sortedLoads.length === 0 && (
             <div className="text-center text-slate-500 py-16 text-sm">
-              {filter === 'all' ? 'No loads yet. Create one to get started.' : 'No loads match this filter.'}
+              {filter === 'all'
+                ? 'No loads yet. Create one to get started.'
+                : 'No loads match this filter.'}
             </div>
           )}
 
@@ -182,6 +269,7 @@ export default function DashboardScreen({ nav }) {
                 onClick={() => nav('load-detail', { loadId: load.id })}
                 className="w-full bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl p-4 text-left transition-colors"
               >
+                {/* Top row: load number + status */}
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <div>
                     <span className="font-bold text-sm text-white">{load.loadNumber}</span>
@@ -198,18 +286,25 @@ export default function DashboardScreen({ nav }) {
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2 text-sm text-slate-300 mb-2">
-                  <span className="font-medium">{pickupCity || 'Unknown'}</span>
-                  <span className="text-slate-600">→</span>
-                  <span className="font-medium">{deliveryCity || 'Unknown'}</span>
+                {/* Route */}
+                <div className="flex items-center gap-2 text-sm text-slate-200 mb-2">
+                  <span className="font-medium">{pickupCity || '—'}</span>
+                  <span className="text-slate-600 text-xs">&#8594;</span>
+                  <span className="font-medium">{deliveryCity || '—'}</span>
                 </div>
 
+                {/* Bottom row: broker/driver + date/rate */}
                 <div className="flex items-center justify-between text-xs text-slate-500">
                   <div className="flex items-center gap-2">
                     {broker && <span>{broker.companyName}</span>}
                     {driver && (
                       <span className="bg-slate-800 px-2 py-0.5 rounded text-slate-400">
                         {driver.name.split(' ')[0]}
+                      </span>
+                    )}
+                    {!load.assignedDriverId && isAdmin && (
+                      <span className="bg-amber-900/40 text-amber-500 px-2 py-0.5 rounded">
+                        Unassigned
                       </span>
                     )}
                   </div>

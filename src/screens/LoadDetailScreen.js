@@ -204,23 +204,41 @@ export default function LoadDetailScreen({ nav, loadId }) {
       </div>
 
       {/* Progress timeline */}
-      <div className="max-w-2xl mx-auto px-4 py-4">
-        <div className="flex items-center overflow-x-auto gap-0 no-scrollbar">
-          {STATUS_ORDER.map((s, i) => {
-            const done = currentIdx > i;
-            const active = currentIdx === i;
-            return (
-              <div key={s} className="flex items-center shrink-0">
-                <div className={`w-2.5 h-2.5 rounded-full ${done ? 'bg-emerald-500' : active ? 'bg-blue-500' : 'bg-slate-700'}`} />
-                {i < STATUS_ORDER.length - 1 && (
-                  <div className={`h-0.5 w-6 ${done ? 'bg-emerald-500' : 'bg-slate-800'}`} />
-                )}
-              </div>
-            );
-          })}
-        </div>
-        <div className="text-xs text-slate-500 mt-1">
-          Step {currentIdx + 1} of {STATUS_ORDER.length}: {STATUS_LABELS[load.status]}
+      <div className="max-w-2xl mx-auto px-4 pt-3 pb-4">
+        <div className="overflow-x-auto no-scrollbar">
+          <div className="flex items-start min-w-max gap-0">
+            {STATUS_ORDER.map((s, i) => {
+              const done = currentIdx > i;
+              const active = currentIdx === i;
+              const SHORT = {
+                rate_con_received: 'Rate Con',
+                accepted: 'Accepted',
+                dispatched: 'Dispatched',
+                picked_up: 'Picked Up',
+                in_transit: 'In Transit',
+                delivered: 'Delivered',
+                invoiced: 'Invoiced',
+                paid: 'Paid',
+              };
+              return (
+                <div key={s} className="flex items-start shrink-0">
+                  <div className="flex flex-col items-center">
+                    <div className={`w-3 h-3 rounded-full mt-0.5 ${
+                      done ? 'bg-emerald-500' : active ? 'bg-blue-500 ring-2 ring-blue-500/30' : 'bg-slate-700'
+                    }`} />
+                    <span className={`text-[9px] mt-1 font-medium leading-tight text-center whitespace-nowrap ${
+                      active ? 'text-blue-400' : done ? 'text-emerald-600' : 'text-slate-600'
+                    }`} style={{ maxWidth: 52 }}>
+                      {SHORT[s]}
+                    </span>
+                  </div>
+                  {i < STATUS_ORDER.length - 1 && (
+                    <div className={`h-0.5 w-7 mt-1.5 ${done ? 'bg-emerald-500' : 'bg-slate-800'}`} />
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -523,6 +541,10 @@ export default function LoadDetailScreen({ nav, loadId }) {
             >
               {actionLoading ? 'Updating...' : ACTION_LABELS[load.status]}
             </button>
+            {/* Admin-only notice for dispatching */}
+            {load.status === 'accepted' && (
+              <p className="text-center text-xs text-slate-600 mt-2">Admin action</p>
+            )}
           </div>
         </div>
       )}

@@ -269,8 +269,11 @@ export async function syncOrQueue(config, fileName, data, sha) {
   }
 
   try {
-    await pushFile(config, fileName, data, sha);
-    return { status: 'synced' };
+    const result = await pushFile(config, fileName, data, sha);
+    // GitHub returns the new SHA in result.content.sha — pass it back so
+    // callers can update their local SHA reference and avoid 409 conflicts.
+    const newSha = result?.content?.sha || null;
+    return { status: 'synced', sha: newSha };
   } catch (e) {
     queueSync(fileName, data);
     return { status: 'queued', error: e.message };

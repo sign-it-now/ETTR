@@ -11,7 +11,7 @@ import {
   getInvoices, saveInvoices,
   getGithubConfig,
   getUserSession, saveUserSession, clearUserSession,
-  getLastSynced,
+  getLastSynced, saveLastSynced,
   generateId,
   generateLoadNumber,
   generateInvoiceNumber,
@@ -96,20 +96,28 @@ export function DataProvider({ children }) {
     }
   }, [githubConfig]);
 
-  // ── Auto-pull on mount when config exists ──────────────────────────────────
+  // ── Auto-pull when config is set or changes ────────────────────────────────
+  // Using githubConfig?.repoUrl as dep so this fires on first setup AND on
+  // normal app open — not just once on mount.
   useEffect(() => {
     if (githubConfig && isOnline()) {
       pullFromGitHub();
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [githubConfig?.repoUrl]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Generic push helper ────────────────────────────────────────────────────
   const pushData = useCallback(async (fileName, data) => {
-    const sha = shaRef.current[fileName.replace('.json', '')];
+    const key = fileName.replace('.json', '');
+    const sha = shaRef.current[key];
+    setSyncStatus('syncing');
     const result = await syncOrQueue(githubConfig, fileName, data, sha);
     if (result.status === 'synced') {
+      // Keep the new SHA so the next push doesn't get a 409 conflict
+      if (result.sha) shaRef.current[key] = result.sha;
+      const now = new Date().toISOString();
+      setLastSynced(now);
+      saveLastSynced(now);
       setSyncStatus('synced');
-      setLastSynced(new Date().toISOString());
     } else if (result.status === 'queued') {
       setSyncStatus('queued');
     }
