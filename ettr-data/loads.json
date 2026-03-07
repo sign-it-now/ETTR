@@ -539,7 +539,7 @@
       "id": "load-2025-010",
       "loadNumber": "ETTR-2025-010",
       "referenceNumber": "TQL-84600",
-      "status": "delivered",
+      "status": "invoiced",
       "brokerId": "broker-tql",
       "assignedDriverId": "",
       "shipper": {
@@ -589,7 +589,7 @@
         }
       ],
       "createdAt": "2025-12-07T08:30:00Z",
-      "updatedAt": "2026-03-07T20:21:06.540Z"
+      "updatedAt": "2026-03-07T20:21:10.552Z"
     }
   ]
 }
