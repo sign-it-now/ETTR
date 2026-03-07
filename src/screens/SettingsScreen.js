@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useData } from '../context/DataContext';
 import { saveGithubConfig } from '../services/storage';
-import { validateConfig, parseRepoUrl } from '../services/githubSync';
+import { validateConfig, parseRepoUrl, runDiagnostics } from '../services/githubSync';
 
 function Section({ title, children }) {
   return (
@@ -42,6 +42,8 @@ export default function SettingsScreen({ nav }) {
   const [showToken, setShowToken] = useState(false);
   const [configMsg, setConfigMsg] = useState('');
   const [configLoading, setConfigLoading] = useState(false);
+  const [diagResults, setDiagResults] = useState(null);
+  const [diagLoading, setDiagLoading] = useState(false);
 
   // Driver management
   const [addingDriver, setAddingDriver] = useState(false);
@@ -65,6 +67,17 @@ export default function SettingsScreen({ nav }) {
     saveConfig(config);
     setConfigMsg('Saved! Syncing...');
     pullFromGitHub();
+  }
+
+  async function handleTestSync() {
+    setDiagResults(null);
+    setDiagLoading(true);
+    const cfg = repoUrl && token
+      ? { repoUrl, token, owner: parseRepoUrl(repoUrl)?.owner, repo: parseRepoUrl(repoUrl)?.repo }
+      : githubConfig;
+    const results = await runDiagnostics(cfg);
+    setDiagResults(results);
+    setDiagLoading(false);
   }
 
   async function handleAddDriver() {
@@ -161,9 +174,37 @@ export default function SettingsScreen({ nav }) {
               onClick={pullFromGitHub}
               className="bg-slate-700 hover:bg-slate-600 text-white text-sm font-semibold px-4 py-2.5 rounded-xl"
             >
-              Pull Now
+              Pull
             </button>
           </div>
+
+          {/* Diagnostic test */}
+          <button
+            onClick={handleTestSync}
+            disabled={diagLoading}
+            className="w-full mt-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-300 text-sm font-semibold py-2.5 rounded-xl transition-colors"
+          >
+            {diagLoading ? 'Running tests...' : 'Test Pull & Push'}
+          </button>
+
+          {diagResults && (
+            <div className="mt-3 bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-1.5">
+              <div className="text-xs text-slate-500 uppercase tracking-wider mb-2">Diagnostics</div>
+              {diagResults.map((r, i) => (
+                <div key={i} className="flex items-start gap-2 text-xs">
+                  <span className={r.ok ? 'text-emerald-400' : 'text-red-400'}>
+                    {r.ok ? '✓' : '✗'}
+                  </span>
+                  <span className={r.ok ? 'text-slate-300' : 'text-red-400'}>{r.msg}</span>
+                </div>
+              ))}
+              {diagResults.every((r) => r.ok) && (
+                <div className="text-xs text-emerald-400 font-semibold pt-1 border-t border-slate-800">
+                  All checks passed — sync is working!
+                </div>
+              )}
+            </div>
+          )}
         </Section>
 
         {/* Drivers */}

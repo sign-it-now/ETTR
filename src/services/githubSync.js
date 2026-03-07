@@ -185,6 +185,75 @@ export function isOnline() {
 }
 
 /**
+ * Run full diagnostics: auth check, pull each file, test write.
+ * Returns an array of result lines: { ok: bool, msg: string }
+ */
+export async function runDiagnostics(config) {
+  const results = [];
+  const log = (ok, msg) => results.push({ ok, msg });
+
+  if (!config) { log(false, 'No GitHub config saved'); return results; }
+
+  const parsed = parseRepoUrl(config.repoUrl);
+  if (!parsed) { log(false, 'Invalid repo URL'); return results; }
+  const { owner, repo } = parsed;
+  const token = config.token;
+
+  // 1. Auth
+  try {
+    const res = await fetch(`${apiBase(owner, repo)}`, { headers: authHeaders(token) });
+    if (res.status === 401) { log(false, 'Auth failed — invalid token'); return results; }
+    if (res.status === 404) { log(false, 'Repo not found or no access'); return results; }
+    if (!res.ok) { log(false, `GitHub error: ${res.status}`); return results; }
+    const data = await res.json();
+    log(true, `Connected to ${data.full_name} (${data.private ? 'private' : 'public'})`);
+  } catch (e) {
+    log(false, `Network error: ${e.message}`);
+    return results;
+  }
+
+  // 2. Pull each data file
+  for (const file of DATA_FILES) {
+    try {
+      const fetched = await fetchFile(owner, repo, token, `${DATA_DIR}/${file}`);
+      if (fetched) {
+        const key = file.replace('.json', '');
+        const count = Array.isArray(fetched.content[key]) ? fetched.content[key].length : '?';
+        log(true, `Pull ${file} — ${count} record(s)`);
+      } else {
+        log(true, `Pull ${file} — not found (will be created on first save)`);
+      }
+    } catch (e) {
+      log(false, `Pull ${file} failed: ${e.message}`);
+    }
+  }
+
+  // 3. Test write (write then delete a marker file)
+  const testPath = `${DATA_DIR}/.sync-test`;
+  const testContent = { _ettr_sync_test: true, timestamp: new Date().toISOString() };
+  try {
+    // get existing sha if any
+    let sha = null;
+    try { sha = (await fetchFile(owner, repo, token, testPath))?.sha || null; } catch {}
+    const written = await writeFile(owner, repo, token, testPath, testContent, sha, 'ETTR sync test');
+    log(true, `Push test — wrote ${testPath} (SHA: ${written.content.sha.slice(0, 8)}…)`);
+    // clean up: delete the test file
+    try {
+      const delRes = await fetch(`${apiBase(owner, repo)}/contents/${testPath}`, {
+        method: 'DELETE',
+        headers: authHeaders(token),
+        body: JSON.stringify({ message: 'ETTR sync test cleanup', sha: written.content.sha }),
+      });
+      if (delRes.ok) log(true, 'Push test — cleaned up test file');
+    } catch {}
+  } catch (e) {
+    log(false, `Push test failed: ${e.message}`);
+  }
+
+  return results;
+}
+
+/**
  * Push data immediately if online, otherwise queue for later.
  * fileName: e.g. 'loads.json'
  * data: the array to store
