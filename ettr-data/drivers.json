@@ -23,6 +23,14 @@
       "phone": "314-882-5501",
       "role": "driver",
       "isActive": true
+    },
+    {
+      "name": "Bruce Edgerton",
+      "email": "Bruce.Edgerton@yahoo.com",
+      "phone": "7155090114",
+      "role": "admin",
+      "id": "driver-mmgsb276-y3hj3",
+      "isActive": true
     }
   ]
 }
