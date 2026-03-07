@@ -1,175 +1,212 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// localStorage helpers + offline queue management
-// ─────────────────────────────────────────────────────────────────────────────
+import { SEED_DATA } from '../data/seedData';
 
-const KEYS = {
-  LOADS: 'ettr_loads',
-  DRIVERS: 'ettr_drivers',
-  BROKERS: 'ettr_brokers',
-  INVOICES: 'ettr_invoices',
-  SYNC_QUEUE: 'ettr_sync_queue',
-  LAST_SYNCED: 'ettr_last_synced',
-  GITHUB_CONFIG: 'ettr_github_config',
-  USER_SESSION: 'ettr_user_session',
+const NS = 'ettr_';
+
+// ─── Low-level helpers ─────────────────────────────────────────────────────
+const get = (key) => {
+  try {
+    const val = localStorage.getItem(NS + key);
+    return val ? JSON.parse(val) : null;
+  } catch {
+    return null;
+  }
 };
 
-// ── Low-level read/write ──────────────────────────────────────────────────────
-
-function readLS(key, fallback = null) {
+const set = (key, value) => {
   try {
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-function writeLS(key, value) {
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
+    localStorage.setItem(NS + key, JSON.stringify(value));
     return true;
-  } catch {
+  } catch (e) {
+    console.error('[storage] Failed to save', key, e);
     return false;
   }
-}
+};
 
-function removeLS(key) {
-  try {
-    localStorage.removeItem(key);
-  } catch {}
-}
+const remove = (key) => localStorage.removeItem(NS + key);
 
-// ── Data helpers ──────────────────────────────────────────────────────────────
+// ─── Config (GitHub repo + Claude API key + user) ──────────────────────────
+export const getConfig = () => get('config');
+export const saveConfig = (config) => set('config', config);
+export const clearConfig = () => remove('config');
 
-export function getLoads() {
-  return readLS(KEYS.LOADS, []);
-}
+// ─── Current user session ──────────────────────────────────────────────────
+export const getCurrentUser = () => get('currentUser');
+export const saveCurrentUser = (user) => set('currentUser', user);
+export const clearCurrentUser = () => remove('currentUser');
 
-export function saveLoads(loads) {
-  return writeLS(KEYS.LOADS, loads);
-}
+// ─── Data collections ──────────────────────────────────────────────────────
+const DATA_KEYS = ['loads', 'drivers', 'brokers', 'invoices'];
 
-export function getDrivers() {
-  return readLS(KEYS.DRIVERS, []);
-}
+export const getData = (key) => get(key);
+export const saveData = (key, data) => set(key, data);
 
-export function saveDrivers(drivers) {
-  return writeLS(KEYS.DRIVERS, drivers);
-}
+// Convenience getters
+export const getLoads = () => get('loads') || [];
+export const saveLoads = (loads) => set('loads', loads);
 
-export function getBrokers() {
-  return readLS(KEYS.BROKERS, []);
-}
+export const getDrivers = () => get('drivers') || [];
+export const saveDrivers = (drivers) => set('drivers', drivers);
 
-export function saveBrokers(brokers) {
-  return writeLS(KEYS.BROKERS, brokers);
-}
+export const getBrokers = () => get('brokers') || [];
+export const saveBrokers = (brokers) => set('brokers', brokers);
 
-export function getInvoices() {
-  return readLS(KEYS.INVOICES, []);
-}
+export const getInvoices = () => get('invoices') || [];
+export const saveInvoices = (invoices) => set('invoices', invoices);
 
-export function saveInvoices(invoices) {
-  return writeLS(KEYS.INVOICES, invoices);
-}
+// Load all data collections at once
+export const getAllData = () => ({
+  loads: getLoads(),
+  drivers: getDrivers(),
+  brokers: getBrokers(),
+  invoices: getInvoices(),
+});
 
-// ── GitHub config ─────────────────────────────────────────────────────────────
+// Overwrite all data (used after GitHub pull)
+export const saveAllData = ({ loads, drivers, brokers, invoices }) => {
+  if (loads !== undefined) saveLoads(loads);
+  if (drivers !== undefined) saveDrivers(drivers);
+  if (brokers !== undefined) saveBrokers(brokers);
+  if (invoices !== undefined) saveInvoices(invoices);
+};
 
-export function getGithubConfig() {
-  return readLS(KEYS.GITHUB_CONFIG, null);
-}
+// ─── SHA cache (GitHub file SHAs needed for updates) ──────────────────────
+export const getShaCache = () => get('shaCache') || {};
+export const saveShaCache = (cache) => set('shaCache', cache);
+export const updateSha = (filename, sha) => {
+  const cache = getShaCache();
+  cache[filename] = sha;
+  saveShaCache(cache);
+};
+export const getSha = (filename) => getShaCache()[filename] || null;
 
-export function saveGithubConfig(config) {
-  return writeLS(KEYS.GITHUB_CONFIG, config);
-}
+// ─── Pending changes queue (offline writes) ───────────────────────────────
+export const getPendingChanges = () => get('pendingChanges') || [];
+export const addPendingChange = (filename) => {
+  const pending = getPendingChanges();
+  if (!pending.includes(filename)) {
+    pending.push(filename);
+    set('pendingChanges', pending);
+  }
+};
+export const clearPendingChanges = () => remove('pendingChanges');
+export const removePendingChange = (filename) => {
+  const pending = getPendingChanges().filter((f) => f !== filename);
+  set('pendingChanges', pending);
+};
 
-export function clearGithubConfig() {
-  removeLS(KEYS.GITHUB_CONFIG);
-}
+// ─── Last sync timestamp ───────────────────────────────────────────────────
+export const getLastSync = () => get('lastSync');
+export const saveLastSync = (ts = new Date().toISOString()) => set('lastSync', ts);
 
-// ── User session ──────────────────────────────────────────────────────────────
+// ─── Initialization ────────────────────────────────────────────────────────
+// Populate localStorage with seed data if collections are empty.
+// Returns true if data was initialized, false if already had data.
+export const initializeIfEmpty = () => {
+  let initialized = false;
+  if (!get('loads') || getLoads().length === 0) {
+    saveLoads(SEED_DATA.loads);
+    initialized = true;
+  }
+  if (!get('drivers') || getDrivers().length === 0) {
+    saveDrivers(SEED_DATA.drivers);
+    initialized = true;
+  }
+  if (!get('brokers') || getBrokers().length === 0) {
+    saveBrokers(SEED_DATA.brokers);
+    initialized = true;
+  }
+  if (!get('invoices') || getInvoices().length === 0) {
+    saveInvoices(SEED_DATA.invoices);
+    initialized = true;
+  }
+  return initialized;
+};
 
-export function getUserSession() {
-  return readLS(KEYS.USER_SESSION, null);
-}
+// Full reset to seed data (Settings → "Reset to test data")
+export const resetToSeedData = () => {
+  saveLoads(SEED_DATA.loads);
+  saveDrivers(SEED_DATA.drivers);
+  saveBrokers(SEED_DATA.brokers);
+  saveInvoices(SEED_DATA.invoices);
+  clearPendingChanges();
+};
 
-export function saveUserSession(session) {
-  return writeLS(KEYS.USER_SESSION, session);
-}
+// ─── Update a single load in localStorage ─────────────────────────────────
+export const updateLoad = (updatedLoad) => {
+  const loads = getLoads();
+  const idx = loads.findIndex((l) => l.id === updatedLoad.id);
+  if (idx >= 0) {
+    loads[idx] = { ...updatedLoad, updatedAt: new Date().toISOString() };
+  } else {
+    loads.push({ ...updatedLoad, updatedAt: new Date().toISOString() });
+  }
+  saveLoads(loads);
+  addPendingChange('loads.json');
+  return loads;
+};
 
-export function clearUserSession() {
-  removeLS(KEYS.USER_SESSION);
-}
+// ─── Update a single invoice in localStorage ──────────────────────────────
+export const updateInvoice = (updatedInvoice) => {
+  const invoices = getInvoices();
+  const idx = invoices.findIndex((i) => i.id === updatedInvoice.id);
+  if (idx >= 0) {
+    invoices[idx] = { ...updatedInvoice, updatedAt: new Date().toISOString() };
+  } else {
+    invoices.push({ ...updatedInvoice, updatedAt: new Date().toISOString() });
+  }
+  saveInvoices(invoices);
+  addPendingChange('invoices.json');
+  return invoices;
+};
 
-// ── Last synced timestamp ─────────────────────────────────────────────────────
+// ─── Update a single broker in localStorage ────────────────────────────────
+export const updateBroker = (updatedBroker) => {
+  const brokers = getBrokers();
+  const idx = brokers.findIndex((b) => b.id === updatedBroker.id);
+  if (idx >= 0) {
+    brokers[idx] = updatedBroker;
+  } else {
+    brokers.push(updatedBroker);
+  }
+  saveBrokers(brokers);
+  addPendingChange('brokers.json');
+  return brokers;
+};
 
-export function getLastSynced() {
-  return readLS(KEYS.LAST_SYNCED, null);
-}
+export const storage = {
+  getConfig,
+  saveConfig,
+  clearConfig,
+  getCurrentUser,
+  saveCurrentUser,
+  clearCurrentUser,
+  getData,
+  saveData,
+  getLoads,
+  saveLoads,
+  getDrivers,
+  saveDrivers,
+  getBrokers,
+  saveBrokers,
+  getInvoices,
+  saveInvoices,
+  getAllData,
+  saveAllData,
+  getShaCache,
+  saveShaCache,
+  updateSha,
+  getSha,
+  getPendingChanges,
+  addPendingChange,
+  clearPendingChanges,
+  removePendingChange,
+  getLastSync,
+  saveLastSync,
+  initializeIfEmpty,
+  resetToSeedData,
+  updateLoad,
+  updateInvoice,
+  updateBroker,
+};
 
-export function saveLastSynced(timestamp = new Date().toISOString()) {
-  return writeLS(KEYS.LAST_SYNCED, timestamp);
-}
-
-// ── Offline sync queue ────────────────────────────────────────────────────────
-// Each queued item: { id, file, content, timestamp }
-
-export function getSyncQueue() {
-  return readLS(KEYS.SYNC_QUEUE, []);
-}
-
-export function queueSync(file, content) {
-  const queue = getSyncQueue();
-  // Replace existing entry for same file (latest wins)
-  const filtered = queue.filter((q) => q.file !== file);
-  filtered.push({
-    id: `q-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-    file,
-    content,
-    timestamp: new Date().toISOString(),
-  });
-  writeLS(KEYS.SYNC_QUEUE, filtered);
-}
-
-export function clearSyncQueue() {
-  removeLS(KEYS.SYNC_QUEUE);
-}
-
-export function removeSyncQueueItem(file) {
-  const queue = getSyncQueue().filter((q) => q.file !== file);
-  writeLS(KEYS.SYNC_QUEUE, queue);
-}
-
-// ── ID generator ──────────────────────────────────────────────────────────────
-
-export function generateId(prefix = 'id') {
-  return `${prefix}-${Date.now().toString(36)}-${Math.random()
-    .toString(36)
-    .slice(2, 7)}`;
-}
-
-// ── Load number generator ─────────────────────────────────────────────────────
-
-export function generateLoadNumber(loads) {
-  const year = new Date().getFullYear();
-  const existing = loads
-    .map((l) => l.loadNumber)
-    .filter((n) => n && n.startsWith(`ETTR-${year}-`))
-    .map((n) => parseInt(n.split('-')[2], 10))
-    .filter((n) => !isNaN(n));
-  const next = existing.length ? Math.max(...existing) + 1 : 1;
-  return `ETTR-${year}-${String(next).padStart(3, '0')}`;
-}
-
-// ── Invoice number generator ──────────────────────────────────────────────────
-
-export function generateInvoiceNumber(invoices) {
-  const year = new Date().getFullYear();
-  const existing = invoices
-    .map((i) => i.invoiceNumber)
-    .filter((n) => n && n.startsWith(`INV-${year}-`))
-    .map((n) => parseInt(n.split('-')[2], 10))
-    .filter((n) => !isNaN(n));
-  const next = existing.length ? Math.max(...existing) + 1 : 1;
-  return `INV-${year}-${String(next).padStart(3, '0')}`;
-}
+export default storage;

@@ -1,281 +1,215 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// GitHub API sync service
-// Reads/writes JSON data files in the ettr-data/ folder of the configured repo
-// ─────────────────────────────────────────────────────────────────────────────
-
-import {
-  queueSync,
-  getSyncQueue,
-  removeSyncQueueItem,
-  saveLastSynced,
-} from './storage';
+import { updateSha, getSha, saveLastSync } from './storage';
 
 const DATA_FILES = ['loads.json', 'drivers.json', 'brokers.json', 'invoices.json'];
-const DATA_DIR = 'ettr-data';
 
-// ── GitHub REST API helpers ───────────────────────────────────────────────────
+// Parse owner and repo from a GitHub URL
+// Handles: https://github.com/owner/repo, github.com/owner/repo, owner/repo
+const parseGitHubUrl = (url) => {
+  const cleaned = url
+    .trim()
+    .replace(/^https?:\/\//, '')
+    .replace(/^github\.com\//, '')
+    .replace(/\.git$/, '')
+    .replace(/\/$/, '');
+  const parts = cleaned.split('/');
+  if (parts.length < 2) return null;
+  return { owner: parts[0], repo: parts[1] };
+};
 
-function apiBase(owner, repo) {
-  return `https://api.github.com/repos/${owner}/${repo}`;
-}
+// Base64 encode/decode for GitHub API
+const toBase64 = (str) => btoa(unescape(encodeURIComponent(str)));
+const fromBase64 = (b64) => decodeURIComponent(escape(atob(b64)));
 
-function authHeaders(token) {
-  return {
-    Authorization: `Bearer ${token}`,
-    Accept: 'application/vnd.github.v3+json',
-    'Content-Type': 'application/json',
-  };
-}
-
-/**
- * Parse a GitHub repo URL into { owner, repo }.
- * Accepts: https://github.com/owner/repo  or  owner/repo
- */
-export function parseRepoUrl(repoUrl) {
-  const cleaned = repoUrl.trim().replace(/\.git$/, '');
-  const match = cleaned.match(/github\.com\/([^/]+)\/([^/]+)/);
-  if (match) return { owner: match[1], repo: match[2] };
-  const parts = cleaned.split('/').filter(Boolean);
-  if (parts.length >= 2) return { owner: parts[parts.length - 2], repo: parts[parts.length - 1] };
-  return null;
-}
-
-/**
- * Fetch a single file from GitHub and return { content (parsed JSON), sha }.
- * Returns null if file not found.
- */
-async function fetchFile(owner, repo, token, filePath) {
-  const url = `${apiBase(owner, repo)}/contents/${filePath}`;
-  const res = await fetch(url, { headers: authHeaders(token) });
-  if (res.status === 404) return null;
-  if (!res.ok) throw new Error(`GitHub fetch failed: ${res.status} ${res.statusText}`);
-  const data = await res.json();
-  const decoded = atob(data.content.replace(/\n/g, ''));
-  return { content: JSON.parse(decoded), sha: data.sha };
-}
-
-/**
- * Write a JSON file to GitHub (create or update).
- * Requires the current SHA if updating an existing file.
- */
-async function writeFile(owner, repo, token, filePath, content, sha, message) {
-  const url = `${apiBase(owner, repo)}/contents/${filePath}`;
-  const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(content, null, 2))));
-  const body = { message, content: encoded };
-  if (sha) body.sha = sha;
-  const res = await fetch(url, {
-    method: 'PUT',
-    headers: authHeaders(token),
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(`GitHub write failed: ${res.status} - ${err.message || res.statusText}`);
+class GitHubSync {
+  constructor(config) {
+    const parsed = parseGitHubUrl(config.repoUrl || '');
+    if (!parsed) throw new Error('Invalid GitHub repo URL');
+    this.owner = parsed.owner;
+    this.repo = parsed.repo;
+    this.token = config.token;
+    this.branch = config.branch || 'main';
+    this.baseUrl = `https://api.github.com/repos/${this.owner}/${this.repo}`;
+    this.headers = {
+      Authorization: `token ${this.token}`,
+      'Content-Type': 'application/json',
+      Accept: 'application/vnd.github.v3+json',
+    };
   }
-  return res.json();
-}
 
-// ── Public API ────────────────────────────────────────────────────────────────
-
-/**
- * Validate GitHub credentials and repo access.
- * Returns { valid: true } or { valid: false, error: string }
- */
-export async function validateConfig(repoUrl, token) {
-  const parsed = parseRepoUrl(repoUrl);
-  if (!parsed) return { valid: false, error: 'Invalid repo URL format' };
-  const { owner, repo } = parsed;
-  try {
-    const url = `${apiBase(owner, repo)}`;
-    const res = await fetch(url, { headers: authHeaders(token) });
-    if (res.status === 401) return { valid: false, error: 'Invalid token - check your GitHub PAT' };
-    if (res.status === 404) return { valid: false, error: 'Repository not found or no access' };
-    if (!res.ok) return { valid: false, error: `GitHub error: ${res.status}` };
-    return { valid: true };
-  } catch (e) {
-    return { valid: false, error: 'Network error - check connection' };
+  // ── Test connection ────────────────────────────────────────────────────
+  async testConnection() {
+    try {
+      const res = await fetch(`${this.baseUrl}`, { headers: this.headers });
+      if (res.status === 200) {
+        const data = await res.json();
+        return { ok: true, message: `Connected to ${data.full_name}` };
+      }
+      if (res.status === 401) {
+        return { ok: false, message: 'Invalid token — check your Personal Access Token' };
+      }
+      if (res.status === 404) {
+        return { ok: false, message: 'Repo not found — check the URL and your token has repo access' };
+      }
+      return { ok: false, message: `GitHub returned status ${res.status}` };
+    } catch (e) {
+      return { ok: false, message: `Network error: ${e.message}` };
+    }
   }
-}
 
-/**
- * Pull all data files from GitHub.
- * Returns { loads, drivers, brokers, invoices } or throws on error.
- */
-export async function pullAll(config) {
-  const { owner, repo } = parseRepoUrl(config.repoUrl);
-  const token = config.token;
-  const result = {};
+  // ── Read a file from the repo ──────────────────────────────────────────
+  // Returns { data: parsedObject, sha: string } or null if not found
+  async readFile(filename) {
+    try {
+      const res = await fetch(
+        `${this.baseUrl}/contents/ettr-data/${filename}?ref=${this.branch}`,
+        { headers: this.headers }
+      );
+      if (res.status === 404) return null;
+      if (!res.ok) throw new Error(`GitHub read failed: ${res.status}`);
+      const file = await res.json();
+      // Cache the SHA for subsequent writes
+      updateSha(filename, file.sha);
+      const content = fromBase64(file.content.replace(/\n/g, ''));
+      return { data: JSON.parse(content), sha: file.sha };
+    } catch (e) {
+      console.error('[githubSync] readFile error:', filename, e);
+      throw e;
+    }
+  }
 
-  await Promise.all(
-    DATA_FILES.map(async (file) => {
-      const key = file.replace('.json', '');
+  // ── Write (create or update) a file in the repo ────────────────────────
+  async writeFile(filename, data, commitMessage) {
+    const content = toBase64(JSON.stringify(data, null, 2));
+    const sha = getSha(filename); // null = create new file
+
+    const body = {
+      message: commitMessage || `Update ${filename}`,
+      content,
+      branch: this.branch,
+    };
+    if (sha) body.sha = sha;
+
+    try {
+      const res = await fetch(`${this.baseUrl}/contents/ettr-data/${filename}`, {
+        method: 'PUT',
+        headers: this.headers,
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || `GitHub write failed: ${res.status}`);
+      }
+      const result = await res.json();
+      // Update cached SHA to the new value
+      updateSha(filename, result.content.sha);
+      return { ok: true };
+    } catch (e) {
+      console.error('[githubSync] writeFile error:', filename, e);
+      throw e;
+    }
+  }
+
+  // ── Pull all data files from repo ──────────────────────────────────────
+  // Returns { loads, drivers, brokers, invoices } — null values for missing files
+  async pullAll(onProgress) {
+    const result = {};
+    for (let i = 0; i < DATA_FILES.length; i++) {
+      const filename = DATA_FILES[i];
+      onProgress && onProgress({ file: filename, index: i, total: DATA_FILES.length });
       try {
-        const fetched = await fetchFile(owner, repo, token, `${DATA_DIR}/${file}`);
-        if (fetched) {
-          result[key] = fetched.content[key] || [];
-          result[`${key}_sha`] = fetched.sha;
+        const file = await this.readFile(filename);
+        const key = filename.replace('.json', '');
+        result[key] = file ? file.data : null;
+      } catch (e) {
+        console.warn('[githubSync] Could not read', filename, e.message);
+        const key = filename.replace('.json', '');
+        result[key] = null;
+      }
+    }
+    saveLastSync();
+    return result;
+  }
+
+  // ── Push a single data file ────────────────────────────────────────────
+  async pushFile(filename, data) {
+    const key = filename.replace('.json', '');
+    return this.writeFile(filename, { [key]: data }, `ETTR: update ${filename}`);
+  }
+
+  // ── Push multiple files ────────────────────────────────────────────────
+  async pushAll(changedFiles) {
+    const errors = [];
+    for (const { filename, data } of changedFiles) {
+      try {
+        await this.pushFile(filename, data);
+      } catch (e) {
+        errors.push({ filename, error: e.message });
+      }
+    }
+    if (errors.length === 0) saveLastSync();
+    return { ok: errors.length === 0, errors };
+  }
+
+  // ── Detect conflicts between local and remote arrays ──────────────────
+  // Compares items by id and updatedAt timestamp.
+  // Returns conflicts where both local and remote were modified since last sync.
+  detectConflicts(localArray, remoteArray, lastSyncAt) {
+    if (!localArray || !remoteArray) return { hasConflicts: false, conflicts: [] };
+    const remoteMap = Object.fromEntries((remoteArray || []).map((item) => [item.id, item]));
+    const conflicts = [];
+
+    for (const localItem of localArray) {
+      const remoteItem = remoteMap[localItem.id];
+      if (!remoteItem) continue; // new local item, no conflict
+
+      const localUpdated = new Date(localItem.updatedAt || 0).getTime();
+      const remoteUpdated = new Date(remoteItem.updatedAt || 0).getTime();
+      const lastSync = new Date(lastSyncAt || 0).getTime();
+
+      // Conflict: both sides changed after last sync
+      if (localUpdated > lastSync && remoteUpdated > lastSync && localUpdated !== remoteUpdated) {
+        conflicts.push({
+          id: localItem.id,
+          local: localItem,
+          remote: remoteItem,
+          localUpdated: localItem.updatedAt,
+          remoteUpdated: remoteItem.updatedAt,
+        });
+      }
+    }
+
+    return { hasConflicts: conflicts.length > 0, conflicts };
+  }
+
+  // ── Initialize repo with empty data files ─────────────────────────────
+  // Creates the ettr-data/ files if they don't exist yet
+  async initializeRepo(seedData = null) {
+    const errors = [];
+    for (const filename of DATA_FILES) {
+      try {
+        const existing = await this.readFile(filename);
+        if (!existing) {
+          // File doesn't exist — create it
+          const key = filename.replace('.json', '');
+          const initialData = seedData ? { [key]: seedData[key] || [] } : { [key]: [] };
+          await this.writeFile(filename, initialData, `ETTR: initialize ${filename}`);
         }
       } catch (e) {
-        console.warn(`Failed to pull ${file}:`, e.message);
+        errors.push({ filename, error: e.message });
       }
-    })
-  );
-
-  saveLastSynced();
-  return result;
-}
-
-/**
- * Push a single data file to GitHub.
- * fileName: e.g. 'loads.json'
- * data: the full array (e.g. loads array)
- * sha: current SHA of the file on GitHub (or null to create)
- */
-export async function pushFile(config, fileName, data, sha) {
-  const { owner, repo } = parseRepoUrl(config.repoUrl);
-  const token = config.token;
-  const key = fileName.replace('.json', '');
-  const filePath = `${DATA_DIR}/${fileName}`;
-  const content = { [key]: data };
-  const message = `ETTR: Update ${fileName} - ${new Date().toISOString()}`;
-
-  // Get current SHA if not provided
-  let currentSha = sha;
-  if (!currentSha) {
-    try {
-      const current = await fetchFile(owner, repo, token, filePath);
-      currentSha = current?.sha || null;
-    } catch {}
-  }
-
-  return writeFile(owner, repo, token, filePath, content, currentSha, message);
-}
-
-/**
- * Process the offline sync queue - push all queued changes.
- * Returns { pushed: number, failed: number }
- */
-export async function processQueue(config) {
-  if (!config) return { pushed: 0, failed: 0 };
-  const queue = getSyncQueue();
-  if (!queue.length) return { pushed: 0, failed: 0 };
-
-  let pushed = 0;
-  let failed = 0;
-
-  for (const item of queue) {
-    try {
-      await pushFile(config, item.file, item.content, null);
-      removeSyncQueueItem(item.file);
-      pushed++;
-    } catch (e) {
-      console.warn(`Failed to push queued ${item.file}:`, e.message);
-      failed++;
     }
+    return { ok: errors.length === 0, errors };
   }
-
-  return { pushed, failed };
 }
 
-/**
- * Check if the app is online.
- */
-export function isOnline() {
-  return navigator.onLine;
-}
-
-/**
- * Run full diagnostics: auth check, pull each file, test write.
- * Returns an array of result lines: { ok: bool, msg: string }
- */
-export async function runDiagnostics(config) {
-  const results = [];
-  const log = (ok, msg) => results.push({ ok, msg });
-
-  if (!config) { log(false, 'No GitHub config saved'); return results; }
-
-  const parsed = parseRepoUrl(config.repoUrl);
-  if (!parsed) { log(false, 'Invalid repo URL'); return results; }
-  const { owner, repo } = parsed;
-  const token = config.token;
-
-  // 1. Auth
+// ─── Factory ────────────────────────────────────────────────────────────────
+export const createGitHubSync = (config) => {
   try {
-    const res = await fetch(`${apiBase(owner, repo)}`, { headers: authHeaders(token) });
-    if (res.status === 401) { log(false, 'Auth failed — invalid token'); return results; }
-    if (res.status === 404) { log(false, 'Repo not found or no access'); return results; }
-    if (!res.ok) { log(false, `GitHub error: ${res.status}`); return results; }
-    const data = await res.json();
-    log(true, `Connected to ${data.full_name} (${data.private ? 'private' : 'public'})`);
+    return new GitHubSync(config);
   } catch (e) {
-    log(false, `Network error: ${e.message}`);
-    return results;
+    console.error('[githubSync] Failed to create sync instance:', e.message);
+    return null;
   }
+};
 
-  // 2. Pull each data file
-  for (const file of DATA_FILES) {
-    try {
-      const fetched = await fetchFile(owner, repo, token, `${DATA_DIR}/${file}`);
-      if (fetched) {
-        const key = file.replace('.json', '');
-        const count = Array.isArray(fetched.content[key]) ? fetched.content[key].length : '?';
-        log(true, `Pull ${file} — ${count} record(s)`);
-      } else {
-        log(true, `Pull ${file} — not found (will be created on first save)`);
-      }
-    } catch (e) {
-      log(false, `Pull ${file} failed: ${e.message}`);
-    }
-  }
-
-  // 3. Test write (write then delete a marker file)
-  const testPath = `${DATA_DIR}/.sync-test`;
-  const testContent = { _ettr_sync_test: true, timestamp: new Date().toISOString() };
-  try {
-    // get existing sha if any
-    let sha = null;
-    try { sha = (await fetchFile(owner, repo, token, testPath))?.sha || null; } catch {}
-    const written = await writeFile(owner, repo, token, testPath, testContent, sha, 'ETTR sync test');
-    log(true, `Push test — wrote ${testPath} (SHA: ${written.content.sha.slice(0, 8)}…)`);
-    // clean up: delete the test file
-    try {
-      const delRes = await fetch(`${apiBase(owner, repo)}/contents/${testPath}`, {
-        method: 'DELETE',
-        headers: authHeaders(token),
-        body: JSON.stringify({ message: 'ETTR sync test cleanup', sha: written.content.sha }),
-      });
-      if (delRes.ok) log(true, 'Push test — cleaned up test file');
-    } catch {}
-  } catch (e) {
-    log(false, `Push test failed: ${e.message}`);
-  }
-
-  return results;
-}
-
-/**
- * Push data immediately if online, otherwise queue for later.
- * fileName: e.g. 'loads.json'
- * data: the array to store
- * config: github config object
- * sha: current file SHA (optional)
- */
-export async function syncOrQueue(config, fileName, data, sha) {
-  if (!config) return { status: 'no_config' };
-
-  if (!isOnline()) {
-    queueSync(fileName, data);
-    return { status: 'queued' };
-  }
-
-  try {
-    const result = await pushFile(config, fileName, data, sha);
-    // GitHub returns the new SHA in result.content.sha — pass it back so
-    // callers can update their local SHA reference and avoid 409 conflicts.
-    const newSha = result?.content?.sha || null;
-    return { status: 'synced', sha: newSha };
-  } catch (e) {
-    queueSync(fileName, data);
-    return { status: 'queued', error: e.message };
-  }
-}
+export default GitHubSync;
