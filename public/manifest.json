@@ -1,17 +1,24 @@
 {
-  "short_name": "ETTR Fleet",
-  "name": "ETTR Fleet Management System",
+  "short_name": "ETTR",
+  "name": "ETTR Fleet Management",
   "icons": [
     {
       "src": "favicon.ico",
       "sizes": "64x64 32x32 24x24 16x16",
       "type": "image/x-icon"
+    },
+    {
+      "src": "logo192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
     }
   ],
-  "start_url": ".",
+  "start_url": "/",
   "display": "standalone",
-  "theme_color": "#0a1628",
-  "background_color": "#060e1f",
+  "theme_color": "#0f172a",
+  "background_color": "#0f172a",
   "orientation": "portrait-primary",
-  "categories": ["business", "productivity"]
+  "categories": ["business", "productivity"],
+  "description": "Load management for ETTR - freight tracking from rate con to payment"
 }
