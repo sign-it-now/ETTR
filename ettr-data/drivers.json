@@ -31,6 +31,14 @@
       "role": "admin",
       "id": "driver-mmgsb276-y3hj3",
       "isActive": true
+    },
+    {
+      "name": "Tim Smith",
+      "email": "suncollectives@icloud.com",
+      "phone": "6189748695",
+      "role": "driver",
+      "id": "driver-mmgsc6vz-o0vuu",
+      "isActive": true
     }
   ]
 }
