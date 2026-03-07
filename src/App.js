@@ -3,6 +3,7 @@ import Setup from './components/Setup';
 import SyncIndicator from './components/shared/SyncIndicator';
 import Dashboard from './components/Dashboard';
 import RateConImport from './components/RateConImport';
+import LoadDetail from './components/LoadDetail';
 import {
   getConfig,
   getCurrentUser,
@@ -228,6 +229,28 @@ const App = () => {
           setTimeout(() => pushToGitHub(), 500);
         }}
         onBack={() => setSubScreen(null)}
+      />
+    );
+  }
+
+  if (subScreen === 'load_detail' && selectedLoad) {
+    return (
+      <LoadDetail
+        load={selectedLoad}
+        currentUser={currentUser}
+        drivers={data.drivers}
+        onBack={() => { setSubScreen(null); setSelectedLoad(null); refreshData(); }}
+        onLoadUpdated={(updated) => {
+          setSelectedLoad(updated);
+          refreshData();
+          setTimeout(() => pushToGitHub(), 1500);
+        }}
+        onCreateInvoice={(load) => {
+          // Invoice screen comes in Step 10 — for now go back to dashboard
+          setSubScreen(null);
+          setSelectedLoad(null);
+          refreshData();
+        }}
       />
     );
   }
