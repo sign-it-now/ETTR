@@ -4,6 +4,7 @@ import SyncIndicator from './components/shared/SyncIndicator';
 import Dashboard from './components/Dashboard';
 import RateConImport from './components/RateConImport';
 import LoadDetail from './components/LoadDetail';
+import InvoiceDetail from './components/InvoiceDetail';
 import {
   getConfig,
   getCurrentUser,
@@ -16,7 +17,10 @@ import {
   getBrokers,
   getInvoices,
   initializeIfEmpty,
+  updateLoad,
+  updateInvoice,
 } from './services/storage';
+import { createInvoice, createAuditEntry } from './data/models';
 import { createGitHubSync } from './services/githubSync';
 
 // ─── Placeholder for screens not yet built ─────────────────────────────────
@@ -71,9 +75,10 @@ const NavItem = ({ icon, label, active, onClick, badge }) => (
 const App = () => {
   const [isSetup, setIsSetup] = useState(false);
   const [currentScreen, setCurrentScreen] = useState('dashboard');
-  // subScreen: null | 'new_load' | 'load_detail'
+  // subScreen: null | 'new_load' | 'load_detail' | 'invoice_detail'
   const [subScreen, setSubScreen] = useState(null);
   const [selectedLoad, setSelectedLoad] = useState(null);
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [syncStatus, setSyncStatus] = useState('idle');
   const [data, setData] = useState({ loads: [], drivers: [], brokers: [], invoices: [] });
   const [currentUser, setCurrentUser] = useState(null);
@@ -246,10 +251,57 @@ const App = () => {
           setTimeout(() => pushToGitHub(), 1500);
         }}
         onCreateInvoice={(load) => {
-          // Invoice screen comes in Step 10 — for now go back to dashboard
-          setSubScreen(null);
-          setSelectedLoad(null);
+          const existingInvoices = getInvoices();
+          const baseRate = Number(load.rate?.amount || 0);
+          const chargesTotal = (load.charges || []).reduce((s, c) => s + Number(c.amount || 0), 0);
+          const invoice = createInvoice({
+            loadId: load.id,
+            brokerId: load.broker?.id || '',
+            baseRate,
+            additionalCharges: load.charges || [],
+            totalAmount: baseRate + chargesTotal,
+          }, existingInvoices);
+          updateInvoice(invoice);
+          const invoicedLoad = {
+            ...load,
+            status: 'invoiced',
+            auditLog: [
+              ...(load.auditLog || []),
+              createAuditEntry(currentUser?.id, 'invoice_created', `Invoice ${invoice.invoiceNumber} created`),
+            ],
+          };
+          updateLoad(invoicedLoad);
           refreshData();
+          setSelectedLoad(invoicedLoad);
+          setSelectedInvoice(invoice);
+          setSubScreen('invoice_detail');
+          setTimeout(() => pushToGitHub(), 1500);
+        }}
+      />
+    );
+  }
+
+  if (subScreen === 'invoice_detail' && selectedInvoice) {
+    const invLoad = data.loads.find((l) => l.id === selectedInvoice.loadId) || selectedLoad;
+    const broker = data.brokers?.find((b) => b.id === selectedInvoice.brokerId);
+    const driver = data.drivers?.find((d) => d.id === invLoad?.assignedDriverId);
+    return (
+      <InvoiceDetail
+        invoice={selectedInvoice}
+        load={invLoad}
+        broker={broker}
+        driver={driver}
+        currentUser={currentUser}
+        onBack={() => { setSubScreen(null); setSelectedInvoice(null); refreshData(); }}
+        onInvoiceUpdated={(updated) => {
+          setSelectedInvoice(updated);
+          refreshData();
+          setTimeout(() => pushToGitHub(), 1500);
+        }}
+        onLoadUpdated={(updated) => {
+          setSelectedLoad(updated);
+          refreshData();
+          setTimeout(() => pushToGitHub(), 1500);
         }}
       />
     );

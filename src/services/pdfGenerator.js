@@ -33,6 +33,17 @@ function cap(str) {
   return str.charAt(0).toUpperCase() + str.slice(1).replace(/_/g, ' ');
 }
 
+function fmtDate(d) {
+  if (!d) return 'N/A';
+  try { return new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); }
+  catch { return d; }
+}
+
+function fmtAddr(loc) {
+  if (!loc) return '';
+  return [loc.address, loc.city, loc.state, loc.zip].filter(Boolean).join(', ');
+}
+
 function imgFormat(base64) {
   const m = base64.match(/^data:image\/([a-zA-Z]+)/);
   const ext = (m?.[1] || 'jpeg').toUpperCase();
@@ -179,9 +190,9 @@ function buildInvoicePage(doc, load, invoice, broker, driver) {
   }
 
   detail('Load #',    load.loadNumber);
-  if (load.referenceNumber) detail('Ref #', load.referenceNumber);
-  detail('Pickup',    load.shipper?.pickupDate   || 'N/A');
-  detail('Delivery',  load.consignee?.deliveryDate || 'N/A');
+  if (load.reference?.brokerLoadNumber) detail('Broker Load #', load.reference.brokerLoadNumber);
+  detail('Pickup',    fmtDate(load.pickup?.date));
+  detail('Delivery',  fmtDate(load.delivery?.date));
   if (driver) detail('Driver', driver.name);
   if (broker?.paymentTerms) detail('Terms', broker.paymentTerms);
 
@@ -205,15 +216,15 @@ function buildInvoicePage(doc, load, invoice, broker, driver) {
   const rY = y + 12;
   const mid = M + CW / 2;
 
-  // Shipper
+  // Pickup (shipper)
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(9);
   doc.setTextColor(...MAIN);
-  doc.text(load.shipper?.name || 'Shipper', M + 4, rY);
+  doc.text(load.pickup?.facilityName || 'Shipper', M + 4, rY);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7.5);
   doc.setTextColor(...MID);
-  const shipLines = doc.splitTextToSize(load.shipper?.address || '', CW / 2 - 10);
+  const shipLines = doc.splitTextToSize(fmtAddr(load.pickup), CW / 2 - 10);
   doc.text(shipLines, M + 4, rY + 5);
 
   // Arrow
@@ -222,15 +233,15 @@ function buildInvoicePage(doc, load, invoice, broker, driver) {
   doc.setTextColor(...MID);
   doc.text('>', mid, rY + 2, { align: 'center' });
 
-  // Consignee
+  // Delivery (consignee)
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(9);
   doc.setTextColor(...MAIN);
-  doc.text(load.consignee?.name || 'Consignee', PW - M - 4, rY, { align: 'right' });
+  doc.text(load.delivery?.facilityName || 'Consignee', PW - M - 4, rY, { align: 'right' });
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7.5);
   doc.setTextColor(...MID);
-  const consLines = doc.splitTextToSize(load.consignee?.address || '', CW / 2 - 10);
+  const consLines = doc.splitTextToSize(fmtAddr(load.delivery), CW / 2 - 10);
   doc.text(consLines, PW - M - 4, rY + 5, { align: 'right' });
 
   // Miles

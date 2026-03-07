@@ -145,6 +145,20 @@ export const updateLoad = (updatedLoad) => {
   return loads;
 };
 
+// ─── Update a single invoice in localStorage ──────────────────────────────
+export const updateInvoice = (updatedInvoice) => {
+  const invoices = getInvoices();
+  const idx = invoices.findIndex((i) => i.id === updatedInvoice.id);
+  if (idx >= 0) {
+    invoices[idx] = { ...updatedInvoice, updatedAt: new Date().toISOString() };
+  } else {
+    invoices.push({ ...updatedInvoice, updatedAt: new Date().toISOString() });
+  }
+  saveInvoices(invoices);
+  addPendingChange('invoices.json');
+  return invoices;
+};
+
 // ─── Update a single broker in localStorage ────────────────────────────────
 export const updateBroker = (updatedBroker) => {
   const brokers = getBrokers();
@@ -191,6 +205,7 @@ export const storage = {
   initializeIfEmpty,
   resetToSeedData,
   updateLoad,
+  updateInvoice,
   updateBroker,
 };
 
