@@ -5,6 +5,7 @@ import Dashboard from './components/Dashboard';
 import RateConImport from './components/RateConImport';
 import LoadDetail from './components/LoadDetail';
 import InvoiceDetail from './components/InvoiceDetail';
+import Settings from './components/Settings';
 import {
   getConfig,
   getCurrentUser,
@@ -19,6 +20,10 @@ import {
   initializeIfEmpty,
   updateLoad,
   updateInvoice,
+  saveCurrentUser,
+  clearConfig,
+  clearCurrentUser,
+  resetToSeedData,
 } from './services/storage';
 import { createInvoice, createAuditEntry } from './data/models';
 import { createGitHubSync } from './services/githubSync';
@@ -337,7 +342,18 @@ const App = () => {
           />
         );
       case 'settings':
-        return <PlaceholderScreen title="Settings" icon="⚙️" />;
+        return (
+          <Settings
+            currentUser={currentUser}
+            config={getConfig()}
+            syncStatus={syncStatus}
+            data={data}
+            onSwitchUser={(user) => { saveCurrentUser(user); setCurrentUser(user); refreshData(); }}
+            onSync={handleSyncClick}
+            onResetData={() => { resetToSeedData(); refreshData(); }}
+            onReconfigure={() => { clearConfig(); clearCurrentUser(); setIsSetup(false); }}
+          />
+        );
       default:
         return <PlaceholderScreen title="Dashboard" icon="📊" />;
     }
