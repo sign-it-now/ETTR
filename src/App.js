@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Setup from './components/Setup';
 import SyncIndicator from './components/shared/SyncIndicator';
+import Dashboard from './components/Dashboard';
+import RateConImport from './components/RateConImport';
 import {
   getConfig,
   getCurrentUser,
@@ -16,7 +18,7 @@ import {
 } from './services/storage';
 import { createGitHubSync } from './services/githubSync';
 
-// ─── Placeholder screen components (will be replaced in later steps) ───────
+// ─── Placeholder for screens not yet built ─────────────────────────────────
 const PlaceholderScreen = ({ title, icon }) => (
   <div style={{
     display: 'flex', flexDirection: 'column', alignItems: 'center',
@@ -24,7 +26,7 @@ const PlaceholderScreen = ({ title, icon }) => (
   }}>
     <div style={{ fontSize: '48px', marginBottom: '12px' }}>{icon}</div>
     <div style={{ fontSize: '18px', fontWeight: '600', color: '#94a3b8' }}>{title}</div>
-    <div style={{ fontSize: '13px', marginTop: '6px', color: '#475569' }}>Coming in next steps</div>
+    <div style={{ fontSize: '13px', marginTop: '6px', color: '#475569' }}>Coming soon</div>
   </div>
 );
 
@@ -68,6 +70,9 @@ const NavItem = ({ icon, label, active, onClick, badge }) => (
 const App = () => {
   const [isSetup, setIsSetup] = useState(false);
   const [currentScreen, setCurrentScreen] = useState('dashboard');
+  // subScreen: null | 'new_load' | 'load_detail'
+  const [subScreen, setSubScreen] = useState(null);
+  const [selectedLoad, setSelectedLoad] = useState(null);
   const [syncStatus, setSyncStatus] = useState('idle');
   const [data, setData] = useState({ loads: [], drivers: [], brokers: [], invoices: [] });
   const [currentUser, setCurrentUser] = useState(null);
@@ -183,6 +188,11 @@ const App = () => {
     setTimeout(() => pushToGitHub(), 1500);
   }, [pushToGitHub]);
 
+  // ── Reload data from localStorage (after child screen makes changes) ───
+  const refreshData = useCallback(() => {
+    setData(getAllData());
+  }, []);
+
   // ── Setup completion ───────────────────────────────────────────────────
   const handleSetupComplete = () => {
     const user = getCurrentUser();
@@ -206,23 +216,51 @@ const App = () => {
     return <Setup onComplete={handleSetupComplete} />;
   }
 
-  // ── Main app ───────────────────────────────────────────────────────────
-  const screenProps = {
-    loads: data.loads,
-    drivers: data.drivers,
-    brokers: data.brokers,
-    invoices: data.invoices,
-    currentUser,
-    onDataChange: handleDataChange,
-    onPush: pushToGitHub,
-  };
+  // ── Full-screen overlays (no header/nav) ───────────────────────────────
+  if (subScreen === 'new_load') {
+    return (
+      <RateConImport
+        currentUser={currentUser}
+        onLoadCreated={(load) => {
+          refreshData();
+          setSubScreen(null);
+          setCurrentScreen('dashboard');
+          setTimeout(() => pushToGitHub(), 500);
+        }}
+        onBack={() => setSubScreen(null)}
+      />
+    );
+  }
 
   const renderScreen = () => {
     switch (currentScreen) {
       case 'dashboard':
-        return <PlaceholderScreen title="Dashboard" icon="📊" />;
+        return (
+          <Dashboard
+            loads={data.loads}
+            drivers={data.drivers}
+            currentUser={currentUser}
+            onNewLoad={() => setSubScreen('new_load')}
+            onSelectLoad={(load) => {
+              setSelectedLoad(load);
+              setSubScreen('load_detail');
+            }}
+          />
+        );
       case 'loads':
-        return <PlaceholderScreen title="Loads" icon="🚛" />;
+        // Loads tab shows same dashboard for now; Load Detail comes in Step 6
+        return (
+          <Dashboard
+            loads={data.loads}
+            drivers={data.drivers}
+            currentUser={currentUser}
+            onNewLoad={() => setSubScreen('new_load')}
+            onSelectLoad={(load) => {
+              setSelectedLoad(load);
+              setSubScreen('load_detail');
+            }}
+          />
+        );
       case 'settings':
         return <PlaceholderScreen title="Settings" icon="⚙️" />;
       default:
@@ -272,7 +310,7 @@ const App = () => {
 
       {/* Screen content */}
       <main style={{ flex: 1, overflowY: 'auto', paddingBottom: '80px' }}>
-        {renderScreen(screenProps)}
+        {renderScreen()}
       </main>
 
       {/* Bottom nav */}
