@@ -6,6 +6,7 @@ import RateConImport from './components/RateConImport';
 import LoadDetail from './components/LoadDetail';
 import InvoiceDetail from './components/InvoiceDetail';
 import Settings from './components/Settings';
+import BrokerProfile from './components/BrokerProfile';
 import {
   getConfig,
   getCurrentUser,
@@ -84,6 +85,7 @@ const App = () => {
   const [subScreen, setSubScreen] = useState(null);
   const [selectedLoad, setSelectedLoad] = useState(null);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [selectedBroker, setSelectedBroker] = useState(null);
   const [syncStatus, setSyncStatus] = useState('idle');
   const [data, setData] = useState({ loads: [], drivers: [], brokers: [], invoices: [] });
   const [currentUser, setCurrentUser] = useState(null);
@@ -282,6 +284,11 @@ const App = () => {
           setSubScreen('invoice_detail');
           setTimeout(() => pushToGitHub(), 1500);
         }}
+        onViewBroker={(brokerId) => {
+          const broker = data.brokers?.find((b) => b.id === brokerId) || { ...selectedLoad?.broker };
+          setSelectedBroker(broker);
+          setSubScreen('broker_profile');
+        }}
       />
     );
   }
@@ -308,6 +315,18 @@ const App = () => {
           refreshData();
           setTimeout(() => pushToGitHub(), 1500);
         }}
+      />
+    );
+  }
+
+  if (subScreen === 'broker_profile' && selectedBroker) {
+    return (
+      <BrokerProfile
+        broker={selectedBroker}
+        loads={data.loads}
+        currentUser={currentUser}
+        onBack={() => { setSubScreen('load_detail'); setSelectedBroker(null); }}
+        onSelectLoad={(load) => { setSelectedLoad(load); setSubScreen('load_detail'); setSelectedBroker(null); }}
       />
     );
   }

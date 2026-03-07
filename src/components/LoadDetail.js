@@ -96,7 +96,7 @@ const StatusTimeline = ({ currentStatus }) => {
 };
 
 // ─── Details Tab ─────────────────────────────────────────────────────────────
-const DetailsTab = ({ load, drivers, currentUser, onLoadUpdated }) => {
+const DetailsTab = ({ load, drivers, currentUser, onLoadUpdated, onViewBroker }) => {
   const [editingDriver, setEditingDriver] = useState(false);
   const [selectedDriverId, setSelectedDriverId] = useState(load.assignedDriverId || '');
   const [note, setNote] = useState('');
@@ -173,7 +173,14 @@ const DetailsTab = ({ load, drivers, currentUser, onLoadUpdated }) => {
     <>
       {/* Broker */}
       <div style={S.section}>
-        <div style={S.sectionHead}>🏢 Broker</div>
+        <div style={S.sectionHead}>
+          🏢 Broker
+          {onViewBroker && load.broker?.id && (
+            <button style={S.docBtn()} onClick={() => onViewBroker(load.broker.id)}>
+              View Profile →
+            </button>
+          )}
+        </div>
         <div style={S.sectionBody}>
           <div style={S.row}>
             <div style={S.col}><InfoRow label="Company" value={load.broker?.companyName} /></div>
@@ -796,7 +803,7 @@ const NEXT_STATUS = {
 };
 
 // ─── Main LoadDetail Component ────────────────────────────────────────────────
-const LoadDetail = ({ load: initialLoad, currentUser, drivers, onBack, onLoadUpdated, onCreateInvoice }) => {
+const LoadDetail = ({ load: initialLoad, currentUser, drivers, onBack, onLoadUpdated, onCreateInvoice, onViewBroker }) => {
   const [load, setLoad] = useState(initialLoad);
   const [activeTab, setActiveTab] = useState('details');
   const [advancing, setAdvancing] = useState(false);
@@ -863,7 +870,7 @@ const LoadDetail = ({ load: initialLoad, currentUser, drivers, onBack, onLoadUpd
       {/* Tab content */}
       <div style={S.body}>
         {activeTab === 'details' && (
-          <DetailsTab load={load} drivers={drivers} currentUser={currentUser} onLoadUpdated={handleLoadChange} />
+          <DetailsTab load={load} drivers={drivers} currentUser={currentUser} onLoadUpdated={handleLoadChange} onViewBroker={onViewBroker} />
         )}
         {activeTab === 'documents' && (
           <DocumentsTab load={load} currentUser={currentUser} onLoadUpdated={handleLoadChange} />
