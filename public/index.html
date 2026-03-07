@@ -11,11 +11,17 @@
     <meta name="apple-mobile-web-app-title" content="ETTR Fleet" />
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <title>ETTR Fleet Management</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>ETTR Load Management</title>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch(() => {});
+        });
+      }
+    </script>
   </body>
 </html>

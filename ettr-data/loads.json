@@ -1,0 +1,70 @@
+{
+  "loads": [
+    {
+      "id": "load-2024-001",
+      "loadNumber": "ETTR-2024-001",
+      "referenceNumber": "ABC-78542",
+      "status": "delivered",
+      "brokerId": "broker-abc-logistics",
+      "assignedDriverId": "driver-tim-anderson",
+      "shipper": {
+        "name": "Widget Factory",
+        "address": "123 Industrial Blvd, Chicago, IL 60601",
+        "pickupDate": "2024-01-15",
+        "pickupTime": "08:00",
+        "contactName": "John Smith",
+        "contactPhone": "555-111-2222"
+      },
+      "consignee": {
+        "name": "Mega Distribution",
+        "address": "456 Warehouse Way, St. Louis, MO 63101",
+        "deliveryDate": "2024-01-15",
+        "deliveryTime": "16:00",
+        "contactName": "Jane Doe",
+        "contactPhone": "555-333-4444"
+      },
+      "rate": {
+        "amount": 1850.00,
+        "type": "flat",
+        "miles": 297
+      },
+      "charges": [
+        {
+          "id": "charge-001",
+          "type": "lumper",
+          "amount": 75.00,
+          "description": "Unloading fee at Mega Distribution",
+          "receiptDocumentId": null
+        }
+      ],
+      "documents": [
+        {
+          "id": "doc-001",
+          "type": "rate_con",
+          "fileName": "RateCon_ABC78542.pdf",
+          "uploadedAt": "2024-01-14T10:30:00Z",
+          "uploadedBy": "driver-tim-anderson",
+          "base64Data": null
+        },
+        {
+          "id": "doc-002",
+          "type": "bol_signed",
+          "fileName": "BOL_signed_ABC78542.jpg",
+          "uploadedAt": "2024-01-15T16:45:00Z",
+          "uploadedBy": "driver-tim-anderson",
+          "base64Data": null
+        }
+      ],
+      "notes": [
+        {
+          "id": "note-001",
+          "text": "Delivery went smoothly. Driver had to wait 30 min at dock.",
+          "createdAt": "2024-01-15T17:00:00Z",
+          "createdBy": "driver-tim-anderson"
+        }
+      ],
+      "createdAt": "2024-01-14T09:00:00Z",
+      "updatedAt": "2024-01-15T16:45:00Z"
+    }
+  ]
+}
