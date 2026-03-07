@@ -1,3 +1,56 @@
 {
-  "invoices": []
+  "invoices": [
+    {
+      "id": "inv-2025-001",
+      "invoiceNumber": "INV-2025-001",
+      "loadId": "load-2025-001",
+      "brokerId": "broker-abc-logistics",
+      "baseRate": 2100.00,
+      "additionalCharges": 45.00,
+      "totalAmount": 2145.00,
+      "status": "paid",
+      "generatedAt": "2025-01-09T17:00:00Z",
+      "sentAt": "2025-01-09T17:10:00Z",
+      "paidAt": "2025-01-22T10:00:00Z"
+    },
+    {
+      "id": "inv-2025-002",
+      "invoiceNumber": "INV-2025-002",
+      "loadId": "load-2025-002",
+      "brokerId": "broker-coyote-logistics",
+      "baseRate": 1450.00,
+      "additionalCharges": 75.00,
+      "totalAmount": 1525.00,
+      "status": "paid",
+      "generatedAt": "2025-02-03T19:00:00Z",
+      "sentAt": "2025-02-03T19:15:00Z",
+      "paidAt": "2025-02-14T09:00:00Z"
+    },
+    {
+      "id": "inv-2025-003",
+      "invoiceNumber": "INV-2025-003",
+      "loadId": "load-2025-003",
+      "brokerId": "broker-echo-global",
+      "baseRate": 1650.00,
+      "additionalCharges": 150.00,
+      "totalAmount": 1800.00,
+      "status": "sent",
+      "generatedAt": "2025-04-24T08:00:00Z",
+      "sentAt": "2025-04-24T08:30:00Z",
+      "paidAt": null
+    },
+    {
+      "id": "inv-2025-004",
+      "invoiceNumber": "INV-2025-004",
+      "loadId": "load-2025-004",
+      "brokerId": "broker-landstar",
+      "baseRate": 1550.00,
+      "additionalCharges": 100.00,
+      "totalAmount": 1650.00,
+      "status": "draft",
+      "generatedAt": "2025-06-11T07:00:00Z",
+      "sentAt": null,
+      "paidAt": null
+    }
+  ]
 }

@@ -15,6 +15,14 @@
       "phone": "715-509-0114",
       "role": "admin",
       "isActive": true
+    },
+    {
+      "id": "driver-mike-kowalski",
+      "name": "Mike Kowalski",
+      "email": "mike.k@ettr.com",
+      "phone": "314-882-5501",
+      "role": "driver",
+      "isActive": true
     }
   ]
 }
