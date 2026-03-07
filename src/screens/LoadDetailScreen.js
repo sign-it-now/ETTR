@@ -78,7 +78,7 @@ function InfoRow({ label, value }) {
 }
 
 export default function LoadDetailScreen({ nav, loadId }) {
-  const { loads, drivers, brokers, currentUser, updateLoad, addInvoice } = useData();
+  const { loads, drivers, brokers, invoices, currentUser, updateLoad, addInvoice } = useData();
   const [activeTab, setActiveTab] = useState('details');
   const [addingCharge, setAddingCharge] = useState(false);
   const [newCharge, setNewCharge] = useState({ type: 'lumper', amount: '', description: '' });
@@ -100,6 +100,7 @@ export default function LoadDetailScreen({ nav, loadId }) {
 
   const broker = brokers.find((b) => b.id === load.brokerId);
   const driver = drivers.find((d) => d.id === load.assignedDriverId);
+  const existingInvoice = invoices.find((i) => i.loadId === load.id);
   const isAdmin = currentUser?.role === 'admin';
   const currentIdx = STATUS_ORDER.indexOf(load.status);
   const canAdvance =
@@ -192,6 +193,14 @@ export default function LoadDetailScreen({ nav, loadId }) {
           <span className={`text-xs font-semibold px-2.5 py-1 rounded-full text-white ${STATUS_COLORS[load.status] || 'bg-slate-600'}`}>
             {STATUS_LABELS[load.status] || load.status}
           </span>
+          {existingInvoice && (
+            <button
+              onClick={() => nav('invoice', { loadId: load.id, invoiceId: existingInvoice.id })}
+              className="text-emerald-400 hover:text-emerald-300 text-xs px-2 py-1 rounded-lg bg-emerald-900/30 border border-emerald-800/50"
+            >
+              Invoice
+            </button>
+          )}
           {isAdmin && (
             <button
               onClick={() => nav('create-load', { loadId: load.id })}
@@ -541,10 +550,23 @@ export default function LoadDetailScreen({ nav, loadId }) {
             >
               {actionLoading ? 'Updating...' : ACTION_LABELS[load.status]}
             </button>
-            {/* Admin-only notice for dispatching */}
             {load.status === 'accepted' && (
               <p className="text-center text-xs text-slate-600 mt-2">Admin action</p>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* View Invoice button for invoiced / paid loads */}
+      {!canAdvance && existingInvoice && (
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-slate-950/95 border-t border-slate-800 z-40">
+          <div className="max-w-2xl mx-auto">
+            <button
+              onClick={() => nav('invoice', { loadId: load.id, invoiceId: existingInvoice.id })}
+              className="w-full bg-emerald-700 hover:bg-emerald-600 text-white font-bold py-4 rounded-2xl text-base transition-colors"
+            >
+              View Invoice — {existingInvoice.invoiceNumber}
+            </button>
           </div>
         </div>
       )}
