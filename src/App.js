@@ -328,12 +328,12 @@ const App = () => {
           />
         );
       case 'loads':
-        // Loads tab shows same dashboard for now; Load Detail comes in Step 6
         return (
           <Dashboard
             loads={data.loads}
             drivers={data.drivers}
             currentUser={currentUser}
+            showAll={true}
             onNewLoad={() => setSubScreen('new_load')}
             onSelectLoad={(load) => {
               setSelectedLoad(load);

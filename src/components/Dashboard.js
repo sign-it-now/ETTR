@@ -52,25 +52,29 @@ const FilterTab = ({ label, active, count, onClick }) => (
 );
 
 // ─── Dashboard ───────────────────────────────────────────────────────────────
-const Dashboard = ({ loads, drivers, currentUser, onNewLoad, onSelectLoad }) => {
+const Dashboard = ({ loads, drivers, currentUser, onNewLoad, onSelectLoad, showAll = false }) => {
   const [filter, setFilter] = useState('all');
+  const [search, setSearch] = useState('');
 
-  // Compute stats
+  // Role-based visibility
   const visibleLoads = currentUser?.role === 'driver'
     ? loads.filter((l) => l.assignedDriverId === currentUser.id)
     : loads;
 
+  // Text search
+  const searchLower = search.toLowerCase().trim();
+  const searchFiltered = searchLower
+    ? visibleLoads.filter((l) =>
+        [l.loadNumber, l.broker?.companyName, l.pickup?.city, l.pickup?.state,
+         l.delivery?.city, l.delivery?.state, l.reference?.brokerLoadNumber]
+          .some((v) => v?.toLowerCase().includes(searchLower))
+      )
+    : visibleLoads;
+
   const inProgress = visibleLoads.filter((l) => IN_PROGRESS_STATUSES.includes(l.status)).length;
   const toInvoice = visibleLoads.filter((l) => l.status === 'delivered').length;
   const needsUpload = visibleLoads.filter((l) => l.status === 'rate_con_upload').length;
-  const paid = visibleLoads.filter((l) => l.status === 'paid');
   const invoiced = visibleLoads.filter((l) => ['invoiced', 'paid'].includes(l.status));
-
-  // Gross revenue (all loads that reached invoiced/paid)
-  const grossRevenue = invoiced.reduce((sum, l) => {
-    const charges = (l.charges || []).reduce((s, c) => s + Number(c.amount || 0), 0);
-    return sum + Number(l.rate?.amount || 0) + charges;
-  }, 0);
 
   const outstanding = visibleLoads
     .filter((l) => l.status === 'invoiced')
@@ -79,9 +83,9 @@ const Dashboard = ({ loads, drivers, currentUser, onNewLoad, onSelectLoad }) => 
       return sum + Number(l.rate?.amount || 0) + charges;
     }, 0);
 
-  // Filter loads by tab
+  // Filter loads by tab — when showAll, "all" includes every status
   const FILTERS = {
-    all: (l) => ACTIVE_STATUSES.includes(l.status) || l.status === 'rate_con_upload',
+    all: showAll ? () => true : (l) => ACTIVE_STATUSES.includes(l.status) || l.status === 'rate_con_upload',
     needs_upload: (l) => l.status === 'rate_con_upload',
     in_transit: (l) => ['picked_up', 'in_transit'].includes(l.status),
     delivered: (l) => l.status === 'delivered',
@@ -89,7 +93,7 @@ const Dashboard = ({ loads, drivers, currentUser, onNewLoad, onSelectLoad }) => 
   };
 
   // Sort: needs action first, then by updated date desc
-  const sortedLoads = [...visibleLoads]
+  const sortedLoads = [...searchFiltered]
     .filter(FILTERS[filter] || FILTERS.all)
     .sort((a, b) => {
       const priority = { rate_con_upload: 0, delivered: 1 };
@@ -100,11 +104,11 @@ const Dashboard = ({ loads, drivers, currentUser, onNewLoad, onSelectLoad }) => 
     });
 
   const tabCounts = {
-    all: visibleLoads.filter(FILTERS.all).length,
-    needs_upload: needsUpload,
-    in_transit: visibleLoads.filter(FILTERS.in_transit).length,
-    delivered: toInvoice,
-    invoiced: visibleLoads.filter(FILTERS.invoiced).length,
+    all: searchFiltered.filter(FILTERS.all).length,
+    needs_upload: searchFiltered.filter((l) => l.status === 'rate_con_upload').length,
+    in_transit: searchFiltered.filter(FILTERS.in_transit).length,
+    delivered: searchFiltered.filter((l) => l.status === 'delivered').length,
+    invoiced: searchFiltered.filter(FILTERS.invoiced).length,
   };
 
   return (
@@ -134,13 +138,32 @@ const Dashboard = ({ loads, drivers, currentUser, onNewLoad, onSelectLoad }) => 
         </button>
       )}
 
+      {/* ── Search ────────────────────────────────────────────────── */}
+      <div style={{ position: 'relative', marginBottom: '10px' }}>
+        <span style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '15px', pointerEvents: 'none', lineHeight: 1 }}>🔍</span>
+        <input
+          style={{ width: '100%', boxSizing: 'border-box', background: '#1e293b', border: '1px solid #334155', borderRadius: '8px', color: '#e2e8f0', padding: '9px 32px 9px 32px', fontSize: '14px', outline: 'none' }}
+          placeholder="Search loads, brokers, cities..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        {search && (
+          <button
+            onClick={() => setSearch('')}
+            style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '18px', padding: '2px', lineHeight: 1 }}
+          >
+            ✕
+          </button>
+        )}
+      </div>
+
       {/* ── Filter tabs ───────────────────────────────────────────── */}
       <div style={{
         display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '10px',
         marginBottom: '12px', scrollbarWidth: 'none',
       }}>
-        <FilterTab label="All Active" active={filter === 'all'} count={tabCounts.all} onClick={() => setFilter('all')} />
-        {needsUpload > 0 && (
+        <FilterTab label={showAll ? 'All' : 'All Active'} active={filter === 'all'} count={tabCounts.all} onClick={() => setFilter('all')} />
+        {tabCounts.needs_upload > 0 && (
           <FilterTab label="Needs Upload" active={filter === 'needs_upload'} count={tabCounts.needs_upload} onClick={() => setFilter('needs_upload')} />
         )}
         <FilterTab label="In Transit" active={filter === 'in_transit'} count={tabCounts.in_transit} onClick={() => setFilter('in_transit')} />
@@ -155,9 +178,11 @@ const Dashboard = ({ loads, drivers, currentUser, onNewLoad, onSelectLoad }) => 
           background: '#1e293b', borderRadius: '10px', border: '1px solid #334155',
         }}>
           <div style={{ fontSize: '36px', marginBottom: '10px' }}>🚛</div>
-          {filter === 'all'
-            ? <div style={{ fontSize: '15px', color: '#64748b' }}>No active loads — tap New Load to get started</div>
-            : <div style={{ fontSize: '15px', color: '#64748b' }}>No loads in this category</div>
+          {search
+            ? <div style={{ fontSize: '15px', color: '#64748b' }}>No loads match "{search}"</div>
+            : filter === 'all'
+              ? <div style={{ fontSize: '15px', color: '#64748b' }}>No active loads — tap New Load to get started</div>
+              : <div style={{ fontSize: '15px', color: '#64748b' }}>No loads in this category</div>
           }
         </div>
       ) : (
