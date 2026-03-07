@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import { useData } from '../context/DataContext';
 
-const RATE_TYPES = ['flat', 'per_mile'];
-
 function Field({ label, children }) {
   return (
     <div>
@@ -36,7 +34,7 @@ function Select({ value, onChange, children }) {
 }
 
 export default function CreateLoadScreen({ nav, loadId }) {
-  const { loads, drivers, brokers, addLoad, updateLoad, addBroker, currentUser } = useData();
+  const { loads, drivers, brokers, addLoad, updateLoad, addBroker } = useData();
 
   const existing = loadId ? loads.find((l) => l.id === loadId) : null;
 
