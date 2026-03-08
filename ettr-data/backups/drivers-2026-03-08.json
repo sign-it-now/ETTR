@@ -15,6 +15,22 @@
       "role": "admin",
       "id": "driver-mmgsb276-y3hj3",
       "isActive": true
+    },
+    {
+      "id": "driver-mike-kowalski",
+      "name": "Mike Kowalski",
+      "email": "mike.k@ettr.com",
+      "phone": "314-882-5501",
+      "role": "driver",
+      "isActive": true
+    },
+    {
+      "name": "Tim Dev",
+      "email": "suncollectives@gmail.com",
+      "phone": "6189748695",
+      "role": "admin",
+      "id": "driver-mmgsd49t-592v6",
+      "isActive": true
     }
   ]
 }
