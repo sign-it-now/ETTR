@@ -71,7 +71,7 @@
     {
       "id": "load-seed-002",
       "loadNumber": "ETTR-2024-002",
-      "status": "picked_up",
+      "status": "delivered",
       "broker": {
         "id": "broker-abc",
         "companyName": "ABC Logistics",
@@ -144,11 +144,25 @@
           "userId": "user-driver",
           "action": "status_changed",
           "details": "Status updated to Picked Up"
+        },
+        {
+          "id": "633240a4-471f-4f51-94a3-2e0205e7d38f",
+          "timestamp": "2026-03-08T21:41:20.617Z",
+          "userId": "user-tim",
+          "action": "status_changed",
+          "details": "Status updated to In Transit"
+        },
+        {
+          "id": "4e2d9ed1-390d-47c2-b3e6-add18792c3ea",
+          "timestamp": "2026-03-08T21:41:21.938Z",
+          "userId": "user-tim",
+          "action": "status_changed",
+          "details": "Status updated to Delivered"
         }
       ],
       "notes": [],
       "createdAt": "2024-01-21T09:00:00Z",
-      "updatedAt": "2024-01-22T08:15:00Z"
+      "updatedAt": "2026-03-08T21:41:21.938Z"
     },
     {
       "id": "load-seed-003",
