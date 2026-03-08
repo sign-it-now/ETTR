@@ -342,7 +342,7 @@
     {
       "id": "69953a62-e26e-4022-a930-b9610c7a74f2",
       "loadNumber": "ETTR-2026-002",
-      "status": "accepted",
+      "status": "dispatched",
       "broker": {
         "id": "",
         "companyName": "C&A TRANSPORTATION & LOGISTICS INC",
@@ -414,11 +414,18 @@
           "userId": "user-tim",
           "action": "status_changed",
           "details": "Status updated to Accepted"
+        },
+        {
+          "id": "6efa2007-6ef0-4857-abf7-1291a78fe027",
+          "timestamp": "2026-03-08T21:39:17.755Z",
+          "userId": "user-tim",
+          "action": "status_changed",
+          "details": "Status updated to Dispatched"
         }
       ],
       "notes": [],
       "createdAt": "2026-03-08T21:38:47.889Z",
-      "updatedAt": "2026-03-08T21:39:14.428Z"
+      "updatedAt": "2026-03-08T21:39:17.755Z"
     }
   ]
 }
