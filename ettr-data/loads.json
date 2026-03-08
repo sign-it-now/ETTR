@@ -330,7 +330,7 @@
       "weight": "43,500",
       "equipment": "53 ft Dry Van | Reefer",
       "specialInstructions": "REEFER NEEDS PRE-COOLED TO 38 DEGREES. TRAILER MUST BE CLEAN AND DRY, FREE OF ODOR/DEBRIS OR YOU WILL BE DENIED AT SHIPPER AND YOU WILL NOT BE PAID A TONU! ARRIVE WITH 75% FUEL AND SLIDE TANDEMS BEFORE ARRIVAL. BEFORE YOU ACCEPT THE LOAD AT THE SCALE HOUSE KIOSK, MAKE SURE YOUR WEIGHT IS CORRECT. ONCE YOU ACCEPT THE LOAD YOU ARE TAKING THE LOAD AS IS. Protect from Freezing",
-      "assignedDriverId": null,
+      "assignedDriverId": "driver-mmgsc6vz-o0vuu",
       "charges": [],
       "documents": [],
       "auditLog": [
@@ -354,11 +354,18 @@
           "userId": "user-tim",
           "action": "status_changed",
           "details": "Status updated to Dispatched"
+        },
+        {
+          "id": "4d8ffccf-7f70-4284-aa5b-dd544f7d3aae",
+          "timestamp": "2026-03-08T21:43:46.059Z",
+          "userId": "user-tim",
+          "action": "driver_assigned",
+          "details": "Assigned to Tim Smith"
         }
       ],
       "notes": [],
       "createdAt": "2026-03-08T17:08:30.839Z",
-      "updatedAt": "2026-03-08T21:35:11.227Z"
+      "updatedAt": "2026-03-08T21:43:46.059Z"
     },
     {
       "id": "69953a62-e26e-4022-a930-b9610c7a74f2",
