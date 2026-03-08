@@ -1,1 +1,71 @@
-[]
+{
+  "loads": [
+    {
+      "id": "6baf355f-56b2-4f38-91ec-cd8f73fcf873",
+      "loadNumber": "ETTR-2026-001",
+      "status": "rate_con_received",
+      "broker": {
+        "id": "",
+        "companyName": "Clutch Transportation Services LLC",
+        "contactName": "",
+        "email": "ap@clutchtransportation.net",
+        "phone": "(715) 509-0114",
+        "mcNumber": ""
+      },
+      "reference": {
+        "brokerLoadNumber": "127990517",
+        "referenceNumber": "30815090",
+        "poNumber": ""
+      },
+      "rate": {
+        "amount": 1500,
+        "type": "flat",
+        "miles": 0,
+        "ratePerMile": 0
+      },
+      "pickup": {
+        "facilityName": "BRWY - ST LOUIS",
+        "address": "2814 S SECOND ST",
+        "city": "ST. LOUIS",
+        "state": "MO",
+        "zip": "63118",
+        "date": "2026-03-09",
+        "time": "16:00",
+        "contactName": "",
+        "contactPhone": "",
+        "appointmentRequired": false
+      },
+      "delivery": {
+        "facilityName": "WSLR - CAPITOL BEVERAGES SALES LP",
+        "address": "20240 SOUTH DIAMOND LAKE RD",
+        "city": "ROGERS",
+        "state": "MN",
+        "zip": "55374",
+        "date": "2026-03-10",
+        "time": "15:00",
+        "contactName": "",
+        "contactPhone": "",
+        "appointmentRequired": false
+      },
+      "commodity": "BEER",
+      "weight": "43,500",
+      "equipment": "53 ft Reefer",
+      "specialInstructions": "REEFER NEEDS PRE-COOLED TO 38 DEGREES. TRAILER MUST BE CLEAN AND DRY, FREE OF ODOR/DEBRIS OR YOU WILL BE DENIED AT SHIPPER AND YOU WILL NOT BE PAID A TONU! ARRIVE WITH 75% FUEL AND SLIDE TANDEMS BEFORE ARRIVAL.",
+      "assignedDriverId": null,
+      "charges": [],
+      "documents": [],
+      "auditLog": [
+        {
+          "id": "a3ac74b7-b86f-4ab7-bb9c-199d1e706933",
+          "timestamp": "2026-03-08T23:28:28.126Z",
+          "userId": "user-tim",
+          "action": "load_created",
+          "details": "Load created from rate con scan"
+        }
+      ],
+      "notes": [],
+      "createdAt": "2026-03-08T23:28:28.126Z",
+      "updatedAt": "2026-03-08T23:28:28.127Z"
+    }
+  ]
+}
