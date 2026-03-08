@@ -127,6 +127,24 @@
       "notes": "",
       "createdAt": "2026-03-08T22:15:19.888Z",
       "updatedAt": "2026-03-08T22:15:19.889Z"
+    },
+    {
+      "id": "12a59a5e-d962-40f9-a020-92a0526ef0e6",
+      "invoiceNumber": "INV-2026-005",
+      "loadId": "load-seed-001",
+      "brokerId": "broker-abc",
+      "baseRate": 1450,
+      "additionalCharges": [],
+      "totalAmount": 1450,
+      "status": "paid",
+      "generatedAt": "2026-03-08T22:29:35.651Z",
+      "sentAt": null,
+      "paidAt": "2026-03-08T22:29:39.823Z",
+      "pdfBase64": "",
+      "attachedDocuments": [],
+      "notes": "",
+      "createdAt": "2026-03-08T22:29:35.651Z",
+      "updatedAt": "2026-03-08T22:29:39.823Z"
     }
   ]
 }
