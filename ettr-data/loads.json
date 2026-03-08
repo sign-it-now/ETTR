@@ -338,6 +338,73 @@
       "notes": [],
       "createdAt": "2026-03-08T17:08:30.839Z",
       "updatedAt": "2026-03-08T21:35:11.227Z"
+    },
+    {
+      "id": "69953a62-e26e-4022-a930-b9610c7a74f2",
+      "loadNumber": "ETTR-2026-002",
+      "status": "rate_con_received",
+      "broker": {
+        "id": "",
+        "companyName": "C&A TRANSPORTATION & LOGISTICS INC",
+        "contactName": "CRAIG MACFARLINE",
+        "email": "accounting@candatransportationinc.com",
+        "phone": "(207)-429-4207",
+        "mcNumber": "518568"
+      },
+      "reference": {
+        "brokerLoadNumber": "9024900",
+        "referenceNumber": "9024900",
+        "poNumber": ""
+      },
+      "rate": {
+        "amount": 2350,
+        "type": "flat",
+        "miles": 0,
+        "ratePerMile": 0
+      },
+      "pickup": {
+        "facilityName": "PINELAND FARMS",
+        "address": "115 PRESQUE ISLE ROAD",
+        "city": "MARS HILL",
+        "state": "ME",
+        "zip": "04758",
+        "date": "2026-01-29",
+        "time": "08:00",
+        "contactName": "",
+        "contactPhone": "",
+        "appointmentRequired": false
+      },
+      "delivery": {
+        "facilityName": "HALL'S WAREHOUSE",
+        "address": "501 KENTILE RD",
+        "city": "SOUTH PLAINFIELD",
+        "state": "NJ",
+        "zip": "07080",
+        "date": "2026-01-30",
+        "time": "11:30",
+        "contactName": "",
+        "contactPhone": "",
+        "appointmentRequired": false
+      },
+      "commodity": "MASHED POTATES",
+      "weight": "41991",
+      "equipment": "R",
+      "specialInstructions": "34 CONT, Temperature: 34 cont",
+      "assignedDriverId": null,
+      "charges": [],
+      "documents": [],
+      "auditLog": [
+        {
+          "id": "4b6f1f83-cac9-4555-8ea7-7f620c4d4963",
+          "timestamp": "2026-03-08T21:38:47.889Z",
+          "userId": "user-tim",
+          "action": "load_created",
+          "details": "Load created from rate con scan"
+        }
+      ],
+      "notes": [],
+      "createdAt": "2026-03-08T21:38:47.889Z",
+      "updatedAt": "2026-03-08T21:38:47.889Z"
     }
   ]
 }
