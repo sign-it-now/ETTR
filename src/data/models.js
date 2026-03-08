@@ -92,7 +92,7 @@ export const createDriver = (overrides = {}) => ({
 // ─── Factory: Document ─────────────────────────────────────────────────────
 export const createDocument = (overrides = {}) => ({
   id: uuid(),
-  type: 'other',         // 'rate_con' | 'bol_signed' | 'receipt' | 'other'
+  type: 'other',         // 'rate_con' | 'bol_unsigned' | 'bol_signed' | 'receipt' | 'other'
   version: 1,
   isCurrent: true,
   fileName: '',

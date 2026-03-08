@@ -80,8 +80,17 @@ export async function generateInvoicePDF(load, invoice, broker, driver) {
   // ── Page 1: Invoice ──────────────────────────────────────────────────────────
   buildInvoicePage(doc, load, invoice, broker, driver);
 
-  // ── Pages 2+: Document images ─────────────────────────────────────────────
-  const allDocs = load.documents || [];
+  // ── Pages 2+: Documents in invoice package order ──────────────────────────
+  // Order: Rate Confirmation → Signed BOL → Unsigned BOL (pickup) → Receipts → Other
+  const DOC_ORDER = ['rate_con', 'bol_signed', 'bol_unsigned', 'lumper_receipt', 'scale_ticket', 'receipt', 'other'];
+  const allDocs = (load.documents || [])
+    .filter(d => !d.deletedAt && d.isCurrent !== false)
+    .sort((a, b) => {
+      const ai = DOC_ORDER.indexOf(a.type);
+      const bi = DOC_ORDER.indexOf(b.type);
+      return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+    });
+
   const imageDocs = allDocs.filter(d => d.base64Data?.startsWith('data:image'));
   const pdfDocs   = allDocs.filter(d => d.base64Data?.startsWith('data:application/pdf'));
 
