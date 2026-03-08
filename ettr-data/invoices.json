@@ -1,1 +1,22 @@
-[]
+{
+  "invoices": [
+    {
+      "id": "fad5d268-ee3c-47e9-a484-6ef83e2294a7",
+      "invoiceNumber": "INV-2026-001",
+      "loadId": "eb0f9dfd-facd-48ac-9108-fb405850d29e",
+      "brokerId": "",
+      "baseRate": 2350,
+      "additionalCharges": [],
+      "totalAmount": 2350,
+      "status": "draft",
+      "generatedAt": "2026-03-08T23:33:14.321Z",
+      "sentAt": null,
+      "paidAt": null,
+      "pdfBase64": "",
+      "attachedDocuments": [],
+      "notes": "",
+      "createdAt": "2026-03-08T23:33:14.321Z",
+      "updatedAt": "2026-03-08T23:33:14.321Z"
+    }
+  ]
+}
