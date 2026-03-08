@@ -81,6 +81,34 @@
       "notes": "",
       "createdAt": "2026-03-08T21:39:34.526Z",
       "updatedAt": "2026-03-08T21:39:34.527Z"
+    },
+    {
+      "id": "7367ec89-5484-4c15-a9ec-98e54032f9a6",
+      "invoiceNumber": "INV-2026-003",
+      "loadId": "load-seed-003",
+      "brokerId": "broker-abc",
+      "baseRate": 1200,
+      "additionalCharges": [
+        {
+          "id": "charge-seed-001",
+          "type": "lumper",
+          "amount": 75,
+          "description": "Unloading assistance at delivery",
+          "receiptDocumentId": null,
+          "createdAt": "2024-01-15T14:30:00Z",
+          "createdBy": "user-driver"
+        }
+      ],
+      "totalAmount": 1275,
+      "status": "draft",
+      "generatedAt": "2026-03-08T21:40:40.717Z",
+      "sentAt": null,
+      "paidAt": null,
+      "pdfBase64": "",
+      "attachedDocuments": [],
+      "notes": "",
+      "createdAt": "2026-03-08T21:40:40.717Z",
+      "updatedAt": "2026-03-08T21:40:40.717Z"
     }
   ]
 }
