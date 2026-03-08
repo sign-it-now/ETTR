@@ -1,27 +1,11 @@
 {
   "drivers": [
     {
-      "id": "driver-tim-anderson",
-      "name": "Tim Anderson",
-      "email": "tim@ettr.com",
-      "phone": "618-974-8695",
+      "name": "Tim Smith",
+      "email": "suncollectives@icloud.com",
+      "phone": "6189748695",
       "role": "admin",
-      "isActive": true
-    },
-    {
-      "id": "driver-bruce-thompson",
-      "name": "Bruce Thompson",
-      "email": "bruce@ettr.com",
-      "phone": "715-509-0114",
-      "role": "admin",
-      "isActive": true
-    },
-    {
-      "id": "driver-mike-kowalski",
-      "name": "Mike Kowalski",
-      "email": "mike.k@ettr.com",
-      "phone": "314-882-5501",
-      "role": "driver",
+      "id": "driver-mmgsc6vz-o0vuu",
       "isActive": true
     },
     {
@@ -33,11 +17,11 @@
       "isActive": true
     },
     {
-      "name": "Tim Smith",
-      "email": "suncollectives@icloud.com",
-      "phone": "6189748695",
+      "id": "driver-mike-kowalski",
+      "name": "Mike Kowalski",
+      "email": "mike.k@ettr.com",
+      "phone": "314-882-5501",
       "role": "driver",
-      "id": "driver-mmgsc6vz-o0vuu",
       "isActive": true
     },
     {

@@ -4,7 +4,7 @@
 export const SEED_USERS = [
   {
     id: 'user-tim',
-    name: 'Tim Anderson',
+    name: 'Tim Smith',
     role: 'admin',
     email: 'tim@ettrfleet.com',
     phone: '',
@@ -13,7 +13,7 @@ export const SEED_USERS = [
   },
   {
     id: 'user-bruce',
-    name: 'Bruce Thompson',
+    name: 'Bruce Edgerton',
     role: 'admin',
     email: 'bruce@ettrfleet.com',
     phone: '',
