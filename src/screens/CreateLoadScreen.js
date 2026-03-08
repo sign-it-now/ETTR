@@ -197,8 +197,8 @@ export default function CreateLoadScreen({ nav, loadId }) {
               <Field label="Pickup Date"><Input type="date" value={form.pickupDate} onChange={(e) => setField('pickupDate', e.target.value)} /></Field>
               <Field label="Pickup Time"><Input type="time" value={form.pickupTime} onChange={(e) => setField('pickupTime', e.target.value)} /></Field>
             </div>
-            <Field label="Contact Name"><Input value={form.shipperContact} onChange={(e) => setField('shipperContact', e.target.value)} placeholder="John Smith" /></Field>
-            <Field label="Contact Phone"><Input type="tel" value={form.shipperPhone} onChange={(e) => setField('shipperPhone', e.target.value)} placeholder="555-111-2222" /></Field>
+            <Field label="Contact Name"><Input value={form.shipperContact} onChange={(e) => setField('shipperContact', e.target.value)} placeholder="Contact name" /></Field>
+            <Field label="Contact Phone"><Input type="tel" value={form.shipperPhone} onChange={(e) => setField('shipperPhone', e.target.value)} placeholder="Contact phone" /></Field>
           </div>
         </section>
 
@@ -212,8 +212,8 @@ export default function CreateLoadScreen({ nav, loadId }) {
               <Field label="Delivery Date"><Input type="date" value={form.deliveryDate} onChange={(e) => setField('deliveryDate', e.target.value)} /></Field>
               <Field label="Delivery Time"><Input type="time" value={form.deliveryTime} onChange={(e) => setField('deliveryTime', e.target.value)} /></Field>
             </div>
-            <Field label="Contact Name"><Input value={form.consigneeContact} onChange={(e) => setField('consigneeContact', e.target.value)} placeholder="Jane Doe" /></Field>
-            <Field label="Contact Phone"><Input type="tel" value={form.consigneePhone} onChange={(e) => setField('consigneePhone', e.target.value)} placeholder="555-333-4444" /></Field>
+            <Field label="Contact Name"><Input value={form.consigneeContact} onChange={(e) => setField('consigneeContact', e.target.value)} placeholder="Contact name" /></Field>
+            <Field label="Contact Phone"><Input type="tel" value={form.consigneePhone} onChange={(e) => setField('consigneePhone', e.target.value)} placeholder="Contact phone" /></Field>
           </div>
         </section>
 
