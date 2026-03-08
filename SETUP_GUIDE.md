@@ -21,9 +21,9 @@ Type or paste this exactly. Every device uses this same URL.
 
 | Device | Token Name to Use | Who Selects in "Who are you?" |
 |--------|------------------|-------------------------------|
-| **Mac** (office computer) | `ETTR-mac` | Tim Anderson |
-| **Tim's iPhone** | `ETTR-Tim` | Tim Anderson |
-| **Bruce's phone/tablet** | `ETTR-Bruce` | Bruce Thompson |
+| **Mac** (office computer) | `ETTR-mac` | Tim Smith |
+| **Tim's iPhone** | `ETTR-Tim` | Tim Smith |
+| **Bruce's phone/tablet** | `ETTR-Bruce` | Bruce Edgerton |
 | **Any driver's phone** | `ETTR Driver-shared` | That driver's name |
 
 > **Do not use** `ETTR Sync` or `ETTR App` for device setup — those are reserved for automation.
@@ -55,42 +55,42 @@ Repeat this for each token you need (one per device being set up).
 ## Step 2 — Set Up Each Device
 
 ### Mac (Office Computer)
-**Token:** `ETTR-mac` | **Profile:** Tim Anderson
+**Token:** `ETTR-mac` | **Profile:** Tim Smith
 
 1. On the Mac, open **Chrome** or **Safari**
 2. Go to **ettrapp.com**
 3. The app opens to a dark screen with two input fields — this is the Setup screen
 4. In the **Repository URL** field → type: `https://github.com/sign-it-now/ETTR`
 5. In the **Personal Access Token** field → paste the `ETTR-mac` token value you copied (starts with `ghp_`)
-6. In the **Who are you?** dropdown → select **Tim Anderson**
+6. In the **Who are you?** dropdown → select **Tim Smith**
 7. Click **Save & Start**
 8. The app connects to GitHub, pulls all the data, and opens the dashboard — setup is done
 
 ---
 
 ### Tim's iPhone
-**Token:** `ETTR-Tim` | **Profile:** Tim Anderson
+**Token:** `ETTR-Tim` | **Profile:** Tim Smith
 
 1. On Tim's iPhone, open **Safari**
 2. Go to **ettrapp.com**
 3. The Setup screen appears (dark background, two fields)
 4. In **Repository URL** → type: `https://github.com/sign-it-now/ETTR`
 5. In **Personal Access Token** → paste the `ETTR-Tim` token value
-6. In **Who are you?** → select **Tim Anderson**
+6. In **Who are you?** → select **Tim Smith**
 7. Tap **Save & Start**
 8. Dashboard opens — setup is done
 
 ---
 
 ### Bruce's Phone or Tablet
-**Token:** `ETTR-Bruce` | **Profile:** Bruce Thompson
+**Token:** `ETTR-Bruce` | **Profile:** Bruce Edgerton
 
 1. On Bruce's device, open **Safari**
 2. Go to **ettrapp.com**
 3. The Setup screen appears
 4. In **Repository URL** → type: `https://github.com/sign-it-now/ETTR`
 5. In **Personal Access Token** → paste the `ETTR-Bruce` token value
-6. In **Who are you?** → select **Bruce Thompson**
+6. In **Who are you?** → select **Bruce Edgerton**
 7. Tap **Save & Start**
 8. Dashboard opens — setup is done
 
