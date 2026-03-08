@@ -91,7 +91,7 @@
     {
       "id": "eb0f9dfd-facd-48ac-9108-fb405850d29e",
       "loadNumber": "ETTR-2026-002",
-      "status": "rate_con_received",
+      "status": "accepted",
       "broker": {
         "id": "",
         "companyName": "C&A TRANSPORTATION & LOGISTICS INC",
@@ -139,7 +139,7 @@
       "weight": "41991",
       "equipment": "R",
       "specialInstructions": "34 CONT, Temperature: 34 cont",
-      "assignedDriverId": null,
+      "assignedDriverId": "driver-mmgsb276-y3hj3",
       "charges": [],
       "documents": [],
       "auditLog": [
@@ -149,11 +149,25 @@
           "userId": "user-tim",
           "action": "load_created",
           "details": "Load created from rate con scan"
+        },
+        {
+          "id": "ca0faff7-4303-4641-99cf-6c51af4b99ff",
+          "timestamp": "2026-03-08T23:31:26.650Z",
+          "userId": "user-tim",
+          "action": "driver_assigned",
+          "details": "Assigned to Bruce Edgerton"
+        },
+        {
+          "id": "0380495d-7c4d-48db-bf66-6a46dc9a4e6f",
+          "timestamp": "2026-03-08T23:31:28.117Z",
+          "userId": "user-tim",
+          "action": "status_changed",
+          "details": "Status updated to Accepted"
         }
       ],
       "notes": [],
       "createdAt": "2026-03-08T23:31:15.191Z",
-      "updatedAt": "2026-03-08T23:31:15.192Z"
+      "updatedAt": "2026-03-08T23:31:28.118Z"
     }
   ]
 }
