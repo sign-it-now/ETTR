@@ -7,6 +7,7 @@ import LoadDetail from './components/LoadDetail';
 import InvoiceDetail from './components/InvoiceDetail';
 import Settings from './components/Settings';
 import BrokerProfile from './components/BrokerProfile';
+import Reports from './components/Reports';
 import {
   getConfig,
   getCurrentUser,
@@ -21,6 +22,8 @@ import {
   initializeIfEmpty,
   updateLoad,
   updateInvoice,
+  deleteLoad,
+  deleteLoads,
   saveCurrentUser,
   clearConfig,
   clearCurrentUser,
@@ -251,7 +254,15 @@ const App = () => {
         load={selectedLoad}
         currentUser={currentUser}
         drivers={data.drivers}
+        brokers={data.brokers}
         onBack={() => { setSubScreen(null); setSelectedLoad(null); refreshData(); }}
+        onDeleteLoad={(loadId) => {
+          deleteLoad(loadId);
+          refreshData();
+          setSubScreen(null);
+          setSelectedLoad(null);
+          setTimeout(() => pushToGitHub(), 1500);
+        }}
         onLoadUpdated={(updated) => {
           setSelectedLoad(updated);
           refreshData();
@@ -360,6 +371,19 @@ const App = () => {
             }}
           />
         );
+      case 'reports':
+        return (
+          <Reports
+            loads={data.loads}
+            invoices={data.invoices}
+            currentUser={currentUser}
+            onDeleteLoads={(ids) => {
+              deleteLoads(ids);
+              refreshData();
+              setTimeout(() => pushToGitHub(), 1500);
+            }}
+          />
+        );
       case 'settings':
         return (
           <Settings
@@ -441,6 +465,8 @@ const App = () => {
           onClick={() => setCurrentScreen('dashboard')} />
         <NavItem icon="🚛" label="Loads" active={currentScreen === 'loads'}
           onClick={() => setCurrentScreen('loads')} badge={needsActionCount} />
+        <NavItem icon="📈" label="Reports" active={currentScreen === 'reports'}
+          onClick={() => setCurrentScreen('reports')} />
         <NavItem icon="⚙️" label="Settings" active={currentScreen === 'settings'}
           onClick={() => setCurrentScreen('settings')} />
       </nav>

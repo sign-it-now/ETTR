@@ -1,7 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { STATUS_MAP, getStatus, createDocument, createCharge, createAuditEntry } from '../data/models';
-import { updateLoad, getLoads, getDrivers } from '../services/storage';
-import { getConfig } from '../services/storage';
+import { STATUS_MAP, getStatus, createDocument, createCharge, createAuditEntry, createBroker } from '../data/models';
+import { updateLoad, getLoads, getDrivers, getConfig, updateBroker } from '../services/storage';
 import { scanRateCon, fileToBase64, getMimeType, compressImage } from '../services/claudeVision';
 
 // ─── Shared styles ────────────────────────────────────────────────────────────
@@ -314,8 +313,9 @@ const DetailsTab = ({ load, drivers, currentUser, onLoadUpdated, onViewBroker })
 const DocumentsTab = ({ load, currentUser, onLoadUpdated }) => {
   const fileRef = useRef();
   const cameraRef = useRef();
+  const bolCameraRef = useRef();
   const replaceFileRef = useRef();
-  const [uploadTarget, setUploadTarget] = useState(null); // 'bol' | 'receipt'
+  const [uploadTarget, setUploadTarget] = useState(null); // 'bol_unsigned' | 'bol_signed' | 'receipt'
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showReplaceFlow, setShowReplaceFlow] = useState(false);
   const [deleteReason, setDeleteReason] = useState('');
@@ -329,8 +329,9 @@ const DocumentsTab = ({ load, currentUser, onLoadUpdated }) => {
 
   const currentRateCon = docs.find((d) => d.type === 'rate_con' && d.isCurrent && !d.deletedAt);
   const previousRateCons = docs.filter((d) => d.type === 'rate_con' && (!d.isCurrent || d.deletedAt));
-  const signedBOLs = docs.filter((d) => d.type === 'bol_signed');
-  const receipts = docs.filter((d) => d.type === 'receipt');
+  const unsignedBOLs = docs.filter((d) => d.type === 'bol_unsigned' && !d.deletedAt);
+  const signedBOLs = docs.filter((d) => d.type === 'bol_signed' && !d.deletedAt);
+  const receipts = docs.filter((d) => d.type === 'receipt' && !d.deletedAt);
 
   const handleUploadFile = async (file, type) => {
     setUploading(true);
@@ -563,23 +564,71 @@ const DocumentsTab = ({ load, currentUser, onLoadUpdated }) => {
         )}
       </div>
 
-      {/* ── Signed BOL ────────────────────────── */}
+      {/* ── BOL at Pickup (Unsigned) ──────────── */}
       <div style={{ margin: '16px 16px 0' }}>
-        <div style={{ fontSize: '12px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px' }}>
-          Signed BOL
+        <div style={{ fontSize: '12px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>BOL — Pickup Photo</span>
+          {unsignedBOLs.length > 0 && (
+            <button style={S.docBtn('#b45309')} onClick={() => { setUploadTarget('bol_unsigned'); bolCameraRef.current.click(); }}>+ Add</button>
+          )}
         </div>
+        {unsignedBOLs.length === 0 ? (
+          <div style={{ ...S.docCard, border: '2px dashed #334155', textAlign: 'center', padding: '16px' }}>
+            {uploading && uploadTarget === 'bol_unsigned' ? (
+              <div style={{ color: '#64748b' }}>Uploading...</div>
+            ) : (
+              <>
+                <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '10px' }}>Photo of BOL when picking up load</div>
+                <button style={S.docBtn('#b45309')} onClick={() => { setUploadTarget('bol_unsigned'); bolCameraRef.current.click(); }}>📷 Take Photo</button>
+                {' '}
+                <button style={S.docBtn('#b45309')} onClick={() => { setUploadTarget('bol_unsigned'); fileRef.current.click(); }}>📁 Choose File</button>
+              </>
+            )}
+          </div>
+        ) : (
+          unsignedBOLs.map((doc) => (
+            <div key={doc.id} style={S.docCard}>
+              <div style={{ fontSize: '13px', fontWeight: '600', color: '#e2e8f0' }}>📄 {doc.fileName}</div>
+              <div style={{ fontSize: '11px', color: '#64748b', marginTop: '3px' }}>BOL at Pickup • {fmt.datetime(doc.uploadedAt)}</div>
+              <div style={S.docActions}>
+                <button style={S.docBtn('#38bdf8')} onClick={() => openDoc(doc)}>👁 View</button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* ── Signed BOL — Delivery ─────────────── */}
+      <div style={{ margin: '16px 16px 0' }}>
+        <div style={{ fontSize: '12px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>Signed BOL — Delivery</span>
+          {signedBOLs.length > 0 && (
+            <button style={S.docBtn('#15803d')} onClick={() => { setUploadTarget('bol_signed'); bolCameraRef.current.click(); }}>+ Add</button>
+          )}
+        </div>
+        {['delivered', 'invoiced'].includes(load.status) && signedBOLs.length === 0 && (
+          <div style={{ background: '#451a03', border: '1px solid #92400e', borderRadius: '8px', padding: '10px 14px', marginBottom: '10px', fontSize: '12px', color: '#fbbf24' }}>
+            ⚠️ Signed BOL required for complete invoice package
+          </div>
+        )}
         {signedBOLs.length === 0 ? (
-          <div
-            style={S.uploadBox}
-            onClick={() => { setUploadTarget('bol_signed'); fileRef.current.click(); }}
-          >
-            {uploading && uploadTarget === 'bol_signed' ? 'Uploading...' : '📷 Tap to upload signed BOL'}
+          <div style={{ ...S.docCard, border: '2px dashed #334155', textAlign: 'center', padding: '16px' }}>
+            {uploading && uploadTarget === 'bol_signed' ? (
+              <div style={{ color: '#64748b' }}>Uploading...</div>
+            ) : (
+              <>
+                <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '10px' }}>Upload signed BOL after delivery</div>
+                <button style={S.docBtn('#15803d')} onClick={() => { setUploadTarget('bol_signed'); bolCameraRef.current.click(); }}>📷 Take Photo</button>
+                {' '}
+                <button style={S.docBtn('#15803d')} onClick={() => { setUploadTarget('bol_signed'); fileRef.current.click(); }}>📁 Choose File</button>
+              </>
+            )}
           </div>
         ) : (
           signedBOLs.map((doc) => (
             <div key={doc.id} style={S.docCard}>
-              <div style={{ fontSize: '13px', fontWeight: '600', color: '#e2e8f0' }}>📄 {doc.fileName}</div>
-              <div style={{ fontSize: '11px', color: '#64748b', marginTop: '3px' }}>Uploaded {fmt.datetime(doc.uploadedAt)}</div>
+              <div style={{ fontSize: '13px', fontWeight: '600', color: '#e2e8f0' }}>✅ {doc.fileName}</div>
+              <div style={{ fontSize: '11px', color: '#64748b', marginTop: '3px' }}>Signed BOL • {fmt.datetime(doc.uploadedAt)}</div>
               <div style={S.docActions}>
                 <button style={S.docBtn('#38bdf8')} onClick={() => openDoc(doc)}>👁 View</button>
               </div>
@@ -611,6 +660,10 @@ const DocumentsTab = ({ load, currentUser, onLoadUpdated }) => {
 
       {/* Hidden file inputs (shared for BOL + receipt uploads) */}
       <input ref={fileRef} type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,image/*,application/pdf" style={{ display: 'none' }}
+        onChange={(e) => { if (e.target.files[0] && uploadTarget) { handleUploadFile(e.target.files[0], uploadTarget); e.target.value = ''; } }} />
+
+      {/* BOL camera input (unsigned + signed BOL photo capture) */}
+      <input ref={bolCameraRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }}
         onChange={(e) => { if (e.target.files[0] && uploadTarget) { handleUploadFile(e.target.files[0], uploadTarget); e.target.value = ''; } }} />
 
       {/* Replace flow */}
@@ -803,10 +856,12 @@ const NEXT_STATUS = {
 };
 
 // ─── Main LoadDetail Component ────────────────────────────────────────────────
-const LoadDetail = ({ load: initialLoad, currentUser, drivers, onBack, onLoadUpdated, onCreateInvoice, onViewBroker }) => {
+const LoadDetail = ({ load: initialLoad, currentUser, drivers, brokers, onBack, onLoadUpdated, onCreateInvoice, onViewBroker, onDeleteLoad }) => {
   const [load, setLoad] = useState(initialLoad);
   const [activeTab, setActiveTab] = useState('details');
   const [advancing, setAdvancing] = useState(false);
+  const [showNoBolWarning, setShowNoBolWarning] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const status = getStatus(load.status);
   const isAdmin = currentUser?.role === 'admin';
   const action = ACTION_MAP[load.status];
@@ -823,9 +878,32 @@ const LoadDetail = ({ load: initialLoad, currentUser, drivers, onBack, onLoadUpd
       return;
     }
     if (load.status === 'delivered') {
+      const hasSignedBol = (load.documents || []).some((d) => d.type === 'bol_signed' && !d.deletedAt);
+      if (!hasSignedBol) {
+        setShowNoBolWarning(true);
+        return;
+      }
       onCreateInvoice && onCreateInvoice(load);
       return;
     }
+    // Auto-add broker to master list when accepting a load
+    if (load.status === 'rate_con_received' && load.broker?.companyName) {
+      const exists = (brokers || []).some(
+        (b) => b.id === load.broker.id ||
+               b.companyName?.toLowerCase().trim() === load.broker.companyName.toLowerCase().trim()
+      );
+      if (!exists) {
+        const newBroker = createBroker({
+          ...(load.broker.id ? { id: load.broker.id } : {}),
+          companyName: load.broker.companyName,
+          contactName: load.broker.contactName || '',
+          email: load.broker.email || '',
+          phone: load.broker.phone || '',
+        });
+        updateBroker(newBroker);
+      }
+    }
+
     const nextStatus = NEXT_STATUS[load.status];
     if (!nextStatus) return;
 
@@ -851,6 +929,13 @@ const LoadDetail = ({ load: initialLoad, currentUser, drivers, onBack, onLoadUpd
           <div style={S.loadNum}>{load.loadNumber}</div>
           <span style={S.statusBadge(status)}>{status.label}</span>
         </div>
+        {isAdmin && onDeleteLoad && (
+          <button
+            style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '20px', cursor: 'pointer', padding: '4px 6px', lineHeight: 1 }}
+            onClick={() => setShowDeleteConfirm(true)}
+            title="Delete load"
+          >🗑</button>
+        )}
       </div>
 
       {/* Status timeline */}
@@ -890,6 +975,51 @@ const LoadDetail = ({ load: initialLoad, currentUser, drivers, onBack, onLoadUpd
           >
             {advancing ? 'Updating...' : action.label}
           </button>
+        </div>
+      )}
+
+      {/* Delete load confirmation modal */}
+      {showDeleteConfirm && (
+        <div style={S.overlay} onClick={(e) => e.target === e.currentTarget && setShowDeleteConfirm(false)}>
+          <div style={S.modal}>
+            <div style={S.modalTitle}>🗑 Delete Load?</div>
+            <p style={{ fontSize: '13px', color: '#94a3b8', margin: '0 0 16px', lineHeight: 1.6 }}>
+              <strong style={{ color: '#e2e8f0' }}>{load.loadNumber}</strong> and all its documents will be permanently removed. This cannot be undone.
+            </p>
+            <button
+              style={{ ...S.modalBtn('#ef4444'), marginTop: 0 }}
+              onClick={() => { setShowDeleteConfirm(false); onDeleteLoad(load.id); }}
+            >
+              Delete Load
+            </button>
+            <button style={S.cancelBtn} onClick={() => setShowDeleteConfirm(false)}>Cancel</button>
+          </div>
+        </div>
+      )}
+
+      {/* No signed BOL warning modal */}
+      {showNoBolWarning && (
+        <div style={S.overlay} onClick={(e) => e.target === e.currentTarget && setShowNoBolWarning(false)}>
+          <div style={S.modal}>
+            <div style={S.modalTitle}>⚠️ No Signed BOL Attached</div>
+            <p style={{ fontSize: '13px', color: '#94a3b8', margin: '0 0 16px', lineHeight: 1.6 }}>
+              A complete invoice package should include the signed BOL from delivery.
+              Upload the signed BOL in the Documents tab before creating the invoice.
+            </p>
+            <button
+              style={{ ...S.modalBtn('#0284c7'), marginTop: 0 }}
+              onClick={() => { setShowNoBolWarning(false); setActiveTab('documents'); }}
+            >
+              📄 Go to Documents
+            </button>
+            <button
+              style={{ ...S.modalBtn('#1e293b'), marginTop: '8px' }}
+              onClick={() => { setShowNoBolWarning(false); onCreateInvoice && onCreateInvoice(load); }}
+            >
+              Create Invoice Anyway
+            </button>
+            <button style={S.cancelBtn} onClick={() => setShowNoBolWarning(false)}>Cancel</button>
+          </div>
         </div>
       )}
     </div>

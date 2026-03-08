@@ -1,0 +1,602 @@
+{
+  "loads": [
+    {
+      "id": "load-2025-001",
+      "loadNumber": "ETTR-2025-001",
+      "referenceNumber": "ABC-10042",
+      "status": "paid",
+      "brokerId": "broker-abc-logistics",
+      "assignedDriverId": "driver-tim-anderson",
+      "shipper": {
+        "name": "Continental Manufacturing",
+        "address": "1200 W Pershing Rd, Chicago, IL 60609",
+        "pickupDate": "2025-01-08",
+        "pickupTime": "07:00",
+        "contactName": "Randy Schultz",
+        "contactPhone": "312-555-0142"
+      },
+      "consignee": {
+        "name": "Southwest Distribution Center",
+        "address": "4900 Singleton Blvd, Dallas, TX 75212",
+        "deliveryDate": "2025-01-09",
+        "deliveryTime": "14:00",
+        "contactName": "Gloria Reyes",
+        "contactPhone": "214-555-0198"
+      },
+      "rate": {
+        "amount": 2100,
+        "type": "flat",
+        "miles": 921
+      },
+      "charges": [
+        {
+          "id": "chg-001-001",
+          "type": "fuel_surcharge",
+          "amount": 45,
+          "description": "Fuel surcharge per rate con",
+          "receiptDocumentId": null
+        }
+      ],
+      "documents": [
+        {
+          "id": "doc-001-rc",
+          "type": "rate_con",
+          "fileName": "RateCon_ABC10042.pdf",
+          "uploadedAt": "2025-01-07T14:00:00Z",
+          "uploadedBy": "driver-tim-anderson",
+          "base64Data": null
+        },
+        {
+          "id": "doc-001-bol",
+          "type": "bol_signed",
+          "fileName": "BOL_signed_ABC10042.jpg",
+          "uploadedAt": "2025-01-09T15:22:00Z",
+          "uploadedBy": "driver-tim-anderson",
+          "base64Data": null
+        }
+      ],
+      "notes": [
+        {
+          "id": "note-001-001",
+          "text": "Receiver was fast â in and out in 45 minutes. No issues.",
+          "createdAt": "2025-01-09T15:30:00Z",
+          "createdBy": "driver-tim-anderson"
+        }
+      ],
+      "createdAt": "2025-01-07T13:00:00Z",
+      "updatedAt": "2025-01-22T10:00:00Z"
+    },
+    {
+      "id": "load-2025-002",
+      "loadNumber": "ETTR-2025-002",
+      "referenceNumber": "COY-88231",
+      "status": "paid",
+      "brokerId": "broker-coyote-logistics",
+      "assignedDriverId": "driver-bruce-thompson",
+      "shipper": {
+        "name": "Midwest Auto Parts Warehouse",
+        "address": "550 S Girls School Rd, Indianapolis, IN 46231",
+        "pickupDate": "2025-02-03",
+        "pickupTime": "09:00",
+        "contactName": "Tom Garvey",
+        "contactPhone": "317-555-0177"
+      },
+      "consignee": {
+        "name": "Mid-South Freight Terminal",
+        "address": "3636 Tchulahoma Rd, Memphis, TN 38118",
+        "deliveryDate": "2025-02-03",
+        "deliveryTime": "17:30",
+        "contactName": "Marcus Hill",
+        "contactPhone": "901-555-0233"
+      },
+      "rate": {
+        "amount": 1450,
+        "type": "flat",
+        "miles": 467
+      },
+      "charges": [
+        {
+          "id": "chg-002-001",
+          "type": "lumper",
+          "amount": 75,
+          "description": "Unloading fee at Mid-South terminal",
+          "receiptDocumentId": "doc-002-lr"
+        }
+      ],
+      "documents": [
+        {
+          "id": "doc-002-rc",
+          "type": "rate_con",
+          "fileName": "RateCon_COY88231.pdf",
+          "uploadedAt": "2025-02-02T16:00:00Z",
+          "uploadedBy": "driver-bruce-thompson",
+          "base64Data": null
+        },
+        {
+          "id": "doc-002-bol",
+          "type": "bol_signed",
+          "fileName": "BOL_signed_COY88231.jpg",
+          "uploadedAt": "2025-02-03T18:00:00Z",
+          "uploadedBy": "driver-bruce-thompson",
+          "base64Data": null
+        },
+        {
+          "id": "doc-002-lr",
+          "type": "lumper_receipt",
+          "fileName": "LumperReceipt_COY88231.jpg",
+          "uploadedAt": "2025-02-03T17:45:00Z",
+          "uploadedBy": "driver-bruce-thompson",
+          "base64Data": null
+        }
+      ],
+      "notes": [],
+      "createdAt": "2025-02-02T15:00:00Z",
+      "updatedAt": "2025-02-14T09:00:00Z"
+    },
+    {
+      "id": "load-2025-003",
+      "loadNumber": "ETTR-2025-003",
+      "referenceNumber": "ECH-44870",
+      "status": "invoiced",
+      "brokerId": "broker-echo-global",
+      "assignedDriverId": "driver-tim-anderson",
+      "shipper": {
+        "name": "Motor City Steel Supply",
+        "address": "12000 Mack Ave, Detroit, MI 48215",
+        "pickupDate": "2025-04-22",
+        "pickupTime": "06:30",
+        "contactName": "Brian Kowalczyk",
+        "contactPhone": "313-555-0154"
+      },
+      "consignee": {
+        "name": "Bi-State Industrial Park",
+        "address": "6900 W Florissant Ave, St. Louis, MO 63136",
+        "deliveryDate": "2025-04-23",
+        "deliveryTime": "10:00",
+        "contactName": "Denise Fontaine",
+        "contactPhone": "314-555-0292"
+      },
+      "rate": {
+        "amount": 1650,
+        "type": "flat",
+        "miles": 533
+      },
+      "charges": [
+        {
+          "id": "chg-003-001",
+          "type": "detention",
+          "amount": 150,
+          "description": "2 hrs detention at receiver â dock was full on arrival",
+          "receiptDocumentId": null
+        }
+      ],
+      "documents": [
+        {
+          "id": "doc-003-rc",
+          "type": "rate_con",
+          "fileName": "RateCon_ECH44870.pdf",
+          "uploadedAt": "2025-04-21T11:00:00Z",
+          "uploadedBy": "driver-tim-anderson",
+          "base64Data": null
+        },
+        {
+          "id": "doc-003-bol",
+          "type": "bol_signed",
+          "fileName": "BOL_signed_ECH44870.jpg",
+          "uploadedAt": "2025-04-23T12:30:00Z",
+          "uploadedBy": "driver-tim-anderson",
+          "base64Data": null
+        }
+      ],
+      "notes": [
+        {
+          "id": "note-003-001",
+          "text": "2 hr detention at receiver. Had to wait for dock space â they were backed up from the morning rush. Detention confirmed by dock supervisor.",
+          "createdAt": "2025-04-23T11:00:00Z",
+          "createdBy": "driver-tim-anderson"
+        }
+      ],
+      "createdAt": "2025-04-21T10:00:00Z",
+      "updatedAt": "2025-04-24T09:00:00Z"
+    },
+    {
+      "id": "load-2025-004",
+      "loadNumber": "ETTR-2025-004",
+      "referenceNumber": "LND-20155",
+      "status": "invoiced",
+      "brokerId": "broker-landstar",
+      "assignedDriverId": "driver-bruce-thompson",
+      "shipper": {
+        "name": "Great Plains Cold Storage",
+        "address": "2800 N Fernwood Ave, Minneapolis, MN 55411",
+        "pickupDate": "2025-06-10",
+        "pickupTime": "05:00",
+        "contactName": "Jerry Hanson",
+        "contactPhone": "612-555-0187"
+      },
+      "consignee": {
+        "name": "Chicago Central Receiving",
+        "address": "3800 W 41st St, Chicago, IL 60632",
+        "deliveryDate": "2025-06-10",
+        "deliveryTime": "16:00",
+        "contactName": "Ana Gutierrez",
+        "contactPhone": "773-555-0210"
+      },
+      "rate": {
+        "amount": 1550,
+        "type": "flat",
+        "miles": 411
+      },
+      "charges": [
+        {
+          "id": "chg-004-001",
+          "type": "lumper",
+          "amount": 100,
+          "description": "Unloading at Chicago Central â lumper service required",
+          "receiptDocumentId": "doc-004-lr"
+        }
+      ],
+      "documents": [
+        {
+          "id": "doc-004-rc",
+          "type": "rate_con",
+          "fileName": "RateCon_LND20155.pdf",
+          "uploadedAt": "2025-06-09T18:00:00Z",
+          "uploadedBy": "driver-bruce-thompson",
+          "base64Data": null
+        },
+        {
+          "id": "doc-004-bol",
+          "type": "bol_signed",
+          "fileName": "BOL_signed_LND20155.jpg",
+          "uploadedAt": "2025-06-10T17:00:00Z",
+          "uploadedBy": "driver-bruce-thompson",
+          "base64Data": null
+        },
+        {
+          "id": "doc-004-lr",
+          "type": "lumper_receipt",
+          "fileName": "LumperReceipt_LND20155.jpg",
+          "uploadedAt": "2025-06-10T16:45:00Z",
+          "uploadedBy": "driver-bruce-thompson",
+          "base64Data": null
+        }
+      ],
+      "notes": [],
+      "createdAt": "2025-06-09T17:00:00Z",
+      "updatedAt": "2025-06-11T08:00:00Z"
+    },
+    {
+      "id": "load-2025-005",
+      "loadNumber": "ETTR-2025-005",
+      "referenceNumber": "TQL-77492",
+      "status": "delivered",
+      "brokerId": "broker-tql",
+      "assignedDriverId": "driver-bruce-thompson",
+      "shipper": {
+        "name": "Heartland Parts & Supply",
+        "address": "1450 Georgesville Rd, Columbus, OH 43228",
+        "pickupDate": "2025-08-18",
+        "pickupTime": "08:00",
+        "contactName": "Steve Farley",
+        "contactPhone": "614-555-0163"
+      },
+      "consignee": {
+        "name": "Steel City Depot",
+        "address": "2100 Brighton Rd, Pittsburgh, PA 15212",
+        "deliveryDate": "2025-08-18",
+        "deliveryTime": "15:00",
+        "contactName": "Walt Brzenk",
+        "contactPhone": "412-555-0244"
+      },
+      "rate": {
+        "amount": 875,
+        "type": "flat",
+        "miles": 185
+      },
+      "charges": [],
+      "documents": [
+        {
+          "id": "doc-005-rc",
+          "type": "rate_con",
+          "fileName": "RateCon_TQL77492.pdf",
+          "uploadedAt": "2025-08-17T20:00:00Z",
+          "uploadedBy": "driver-bruce-thompson",
+          "base64Data": null
+        },
+        {
+          "id": "doc-005-bol",
+          "type": "bol_signed",
+          "fileName": "BOL_signed_TQL77492.jpg",
+          "uploadedAt": "2025-08-18T15:45:00Z",
+          "uploadedBy": "driver-bruce-thompson",
+          "base64Data": null
+        }
+      ],
+      "notes": [
+        {
+          "id": "note-005-001",
+          "text": "Easy run. Dock was clear, they had a crew ready. Signed POD on site.",
+          "createdAt": "2025-08-18T15:50:00Z",
+          "createdBy": "driver-bruce-thompson"
+        }
+      ],
+      "createdAt": "2025-08-17T19:00:00Z",
+      "updatedAt": "2025-08-18T15:50:00Z"
+    },
+    {
+      "id": "load-2025-006",
+      "loadNumber": "ETTR-2025-006",
+      "referenceNumber": "ABC-18834",
+      "status": "delivered",
+      "brokerId": "broker-abc-logistics",
+      "assignedDriverId": "driver-tim-anderson",
+      "shipper": {
+        "name": "Gateway Industrial Supply",
+        "address": "4200 Rider Trail N, Earth City, MO 63045",
+        "pickupDate": "2025-09-30",
+        "pickupTime": "06:00",
+        "contactName": "Phil Donovan",
+        "contactPhone": "314-555-0330"
+      },
+      "consignee": {
+        "name": "Mile High Freight Terminal",
+        "address": "5200 Fox St, Denver, CO 80216",
+        "deliveryDate": "2025-10-01",
+        "deliveryTime": "11:00",
+        "contactName": "Jessica Romero",
+        "contactPhone": "303-555-0277"
+      },
+      "rate": {
+        "amount": 1800,
+        "type": "flat",
+        "miles": 600
+      },
+      "charges": [
+        {
+          "id": "chg-006-001",
+          "type": "toll",
+          "amount": 18.5,
+          "description": "I-70 tolls through Kansas",
+          "receiptDocumentId": null
+        }
+      ],
+      "documents": [
+        {
+          "id": "doc-006-rc",
+          "type": "rate_con",
+          "fileName": "RateCon_ABC18834.pdf",
+          "uploadedAt": "2025-09-29T14:00:00Z",
+          "uploadedBy": "driver-tim-anderson",
+          "base64Data": null
+        },
+        {
+          "id": "doc-006-bol",
+          "type": "bol_signed",
+          "fileName": "BOL_signed_ABC18834.jpg",
+          "uploadedAt": "2025-10-01T11:30:00Z",
+          "uploadedBy": "driver-tim-anderson",
+          "base64Data": null
+        }
+      ],
+      "notes": [],
+      "createdAt": "2025-09-29T13:00:00Z",
+      "updatedAt": "2025-10-01T11:30:00Z"
+    },
+    {
+      "id": "load-2025-007",
+      "loadNumber": "ETTR-2025-007",
+      "referenceNumber": "COY-91045",
+      "status": "in_transit",
+      "brokerId": "broker-coyote-logistics",
+      "assignedDriverId": "driver-mike-kowalski",
+      "shipper": {
+        "name": "Southern Foods Co.",
+        "address": "800 Massman Dr, Nashville, TN 37210",
+        "pickupDate": "2025-11-15",
+        "pickupTime": "07:30",
+        "contactName": "Linda Carr",
+        "contactPhone": "615-555-0188"
+      },
+      "consignee": {
+        "name": "Peach State Receiving",
+        "address": "3750 Presidential Pkwy, Atlanta, GA 30340",
+        "deliveryDate": "2025-11-15",
+        "deliveryTime": "15:00",
+        "contactName": "DeShawn Williams",
+        "contactPhone": "404-555-0321"
+      },
+      "rate": {
+        "amount": 975,
+        "type": "flat",
+        "miles": 249
+      },
+      "charges": [],
+      "documents": [
+        {
+          "id": "doc-007-rc",
+          "type": "rate_con",
+          "fileName": "RateCon_COY91045.pdf",
+          "uploadedAt": "2025-11-14T19:00:00Z",
+          "uploadedBy": "driver-mike-kowalski",
+          "base64Data": null
+        },
+        {
+          "id": "doc-007-bolu",
+          "type": "bol_unsigned",
+          "fileName": "BOL_COY91045.jpg",
+          "uploadedAt": "2025-11-15T08:00:00Z",
+          "uploadedBy": "driver-mike-kowalski",
+          "base64Data": null
+        }
+      ],
+      "notes": [
+        {
+          "id": "note-007-001",
+          "text": "Picked up 30 min late but shipper was helpful. Should still make the delivery window no problem.",
+          "createdAt": "2025-11-15T08:05:00Z",
+          "createdBy": "driver-mike-kowalski"
+        }
+      ],
+      "createdAt": "2025-11-14T18:00:00Z",
+      "updatedAt": "2025-11-15T09:30:00Z"
+    },
+    {
+      "id": "load-2025-008",
+      "loadNumber": "ETTR-2025-008",
+      "referenceNumber": "ABC-21199",
+      "status": "picked_up",
+      "brokerId": "broker-abc-logistics",
+      "assignedDriverId": "driver-mike-kowalski",
+      "shipper": {
+        "name": "Cincinnati Parts Warehouse",
+        "address": "4770 Creek Rd, Blue Ash, OH 45242",
+        "pickupDate": "2025-12-03",
+        "pickupTime": "09:00",
+        "contactName": "Frank Maddox",
+        "contactPhone": "513-555-0144"
+      },
+      "consignee": {
+        "name": "Music City Logistics",
+        "address": "175 Coley Davis Rd, Nashville, TN 37209",
+        "deliveryDate": "2025-12-03",
+        "deliveryTime": "16:30",
+        "contactName": "Courtney Briggs",
+        "contactPhone": "615-555-0265"
+      },
+      "rate": {
+        "amount": 1050,
+        "type": "flat",
+        "miles": 281
+      },
+      "charges": [],
+      "documents": [
+        {
+          "id": "doc-008-rc",
+          "type": "rate_con",
+          "fileName": "RateCon_ABC21199.pdf",
+          "uploadedAt": "2025-12-02T21:00:00Z",
+          "uploadedBy": "driver-mike-kowalski",
+          "base64Data": null
+        },
+        {
+          "id": "doc-008-bolu",
+          "type": "bol_unsigned",
+          "fileName": "BOL_ABC21199.jpg",
+          "uploadedAt": "2025-12-03T09:30:00Z",
+          "uploadedBy": "driver-mike-kowalski",
+          "base64Data": null
+        }
+      ],
+      "notes": [],
+      "createdAt": "2025-12-02T20:00:00Z",
+      "updatedAt": "2025-12-03T09:30:00Z"
+    },
+    {
+      "id": "load-2025-009",
+      "loadNumber": "ETTR-2025-009",
+      "referenceNumber": "ECH-52301",
+      "status": "dispatched",
+      "brokerId": "broker-echo-global",
+      "assignedDriverId": "driver-tim-anderson",
+      "shipper": {
+        "name": "Chicago Cold Chain",
+        "address": "2200 S Halsted St, Chicago, IL 60608",
+        "pickupDate": "2025-12-08",
+        "pickupTime": "05:30",
+        "contactName": "Nguyen Tran",
+        "contactPhone": "312-555-0399"
+      },
+      "consignee": {
+        "name": "Milwaukee Distribution Hub",
+        "address": "3800 W Canal St, Milwaukee, WI 53208",
+        "deliveryDate": "2025-12-08",
+        "deliveryTime": "10:00",
+        "contactName": "Amy Kowalski",
+        "contactPhone": "414-555-0112"
+      },
+      "rate": {
+        "amount": 650,
+        "type": "flat",
+        "miles": 92
+      },
+      "charges": [],
+      "documents": [
+        {
+          "id": "doc-009-rc",
+          "type": "rate_con",
+          "fileName": "RateCon_ECH52301.pdf",
+          "uploadedAt": "2025-12-07T16:00:00Z",
+          "uploadedBy": "driver-tim-anderson",
+          "base64Data": null
+        }
+      ],
+      "notes": [],
+      "createdAt": "2025-12-07T15:00:00Z",
+      "updatedAt": "2025-12-07T16:30:00Z"
+    },
+    {
+      "id": "load-2025-010",
+      "loadNumber": "ETTR-2025-010",
+      "referenceNumber": "TQL-84600",
+      "status": "invoiced",
+      "brokerId": "broker-tql",
+      "assignedDriverId": "",
+      "shipper": {
+        "name": "River City Warehouse",
+        "address": "6200 Riverview Industrial Dr, St. Louis, MO 63147",
+        "pickupDate": "2025-12-10",
+        "pickupTime": "10:00",
+        "contactName": "Bobby Crane",
+        "contactPhone": "314-555-0481"
+      },
+      "consignee": {
+        "name": "Queen City Distribution",
+        "address": "5200 Dixie Hwy, Fairfield, OH 45014",
+        "deliveryDate": "2025-12-11",
+        "deliveryTime": "08:00",
+        "contactName": "Nancy Hoffman",
+        "contactPhone": "513-555-0377"
+      },
+      "rate": {
+        "amount": 1100,
+        "type": "flat",
+        "miles": 340
+      },
+      "charges": [
+        {
+          "type": "lumper",
+          "amount": 80,
+          "description": "",
+          "id": "charge-mmgrsmvm-khteq"
+        }
+      ],
+      "documents": [
+        {
+          "id": "doc-010-rc",
+          "type": "rate_con",
+          "fileName": "RateCon_TQL84600.pdf",
+          "uploadedAt": "2025-12-07T09:00:00Z",
+          "uploadedBy": "driver-tim-anderson",
+          "base64Data": null
+        }
+      ],
+      "notes": [
+        {
+          "id": "note-010-001",
+          "text": "Need to assign a driver ASAP â pickup is Dec 10.",
+          "createdAt": "2025-12-07T09:05:00Z",
+          "createdBy": "driver-tim-anderson"
+        },
+        {
+          "id": "note-mmgrpp4z-yc6sg",
+          "text": "sampletest",
+          "createdAt": "2026-03-07T20:20:28.931Z",
+          "createdBy": "driver-tim-anderson"
+        }
+      ],
+      "createdAt": "2025-12-07T08:30:00Z",
+      "updatedAt": "2026-03-07T20:22:45.970Z"
+    }
+  ]
+}

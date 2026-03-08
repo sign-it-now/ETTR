@@ -136,18 +136,104 @@ class GitHubSync {
     return this.writeFile(filename, { [key]: data }, `ETTR: update ${filename}`);
   }
 
-  // ── Push multiple files ────────────────────────────────────────────────
+  // ── Push multiple files (atomic commit via Git Trees API) ─────────────
   async pushAll(changedFiles) {
-    const errors = [];
-    for (const { filename, data } of changedFiles) {
-      try {
-        await this.pushFile(filename, data);
-      } catch (e) {
-        errors.push({ filename, error: e.message });
+    if (changedFiles.length === 0) return { ok: true, errors: [] };
+
+    try {
+      // 1. Get HEAD commit SHA
+      const refRes = await fetch(
+        `${this.baseUrl}/git/refs/heads/${this.branch}`,
+        { headers: this.headers }
+      );
+      if (!refRes.ok) throw new Error(`Get ref failed: ${refRes.status}`);
+      const refData = await refRes.json();
+      const headSha = refData.object.sha;
+
+      // 2. Get base tree SHA from HEAD commit
+      const commitRes = await fetch(
+        `${this.baseUrl}/git/commits/${headSha}`,
+        { headers: this.headers }
+      );
+      if (!commitRes.ok) throw new Error(`Get commit failed: ${commitRes.status}`);
+      const commitData = await commitRes.json();
+      const baseTreeSha = commitData.tree.sha;
+
+      // 3. Create blobs for each file
+      const treeItems = [];
+      for (const { filename, data } of changedFiles) {
+        const key = filename.replace('.json', '');
+        const content = JSON.stringify({ [key]: data }, null, 2);
+        const blobRes = await fetch(`${this.baseUrl}/git/blobs`, {
+          method: 'POST',
+          headers: this.headers,
+          body: JSON.stringify({ content, encoding: 'utf-8' }),
+        });
+        if (!blobRes.ok) throw new Error(`Create blob failed for ${filename}: ${blobRes.status}`);
+        const blobData = await blobRes.json();
+        treeItems.push({
+          path: `ettr-data/${filename}`,
+          mode: '100644',
+          type: 'blob',
+          sha: blobData.sha,
+        });
       }
+
+      // 4. Create new tree
+      const treeRes = await fetch(`${this.baseUrl}/git/trees`, {
+        method: 'POST',
+        headers: this.headers,
+        body: JSON.stringify({ base_tree: baseTreeSha, tree: treeItems }),
+      });
+      if (!treeRes.ok) throw new Error(`Create tree failed: ${treeRes.status}`);
+      const treeData = await treeRes.json();
+
+      // 5. Create commit
+      const fileList = changedFiles.map(f => f.filename).join(', ');
+      const newCommitRes = await fetch(`${this.baseUrl}/git/commits`, {
+        method: 'POST',
+        headers: this.headers,
+        body: JSON.stringify({
+          message: `ETTR: sync (${fileList})`,
+          tree: treeData.sha,
+          parents: [headSha],
+        }),
+      });
+      if (!newCommitRes.ok) throw new Error(`Create commit failed: ${newCommitRes.status}`);
+      const newCommitData = await newCommitRes.json();
+
+      // 6. Update branch ref
+      const patchRes = await fetch(
+        `${this.baseUrl}/git/refs/heads/${this.branch}`,
+        {
+          method: 'PATCH',
+          headers: this.headers,
+          body: JSON.stringify({ sha: newCommitData.sha }),
+        }
+      );
+      if (!patchRes.ok) throw new Error(`Update ref failed: ${patchRes.status}`);
+
+      // Update cached SHAs by re-reading updated files
+      for (const { filename } of changedFiles) {
+        try { await this.readFile(filename); } catch (_) { /* ignore */ }
+      }
+
+      saveLastSync();
+      return { ok: true, errors: [] };
+    } catch (treeErr) {
+      console.warn('[githubSync] Trees API failed, falling back to per-file push:', treeErr.message);
+      // Fallback: per-file Contents API (one commit per file)
+      const errors = [];
+      for (const { filename, data } of changedFiles) {
+        try {
+          await this.pushFile(filename, data);
+        } catch (e) {
+          errors.push({ filename, error: e.message });
+        }
+      }
+      if (errors.length === 0) saveLastSync();
+      return { ok: errors.length === 0, errors };
     }
-    if (errors.length === 0) saveLastSync();
-    return { ok: errors.length === 0, errors };
   }
 
   // ── Detect conflicts between local and remote arrays ──────────────────

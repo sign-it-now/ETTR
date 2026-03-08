@@ -57,10 +57,11 @@ const STATUS_STYLES = {
 };
 
 const DOC_TYPE_LABELS = {
-  rate_con:   'Rate Confirmation',
-  bol_signed: 'Signed BOL',
-  receipt:    'Receipt',
-  other:      'Document',
+  rate_con:     'Rate Confirmation',
+  bol_unsigned: 'BOL (Pickup)',
+  bol_signed:   'Signed BOL',
+  receipt:      'Receipt',
+  other:        'Document',
 };
 
 const fmt = {
@@ -248,6 +249,34 @@ const InvoiceDetail = ({ invoice: initialInvoice, load: initialLoad, broker, dri
             </div>
           </div>
         </div>
+
+        {/* Invoice Package Checklist */}
+        {(() => {
+          const allLoadDocs = (load?.documents || []).filter(d => !d.deletedAt);
+          const hasRateCon = allLoadDocs.some(d => d.type === 'rate_con' && d.isCurrent !== false);
+          const hasSignedBol = allLoadDocs.some(d => d.type === 'bol_signed');
+          return (
+            <>
+              <div style={S.divider} />
+              <div style={S.sectionLabel}>Invoice Package</div>
+              <div style={{ background: '#f8fafc', borderRadius: '10px', padding: '12px 14px', marginTop: '8px' }}>
+                {[
+                  { ok: true,          label: 'Edgerton Invoice',    sub: invoice.invoiceNumber },
+                  { ok: hasRateCon,    label: 'Rate Confirmation',   sub: hasRateCon ? null : 'Missing — upload in Documents' },
+                  { ok: hasSignedBol,  label: 'Signed BOL',          sub: hasSignedBol ? null : 'Missing — upload after delivery' },
+                ].map(({ ok, label, sub }) => (
+                  <div key={label} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '14px', color: ok ? '#10b981' : '#f59e0b', fontWeight: '700', marginTop: '1px' }}>{ok ? '✓' : '!'}</span>
+                    <div>
+                      <div style={{ fontSize: '13px', fontWeight: ok ? '600' : '500', color: ok ? '#0f172a' : '#92400e' }}>{label}</div>
+                      {sub && <div style={{ fontSize: '11px', color: ok ? '#64748b' : '#b45309', marginTop: '1px' }}>{sub}</div>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          );
+        })()}
 
         {/* Attached docs */}
         {docs.length > 0 && (
