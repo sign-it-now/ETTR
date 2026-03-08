@@ -3,7 +3,7 @@
     {
       "id": "load-seed-001",
       "loadNumber": "ETTR-2024-001",
-      "status": "rate_con_received",
+      "status": "picked_up",
       "broker": {
         "id": "broker-abc",
         "companyName": "ABC Logistics",
@@ -62,11 +62,32 @@
           "userId": "user-tim",
           "action": "load_created",
           "details": "Load created from rate con upload"
+        },
+        {
+          "id": "d03c6cd0-34cd-43e3-95f5-33ae3f64f5b7",
+          "timestamp": "2026-03-08T22:29:31.786Z",
+          "userId": "user-tim",
+          "action": "status_changed",
+          "details": "Status updated to Accepted"
+        },
+        {
+          "id": "8efbe73f-a8ef-497b-943c-45d8ad052117",
+          "timestamp": "2026-03-08T22:29:32.335Z",
+          "userId": "user-tim",
+          "action": "status_changed",
+          "details": "Status updated to Dispatched"
+        },
+        {
+          "id": "c2b270e7-d946-4a32-981c-9dbe0dc403ea",
+          "timestamp": "2026-03-08T22:29:33.127Z",
+          "userId": "user-tim",
+          "action": "status_changed",
+          "details": "Status updated to Picked Up"
         }
       ],
       "notes": [],
       "createdAt": "2024-01-18T10:00:00Z",
-      "updatedAt": "2024-01-18T10:00:00Z"
+      "updatedAt": "2026-03-08T22:29:33.128Z"
     },
     {
       "id": "load-seed-002",
