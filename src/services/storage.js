@@ -152,6 +152,14 @@ export const deleteLoad = (loadId) => {
   addPendingChange('loads.json');
 };
 
+// ─── Bulk delete multiple loads from localStorage ─────────────────────────
+export const deleteLoads = (loadIds) => {
+  const idSet = new Set(loadIds);
+  const loads = getLoads().filter((l) => !idSet.has(l.id));
+  saveLoads(loads);
+  addPendingChange('loads.json');
+};
+
 // ─── Update a single invoice in localStorage ──────────────────────────────
 export const updateInvoice = (updatedInvoice) => {
   const invoices = getInvoices();
