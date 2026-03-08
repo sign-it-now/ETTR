@@ -71,7 +71,7 @@
     {
       "id": "load-seed-002",
       "loadNumber": "ETTR-2024-002",
-      "status": "invoiced",
+      "status": "paid",
       "broker": {
         "id": "broker-abc",
         "companyName": "ABC Logistics",
@@ -165,11 +165,18 @@
           "userId": "user-tim",
           "action": "invoice_created",
           "details": "Invoice INV-2026-004 created"
+        },
+        {
+          "id": "65c3ca9a-55c1-417f-bc4d-04a12ae3d6cf",
+          "timestamp": "2026-03-08T22:29:20.565Z",
+          "userId": "user-tim",
+          "action": "status_changed",
+          "details": "Status updated to Paid"
         }
       ],
       "notes": [],
       "createdAt": "2024-01-21T09:00:00Z",
-      "updatedAt": "2026-03-08T22:15:19.889Z"
+      "updatedAt": "2026-03-08T22:29:20.565Z"
     },
     {
       "id": "load-seed-003",
