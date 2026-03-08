@@ -1,7 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { STATUS_MAP, getStatus, createDocument, createCharge, createAuditEntry } from '../data/models';
-import { updateLoad, getLoads, getDrivers } from '../services/storage';
-import { getConfig } from '../services/storage';
+import { STATUS_MAP, getStatus, createDocument, createCharge, createAuditEntry, createBroker } from '../data/models';
+import { updateLoad, getLoads, getDrivers, getConfig, updateBroker } from '../services/storage';
 import { scanRateCon, fileToBase64, getMimeType, compressImage } from '../services/claudeVision';
 
 // ─── Shared styles ────────────────────────────────────────────────────────────
@@ -857,11 +856,12 @@ const NEXT_STATUS = {
 };
 
 // ─── Main LoadDetail Component ────────────────────────────────────────────────
-const LoadDetail = ({ load: initialLoad, currentUser, drivers, onBack, onLoadUpdated, onCreateInvoice, onViewBroker }) => {
+const LoadDetail = ({ load: initialLoad, currentUser, drivers, brokers, onBack, onLoadUpdated, onCreateInvoice, onViewBroker, onDeleteLoad }) => {
   const [load, setLoad] = useState(initialLoad);
   const [activeTab, setActiveTab] = useState('details');
   const [advancing, setAdvancing] = useState(false);
   const [showNoBolWarning, setShowNoBolWarning] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const status = getStatus(load.status);
   const isAdmin = currentUser?.role === 'admin';
   const action = ACTION_MAP[load.status];
@@ -886,6 +886,24 @@ const LoadDetail = ({ load: initialLoad, currentUser, drivers, onBack, onLoadUpd
       onCreateInvoice && onCreateInvoice(load);
       return;
     }
+    // Auto-add broker to master list when accepting a load
+    if (load.status === 'rate_con_received' && load.broker?.companyName) {
+      const exists = (brokers || []).some(
+        (b) => b.id === load.broker.id ||
+               b.companyName?.toLowerCase().trim() === load.broker.companyName.toLowerCase().trim()
+      );
+      if (!exists) {
+        const newBroker = createBroker({
+          ...(load.broker.id ? { id: load.broker.id } : {}),
+          companyName: load.broker.companyName,
+          contactName: load.broker.contactName || '',
+          email: load.broker.email || '',
+          phone: load.broker.phone || '',
+        });
+        updateBroker(newBroker);
+      }
+    }
+
     const nextStatus = NEXT_STATUS[load.status];
     if (!nextStatus) return;
 
@@ -911,6 +929,13 @@ const LoadDetail = ({ load: initialLoad, currentUser, drivers, onBack, onLoadUpd
           <div style={S.loadNum}>{load.loadNumber}</div>
           <span style={S.statusBadge(status)}>{status.label}</span>
         </div>
+        {isAdmin && onDeleteLoad && (
+          <button
+            style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '20px', cursor: 'pointer', padding: '4px 6px', lineHeight: 1 }}
+            onClick={() => setShowDeleteConfirm(true)}
+            title="Delete load"
+          >🗑</button>
+        )}
       </div>
 
       {/* Status timeline */}
@@ -950,6 +975,25 @@ const LoadDetail = ({ load: initialLoad, currentUser, drivers, onBack, onLoadUpd
           >
             {advancing ? 'Updating...' : action.label}
           </button>
+        </div>
+      )}
+
+      {/* Delete load confirmation modal */}
+      {showDeleteConfirm && (
+        <div style={S.overlay} onClick={(e) => e.target === e.currentTarget && setShowDeleteConfirm(false)}>
+          <div style={S.modal}>
+            <div style={S.modalTitle}>🗑 Delete Load?</div>
+            <p style={{ fontSize: '13px', color: '#94a3b8', margin: '0 0 16px', lineHeight: 1.6 }}>
+              <strong style={{ color: '#e2e8f0' }}>{load.loadNumber}</strong> and all its documents will be permanently removed. This cannot be undone.
+            </p>
+            <button
+              style={{ ...S.modalBtn('#ef4444'), marginTop: 0 }}
+              onClick={() => { setShowDeleteConfirm(false); onDeleteLoad(load.id); }}
+            >
+              Delete Load
+            </button>
+            <button style={S.cancelBtn} onClick={() => setShowDeleteConfirm(false)}>Cancel</button>
+          </div>
         </div>
       )}
 

@@ -21,6 +21,7 @@ import {
   initializeIfEmpty,
   updateLoad,
   updateInvoice,
+  deleteLoad,
   saveCurrentUser,
   clearConfig,
   clearCurrentUser,
@@ -251,7 +252,15 @@ const App = () => {
         load={selectedLoad}
         currentUser={currentUser}
         drivers={data.drivers}
+        brokers={data.brokers}
         onBack={() => { setSubScreen(null); setSelectedLoad(null); refreshData(); }}
+        onDeleteLoad={(loadId) => {
+          deleteLoad(loadId);
+          refreshData();
+          setSubScreen(null);
+          setSelectedLoad(null);
+          setTimeout(() => pushToGitHub(), 1500);
+        }}
         onLoadUpdated={(updated) => {
           setSelectedLoad(updated);
           refreshData();

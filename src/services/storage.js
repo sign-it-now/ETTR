@@ -145,6 +145,13 @@ export const updateLoad = (updatedLoad) => {
   return loads;
 };
 
+// ─── Delete a single load from localStorage ───────────────────────────────
+export const deleteLoad = (loadId) => {
+  const loads = getLoads().filter((l) => l.id !== loadId);
+  saveLoads(loads);
+  addPendingChange('loads.json');
+};
+
 // ─── Update a single invoice in localStorage ──────────────────────────────
 export const updateInvoice = (updatedInvoice) => {
   const invoices = getInvoices();
