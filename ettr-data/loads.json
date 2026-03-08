@@ -153,7 +153,7 @@
     {
       "id": "load-seed-003",
       "loadNumber": "ETTR-2024-003",
-      "status": "delivered",
+      "status": "invoiced",
       "broker": {
         "id": "broker-abc",
         "companyName": "ABC Logistics",
@@ -250,13 +250,20 @@
           "userId": "user-driver",
           "action": "status_changed",
           "details": "Status updated to Delivered"
+        },
+        {
+          "id": "04dc1f3d-e762-462c-be3b-2557ac0b0652",
+          "timestamp": "2026-03-08T21:40:40.717Z",
+          "userId": "user-tim",
+          "action": "invoice_created",
+          "details": "Invoice INV-2026-003 created"
         }
       ],
       "notes": [
         "Delivery went smoothly. Customer signed BOL without issues."
       ],
       "createdAt": "2024-01-14T08:00:00Z",
-      "updatedAt": "2024-01-15T14:10:00Z"
+      "updatedAt": "2026-03-08T21:40:40.717Z"
     },
     {
       "id": "43388ffa-176e-428c-9240-04c52bcc5fcd",
