@@ -3,7 +3,7 @@
     {
       "id": "6baf355f-56b2-4f38-91ec-cd8f73fcf873",
       "loadNumber": "ETTR-2026-001",
-      "status": "accepted",
+      "status": "dispatched",
       "broker": {
         "id": "",
         "companyName": "Clutch Transportation Services LLC",
@@ -75,11 +75,18 @@
           "userId": "user-tim",
           "action": "driver_assigned",
           "details": "Assigned to Tim Smith"
+        },
+        {
+          "id": "391bc63c-60c8-4353-9d51-76551d961466",
+          "timestamp": "2026-03-08T23:28:50.822Z",
+          "userId": "user-tim",
+          "action": "status_changed",
+          "details": "Status updated to Dispatched"
         }
       ],
       "notes": [],
       "createdAt": "2026-03-08T23:28:28.126Z",
-      "updatedAt": "2026-03-08T23:28:48.419Z"
+      "updatedAt": "2026-03-08T23:28:50.822Z"
     }
   ]
 }
