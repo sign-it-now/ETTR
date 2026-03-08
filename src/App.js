@@ -126,10 +126,10 @@ const App = () => {
     try {
       const remote = await syncRef.current.pullAll();
       const merged = {
-        loads: remote.loads || getLoads(),
-        drivers: remote.drivers || getDrivers(),
-        brokers: remote.brokers || getBrokers(),
-        invoices: remote.invoices || getInvoices(),
+        loads:    Array.isArray(remote.loads)    ? remote.loads    : getLoads(),
+        drivers:  Array.isArray(remote.drivers)  ? remote.drivers  : getDrivers(),
+        brokers:  Array.isArray(remote.brokers)  ? remote.brokers  : getBrokers(),
+        invoices: Array.isArray(remote.invoices) ? remote.invoices : getInvoices(),
       };
       saveAllData(merged);
       setData({ ...merged });
