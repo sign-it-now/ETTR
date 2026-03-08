@@ -279,7 +279,7 @@
       "weight": "42,000 lbs",
       "equipment": "Flatbed 48'",
       "specialInstructions": "Tarps required. Steel coils - use proper blocking.",
-      "assignedDriverId": "user-driver",
+      "assignedDriverId": "driver-mmgsc6vz-o0vuu",
       "charges": [
         {
           "id": "charge-seed-001",
@@ -341,13 +341,20 @@
           "userId": "user-tim",
           "action": "status_changed",
           "details": "Status updated to Paid"
+        },
+        {
+          "id": "727bc509-16a6-479a-9fdc-8e2bc74849dd",
+          "timestamp": "2026-03-08T22:31:23.773Z",
+          "userId": "user-tim",
+          "action": "driver_assigned",
+          "details": "Assigned to Tim Smith"
         }
       ],
       "notes": [
         "Delivery went smoothly. Customer signed BOL without issues."
       ],
       "createdAt": "2024-01-14T08:00:00Z",
-      "updatedAt": "2026-03-08T22:31:08.551Z"
+      "updatedAt": "2026-03-08T22:31:23.774Z"
     },
     {
       "id": "43388ffa-176e-428c-9240-04c52bcc5fcd",
