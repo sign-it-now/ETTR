@@ -390,7 +390,7 @@
       "weight": "41991",
       "equipment": "R",
       "specialInstructions": "34 CONT, Temperature: 34 cont",
-      "assignedDriverId": null,
+      "assignedDriverId": "driver-mmgsb276-y3hj3",
       "charges": [],
       "documents": [],
       "auditLog": [
@@ -400,11 +400,18 @@
           "userId": "user-tim",
           "action": "load_created",
           "details": "Load created from rate con scan"
+        },
+        {
+          "id": "581aa851-7da0-44de-ba3b-435fae74b58b",
+          "timestamp": "2026-03-08T21:39:11.786Z",
+          "userId": "user-tim",
+          "action": "driver_assigned",
+          "details": "Assigned to Bruce Edgerton"
         }
       ],
       "notes": [],
       "createdAt": "2026-03-08T21:38:47.889Z",
-      "updatedAt": "2026-03-08T21:38:47.889Z"
+      "updatedAt": "2026-03-08T21:39:11.787Z"
     }
   ]
 }
