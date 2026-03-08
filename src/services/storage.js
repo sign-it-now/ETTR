@@ -41,16 +41,16 @@ export const getData = (key) => get(key);
 export const saveData = (key, data) => set(key, data);
 
 // Convenience getters
-export const getLoads = () => get('loads') || [];
+export const getLoads    = () => { const v = get('loads');    return Array.isArray(v) ? v : []; };
 export const saveLoads = (loads) => set('loads', loads);
 
-export const getDrivers = () => get('drivers') || [];
+export const getDrivers  = () => { const v = get('drivers');  return Array.isArray(v) ? v : []; };
 export const saveDrivers = (drivers) => set('drivers', drivers);
 
-export const getBrokers = () => get('brokers') || [];
+export const getBrokers  = () => { const v = get('brokers');  return Array.isArray(v) ? v : []; };
 export const saveBrokers = (brokers) => set('brokers', brokers);
 
-export const getInvoices = () => get('invoices') || [];
+export const getInvoices = () => { const v = get('invoices'); return Array.isArray(v) ? v : []; };
 export const saveInvoices = (invoices) => set('invoices', invoices);
 
 // Load all data collections at once
