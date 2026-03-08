@@ -51,7 +51,7 @@
       "weight": "43,500",
       "equipment": "53 ft Reefer",
       "specialInstructions": "REEFER NEEDS PRE-COOLED TO 38 DEGREES. TRAILER MUST BE CLEAN AND DRY, FREE OF ODOR/DEBRIS OR YOU WILL BE DENIED AT SHIPPER AND YOU WILL NOT BE PAID A TONU! ARRIVE WITH 75% FUEL AND SLIDE TANDEMS BEFORE ARRIVAL.",
-      "assignedDriverId": null,
+      "assignedDriverId": "driver-mmgsc6vz-o0vuu",
       "charges": [],
       "documents": [],
       "auditLog": [
@@ -68,11 +68,18 @@
           "userId": "user-tim",
           "action": "status_changed",
           "details": "Status updated to Accepted"
+        },
+        {
+          "id": "5f6fc477-4f18-4cde-b6c2-63be18a78f43",
+          "timestamp": "2026-03-08T23:28:48.419Z",
+          "userId": "user-tim",
+          "action": "driver_assigned",
+          "details": "Assigned to Tim Smith"
         }
       ],
       "notes": [],
       "createdAt": "2026-03-08T23:28:28.126Z",
-      "updatedAt": "2026-03-08T23:28:36.978Z"
+      "updatedAt": "2026-03-08T23:28:48.419Z"
     }
   ]
 }
