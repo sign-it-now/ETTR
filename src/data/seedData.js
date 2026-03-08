@@ -20,24 +20,24 @@ export const SEED_USERS = [
     isActive: true,
     createdAt: '2024-01-01T00:00:00Z',
   },
-  {
-    id: 'user-driver',
-    name: 'Test Driver',
-    role: 'driver',
-    email: '',
-    phone: '',
-    isActive: true,
-    createdAt: '2024-01-01T00:00:00Z',
-  },
 ];
 
 export const SEED_DRIVERS = [
   {
-    id: 'user-driver',
-    name: 'Test Driver',
-    email: '',
-    phone: '',
-    role: 'driver',
+    id: 'driver-mmgsc6vz-o0vuu',
+    name: 'Tim Smith',
+    email: 'suncollectives@icloud.com',
+    phone: '6189748695',
+    role: 'admin',
+    isActive: true,
+    createdAt: '2024-01-01T00:00:00Z',
+  },
+  {
+    id: 'driver-mmgsb276-y3hj3',
+    name: 'Bruce Edgerton',
+    email: 'Bruce.Edgerton@yahoo.com',
+    phone: '7155090114',
+    role: 'admin',
     isActive: true,
     createdAt: '2024-01-01T00:00:00Z',
   },

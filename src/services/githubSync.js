@@ -119,7 +119,7 @@ class GitHubSync {
       try {
         const file = await this.readFile(filename);
         const key = filename.replace('.json', '');
-        result[key] = file ? file.data : null;
+        result[key] = file ? (Array.isArray(file.data[key]) ? file.data[key] : file.data) : null;
       } catch (e) {
         console.warn('[githubSync] Could not read', filename, e.message);
         const key = filename.replace('.json', '');
