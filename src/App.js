@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import LoginScreen from './screens/LoginScreen';
 import Setup from './components/Setup';
 import SyncIndicator from './components/shared/SyncIndicator';
 import Dashboard from './components/Dashboard';
@@ -31,6 +32,7 @@ import {
 } from './services/storage';
 import { createInvoice, createAuditEntry } from './data/models';
 import { createGitHubSync } from './services/githubSync';
+import { DEPLOY_CONFIG, hasDeployConfig } from './config/deployConfig';
 
 // ─── Placeholder for screens not yet built ─────────────────────────────────
 const PlaceholderScreen = ({ title, icon }) => (
@@ -82,7 +84,8 @@ const NavItem = ({ icon, label, active, onClick, badge }) => (
 
 // ─── Main App ──────────────────────────────────────────────────────────────
 const App = () => {
-  const [isSetup, setIsSetup] = useState(false);
+  // isConfigured: null = loading, false = show Setup, true = configured
+  const [isConfigured, setIsConfigured] = useState(null);
   const [currentScreen, setCurrentScreen] = useState('dashboard');
   // subScreen: null | 'new_load' | 'load_detail' | 'invoice_detail'
   const [subScreen, setSubScreen] = useState(null);
@@ -96,16 +99,46 @@ const App = () => {
 
   // ── Bootstrap ─────────────────────────────────────────────────────────
   useEffect(() => {
-    const config = getConfig();
-    const user = getCurrentUser();
+    // 1. Handle #setup=<base64> link from admin's Device Setup Link
+    const hash = window.location.hash;
+    if (hash.startsWith('#setup=')) {
+      try {
+        const decoded = JSON.parse(atob(hash.slice(7)));
+        if (decoded.repoUrl && decoded.token) {
+          saveConfig({
+            repoUrl:        decoded.repoUrl,
+            token:          decoded.token,
+            claudeApiKey:   decoded.claudeApiKey   || '',
+            branch:         decoded.branch         || 'main',
+            googleClientId: decoded.googleClientId || '',
+            appleServiceId: decoded.appleServiceId || '',
+          });
+          window.history.replaceState(null, '', window.location.pathname);
+        }
+      } catch { /* malformed hash — ignore */ }
+    }
 
-    if (!config || !user) {
-      setIsSetup(false);
+    // 2. Auto-apply deploy config baked in at build time (REACT_APP_* env vars)
+    if (!getConfig() && hasDeployConfig()) {
+      saveConfig({
+        repoUrl:        DEPLOY_CONFIG.repoUrl,
+        token:          DEPLOY_CONFIG.token,
+        claudeApiKey:   DEPLOY_CONFIG.claudeApiKey   || '',
+        branch:         DEPLOY_CONFIG.branch         || 'main',
+        googleClientId: DEPLOY_CONFIG.googleClientId || '',
+        appleServiceId: DEPLOY_CONFIG.appleServiceId || '',
+      });
+    }
+
+    const config = getConfig();
+    if (!config) {
+      // No config at all — show first-time Setup wizard
+      setIsConfigured(false);
       return;
     }
 
-    setIsSetup(true);
-    setCurrentUser(user);
+    // Config is present — set up sync and preload data
+    setIsConfigured(true);
     initializeIfEmpty();
     setData(getAllData());
 
@@ -113,6 +146,11 @@ const App = () => {
       syncRef.current = createGitHubSync(config);
     } catch (e) {
       console.warn('[App] Could not create sync instance:', e.message);
+    }
+
+    const user = getCurrentUser();
+    if (user) {
+      setCurrentUser(user);
     }
 
     pullFromGitHub();
@@ -209,17 +247,28 @@ const App = () => {
     setData(getAllData());
   }, []);
 
-  // ── Setup completion ───────────────────────────────────────────────────
+  // ── Setup completion (admin first-time wizard) ─────────────────────────
   const handleSetupComplete = () => {
-    const user = getCurrentUser();
-    setCurrentUser(user);
-    setData(getAllData());
     const config = getConfig();
     if (config) {
       try { syncRef.current = createGitHubSync(config); } catch {}
     }
-    setIsSetup(true);
+    initializeIfEmpty();
+    setData(getAllData());
+    // Check if setup also logged someone in (Setup.js saves a user)
+    const user = getCurrentUser();
+    if (user) setCurrentUser(user);
+    setIsConfigured(true);
     pullFromGitHub();
+  };
+
+  // ── Login completion (user selected from LoginScreen) ──────────────────
+  const handleLoginComplete = () => {
+    const user = getCurrentUser();
+    if (user) {
+      setCurrentUser(user);
+      setData(getAllData());
+    }
   };
 
   // ── Badge counts ───────────────────────────────────────────────────────
@@ -227,9 +276,23 @@ const App = () => {
     (l) => l.status === 'delivered' || l.status === 'rate_con_upload'
   ).length;
 
-  // ── Setup screen ───────────────────────────────────────────────────────
-  if (!isSetup) {
+  // ── Loading (bootstrap still running) ─────────────────────────────────
+  if (isConfigured === null) {
+    return (
+      <div style={{ minHeight: '100vh', background: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ color: '#334155', fontSize: '13px' }}>Loading…</div>
+      </div>
+    );
+  }
+
+  // ── First-time setup (admin only) ──────────────────────────────────────
+  if (!isConfigured) {
     return <Setup onComplete={handleSetupComplete} />;
+  }
+
+  // ── Login screen (config exists but no active user session) ───────────
+  if (!currentUser) {
+    return <LoginScreen onLogin={handleLoginComplete} />;
   }
 
   // ── Full-screen overlays (no header/nav) ───────────────────────────────
@@ -392,9 +455,10 @@ const App = () => {
             syncStatus={syncStatus}
             data={data}
             onSwitchUser={(user) => { saveCurrentUser(user); setCurrentUser(user); refreshData(); }}
+            onLogout={() => { clearCurrentUser(); setCurrentUser(null); }}
             onSync={handleSyncClick}
             onResetData={() => { resetToSeedData(); refreshData(); }}
-            onReconfigure={() => { clearConfig(); clearCurrentUser(); setIsSetup(false); }}
+            onReconfigure={() => { clearConfig(); clearCurrentUser(); setIsConfigured(false); setCurrentUser(null); }}
           />
         );
       default:
