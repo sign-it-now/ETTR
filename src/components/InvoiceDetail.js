@@ -5,7 +5,7 @@ import { createAuditEntry } from '../data/models';
 
 // ─── Shared styles ────────────────────────────────────────────────────────────
 const S = {
-  page: { minHeight: '100vh', background: '#0f172a', color: '#e2e8f0', fontFamily: 'system-ui, -apple-system, sans-serif', paddingBottom: '140px' },
+  page: { minHeight: '100vh', background: '#0f172a', color: '#e2e8f0', fontFamily: 'system-ui, -apple-system, sans-serif', paddingBottom: '180px' },
   header: { background: '#1e293b', borderBottom: '1px solid #334155', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px', position: 'sticky', top: 0, zIndex: 20 },
   backBtn: { background: 'none', border: 'none', color: '#38bdf8', fontSize: '22px', cursor: 'pointer', padding: '0 4px', lineHeight: 1 },
   invNum: { fontSize: '15px', fontWeight: '800', color: '#e2e8f0', flex: 1 },
@@ -44,6 +44,7 @@ const S = {
   // Action bar
   actionBar: { position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '480px', padding: '12px 16px', background: '#0f172a', borderTop: '1px solid #334155', zIndex: 30 },
   btn: (color, text) => ({ background: color, border: 'none', borderRadius: '10px', padding: '14px', color: text || '#fff', fontSize: '14px', fontWeight: '700', cursor: 'pointer', flex: 1 }),
+  btnDisabled: { background: '#1e293b', border: '1px solid #334155', borderRadius: '10px', padding: '14px', color: '#475569', fontSize: '14px', fontWeight: '700', cursor: 'not-allowed', flex: 1, opacity: 0.6 },
   btnRow: { display: 'flex', gap: '8px', marginBottom: '8px' },
   btnNote: { textAlign: 'center', fontSize: '11px', color: '#475569', marginTop: '4px' },
   divider: { borderTop: '1px solid #e2e8f0', margin: '16px 0' },
@@ -62,6 +63,15 @@ const DOC_TYPE_LABELS = {
   bol_signed:   'Signed BOL',
   receipt:      'Receipt',
   other:        'Document',
+};
+
+const CHARGE_TYPE_LABELS = {
+  lumper:        'Lumper',
+  detention:     'Detention',
+  layover:       'Layover',
+  fuel_surcharge:'Fuel Surcharge',
+  comcheck:      'Comcheck / Cash Advance',
+  other:         'Other',
 };
 
 const fmt = {
@@ -86,10 +96,32 @@ const InvoiceDetail = ({ invoice: initialInvoice, load: initialLoad, broker, dri
   const statusStyle = STATUS_STYLES[invoice.status] || STATUS_STYLES.draft;
   const charges = load?.charges || [];
   const docs = (load?.documents || []).filter((d) => d.fileName && !d.deletedAt);
+  const activeDocs = (load?.documents || []).filter((d) => !d.deletedAt);
   const imageDocs = docs.filter((d) => d.base64Data?.startsWith('data:image'));
-  const hasImages = imageDocs.length > 0;
 
+  // ── Invoice package validation ─────────────────────────────────────────────
+  const hasRateCon    = activeDocs.some((d) => d.type === 'rate_con' && d.isCurrent !== false);
+  const hasSignedBol  = activeDocs.some((d) => d.type === 'bol_signed');
+  const lumperCharges = charges.filter((c) => c.type === 'lumper' || c.type === 'comcheck');
+  const hasLumperReceipts = activeDocs.some((d) => d.type === 'receipt');
+  const lumperReceiptsOk  = lumperCharges.length === 0 || hasLumperReceipts;
+
+  const isReadyToSend = hasRateCon && hasSignedBol && lumperReceiptsOk;
+
+  const missingItems = [
+    !hasRateCon          && { label: 'Rate Confirmation', hint: 'Upload in the Documents tab' },
+    !hasSignedBol        && { label: 'Signed BOL',        hint: 'Upload after delivery in Documents' },
+    !lumperReceiptsOk    && { label: 'Lumper / Comcheck Receipt(s)', hint: 'Upload receipts in the Documents tab' },
+  ].filter(Boolean);
+
+  // ── Total ─────────────────────────────────────────────────────────────────
+  const freightAmount  = Number(load?.rate?.amount || 0);
+  const chargesTotal   = charges.reduce((s, c) => s + Number(c.amount || 0), 0);
+  const invoiceTotal   = invoice.totalAmount ?? (freightAmount + chargesTotal);
+
+  // ── Handlers ─────────────────────────────────────────────────────────────
   const handleDownloadPDF = async () => {
+    if (!isReadyToSend) return;
     setPdfLoading(true);
     try {
       await downloadInvoicePDF(load, invoice, broker, driver);
@@ -100,14 +132,17 @@ const InvoiceDetail = ({ invoice: initialInvoice, load: initialLoad, broker, dri
     }
   };
 
-  const handlePrint = () => window.print();
+  const handlePrint = () => {
+    if (!isReadyToSend) return;
+    window.print();
+  };
 
   const handleEmail = () => {
-    if (!broker?.email) return;
+    if (!isReadyToSend || !broker?.email) return;
     const subject = encodeURIComponent(`Invoice ${invoice.invoiceNumber} – ${load?.loadNumber}`);
-    const pickupCity = load?.pickup?.city || load?.pickup?.facilityName || '';
+    const pickupCity   = load?.pickup?.city   || load?.pickup?.facilityName   || '';
     const deliveryCity = load?.delivery?.city || load?.delivery?.facilityName || '';
-    const pickupDate = fmt.shortDate(load?.pickup?.date);
+    const pickupDate   = fmt.shortDate(load?.pickup?.date);
     const deliveryDate = fmt.shortDate(load?.delivery?.date);
     const body = encodeURIComponent(
       `Hello ${broker.contactName || 'Team'},\n\n` +
@@ -158,6 +193,21 @@ const InvoiceDetail = ({ invoice: initialInvoice, load: initialLoad, broker, dri
           {invoice.status?.toUpperCase()}
         </span>
       </div>
+
+      {/* ── Blocking banner when package is incomplete ── */}
+      {!isReadyToSend && (
+        <div style={{ background: '#7c2d12', borderBottom: '1px solid #9a3412', padding: '12px 16px' }}>
+          <div style={{ fontSize: '12px', fontWeight: '700', color: '#fed7aa', marginBottom: '4px' }}>
+            🚫 Invoice cannot be saved, printed, or emailed — missing required documents:
+          </div>
+          {missingItems.map((item) => (
+            <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
+              <span style={{ color: '#fca5a5', fontSize: '11px', fontWeight: '700' }}>✗</span>
+              <span style={{ fontSize: '11px', color: '#fed7aa' }}><strong>{item.label}</strong> — {item.hint}</span>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* ── Invoice preview card ── */}
       <div style={S.card}>
@@ -221,62 +271,75 @@ const InvoiceDetail = ({ invoice: initialInvoice, load: initialLoad, broker, dri
           )}
         </div>
 
-        {/* Line items */}
+        {/* ── Billing Preview — line items ── */}
+        <div style={S.sectionLabel}>Billing Preview</div>
         <div>
           <div style={S.tableHead}>
             <div style={S.tableHeadCell}>Description</div>
-            <div style={{ ...S.tableHeadCell, textAlign: 'right' }}>Details</div>
+            <div style={{ ...S.tableHeadCell, textAlign: 'right' }}>Type</div>
             <div style={{ ...S.tableHeadCell, textAlign: 'right' }}>Amount</div>
           </div>
 
+          {/* Base freight */}
           <div style={S.tableRow(false)}>
             <div style={S.tableCell}>Freight Charges</div>
             <div style={S.tableCellMid}>{load?.rate?.type === 'per_mile' ? 'Per mile' : 'Flat rate'}</div>
-            <div style={S.tableCellRight}>{fmt.money(load?.rate?.amount)}</div>
+            <div style={S.tableCellRight}>{fmt.money(freightAmount)}</div>
           </div>
+
+          {/* Additional charges (lumper, detention, comcheck, etc.) */}
           {charges.map((c, i) => (
             <div key={c.id} style={S.tableRow((i + 1) % 2 === 0)}>
-              <div style={S.tableCell}>{c.description || c.type?.replace(/_/g, ' ')}</div>
-              <div style={S.tableCellMid}>{c.type?.replace(/_/g, ' ')}</div>
+              <div style={S.tableCell}>{c.description || CHARGE_TYPE_LABELS[c.type] || c.type?.replace(/_/g, ' ')}</div>
+              <div style={S.tableCellMid}>{CHARGE_TYPE_LABELS[c.type] || c.type?.replace(/_/g, ' ')}</div>
               <div style={S.tableCellRight}>{fmt.money(c.amount)}</div>
             </div>
           ))}
 
+          {charges.length === 0 && (
+            <div style={{ padding: '10px 0', fontSize: '12px', color: '#94a3b8', fontStyle: 'italic' }}>
+              No additional charges — freight rate only
+            </div>
+          )}
+
           <div style={S.totalRow}>
             <div>
               <div style={S.totalLabel}>Total Amount Due</div>
-              <div style={S.totalAmount}>{fmt.money(invoice.totalAmount)}</div>
+              <div style={S.totalAmount}>{fmt.money(invoiceTotal)}</div>
             </div>
           </div>
         </div>
 
-        {/* Invoice Package Checklist */}
-        {(() => {
-          const allLoadDocs = (load?.documents || []).filter(d => !d.deletedAt);
-          const hasRateCon = allLoadDocs.some(d => d.type === 'rate_con' && d.isCurrent !== false);
-          const hasSignedBol = allLoadDocs.some(d => d.type === 'bol_signed');
-          return (
-            <>
-              <div style={S.divider} />
-              <div style={S.sectionLabel}>Invoice Package</div>
-              <div style={{ background: '#f8fafc', borderRadius: '10px', padding: '12px 14px', marginTop: '8px' }}>
-                {[
-                  { ok: true,          label: 'Edgerton Invoice',    sub: invoice.invoiceNumber },
-                  { ok: hasRateCon,    label: 'Rate Confirmation',   sub: hasRateCon ? null : 'Missing — upload in Documents' },
-                  { ok: hasSignedBol,  label: 'Signed BOL',          sub: hasSignedBol ? null : 'Missing — upload after delivery' },
-                ].map(({ ok, label, sub }) => (
-                  <div key={label} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '14px', color: ok ? '#10b981' : '#f59e0b', fontWeight: '700', marginTop: '1px' }}>{ok ? '✓' : '!'}</span>
-                    <div>
-                      <div style={{ fontSize: '13px', fontWeight: ok ? '600' : '500', color: ok ? '#0f172a' : '#92400e' }}>{label}</div>
-                      {sub && <div style={{ fontSize: '11px', color: ok ? '#64748b' : '#b45309', marginTop: '1px' }}>{sub}</div>}
-                    </div>
-                  </div>
-                ))}
+        {/* ── Invoice Package Checklist ── */}
+        <div style={S.divider} />
+        <div style={S.sectionLabel}>Invoice Package</div>
+        <div style={{ background: '#f8fafc', borderRadius: '10px', padding: '12px 14px', marginTop: '8px' }}>
+          {[
+            { ok: true,              label: 'ETTR Invoice',                 sub: invoice.invoiceNumber },
+            { ok: hasRateCon,        label: 'Rate Confirmation',            sub: hasRateCon        ? null : 'Missing — upload in Documents tab' },
+            { ok: hasSignedBol,      label: 'Signed BOL',                   sub: hasSignedBol      ? null : 'Missing — upload after delivery' },
+            ...(lumperCharges.length > 0 ? [{
+              ok: hasLumperReceipts,
+              label: `Lumper / Comcheck Receipt${lumperCharges.length > 1 ? 's' : ''} (${lumperCharges.length} charge${lumperCharges.length > 1 ? 's' : ''})`,
+              sub: hasLumperReceipts ? null : 'Missing — upload receipts in Documents tab',
+            }] : []),
+          ].map(({ ok, label, sub }) => (
+            <div key={label} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', marginBottom: '8px' }}>
+              <span style={{ fontSize: '14px', color: ok ? '#10b981' : '#ef4444', fontWeight: '700', marginTop: '1px' }}>{ok ? '✓' : '✗'}</span>
+              <div>
+                <div style={{ fontSize: '13px', fontWeight: ok ? '600' : '500', color: ok ? '#0f172a' : '#7f1d1d' }}>{label}</div>
+                {sub && <div style={{ fontSize: '11px', color: ok ? '#64748b' : '#b91c1c', marginTop: '1px' }}>{sub}</div>}
               </div>
-            </>
-          );
-        })()}
+            </div>
+          ))}
+          {!isReadyToSend && (
+            <div style={{ marginTop: '8px', padding: '8px 10px', background: '#fef2f2', borderRadius: '6px', border: '1px solid #fecaca' }}>
+              <div style={{ fontSize: '11px', color: '#b91c1c', fontWeight: '600' }}>
+                Complete the checklist above before this invoice can be saved, printed, or emailed.
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Attached docs */}
         {docs.length > 0 && (
@@ -310,17 +373,36 @@ const InvoiceDetail = ({ invoice: initialInvoice, load: initialLoad, broker, dri
       <div style={S.actionBar}>
         {/* Row 1: Download + Print */}
         <div style={S.btnRow}>
-          <button style={S.btn('#0284c7')} onClick={handleDownloadPDF} disabled={pdfLoading}>
+          <button
+            style={isReadyToSend ? S.btn('#0284c7') : S.btnDisabled}
+            onClick={handleDownloadPDF}
+            disabled={!isReadyToSend || pdfLoading}
+            title={isReadyToSend ? 'Download PDF' : 'Complete invoice package to enable'}
+          >
             {pdfLoading ? 'Building PDF...' : '⬇ Download PDF'}
           </button>
-          <button style={S.btn('#334155')} onClick={handlePrint}>🖨 Print</button>
+          <button
+            style={isReadyToSend ? S.btn('#334155') : S.btnDisabled}
+            onClick={handlePrint}
+            disabled={!isReadyToSend}
+            title={isReadyToSend ? 'Print' : 'Complete invoice package to enable'}
+          >
+            🖨 Print
+          </button>
         </div>
 
         {/* Row 2: Email + Mark Paid */}
         {(broker?.email || invoice.status !== 'paid') && (
           <div style={S.btnRow}>
             {broker?.email && (
-              <button style={S.btn('#059669')} onClick={handleEmail}>✉ Email to Broker</button>
+              <button
+                style={isReadyToSend ? S.btn('#059669') : S.btnDisabled}
+                onClick={handleEmail}
+                disabled={!isReadyToSend}
+                title={isReadyToSend ? 'Email to broker' : 'Complete invoice package to enable'}
+              >
+                ✉ Email to Broker
+              </button>
             )}
             {invoice.status !== 'paid' && (
               <button style={S.btn('#1e293b', '#e2e8f0')} onClick={handleMarkPaid}>✅ Mark as Paid</button>
@@ -328,11 +410,16 @@ const InvoiceDetail = ({ invoice: initialInvoice, load: initialLoad, broker, dri
           </div>
         )}
 
-        {hasImages && !pdfLoading && (
+        {/* Status note */}
+        {!isReadyToSend ? (
+          <div style={{ textAlign: 'center', fontSize: '11px', color: '#f97316', marginTop: '4px', fontWeight: '600' }}>
+            🚫 Missing required documents — upload in the Documents tab
+          </div>
+        ) : imageDocs.length > 0 && !pdfLoading ? (
           <div style={S.btnNote}>
             PDF includes {imageDocs.length} image document{imageDocs.length > 1 ? 's' : ''}
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

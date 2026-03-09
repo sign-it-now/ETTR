@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { SEED_DATA } from '../data/seedData';
-import { getLastSync } from '../services/storage';
+import { getLastSync, saveConfig } from '../services/storage';
 
 // ─── Styles ──────────────────────────────────────────────────────────────────
 const S = {
@@ -60,9 +59,17 @@ const fmtTime = (iso) => {
 };
 
 // ─── Settings Component ───────────────────────────────────────────────────────
-const Settings = ({ currentUser, config, syncStatus, data, onSwitchUser, onSync, onResetData, onReconfigure }) => {
+const Settings = ({ currentUser, config, syncStatus, data, onSwitchUser, onSync, onResetData, onReconfigure, onLogout }) => {
   const [resetConfirm, setResetConfirm] = useState(false);
   const [lastSync, setLastSync] = useState(() => getLastSync());
+
+  // OAuth config state
+  const [googleClientId, setGoogleClientId] = useState(config?.googleClientId || '');
+  const [appleServiceId, setAppleServiceId] = useState(config?.appleServiceId || '');
+  const [oauthSaved, setOauthSaved] = useState(false);
+
+  // Login link copy
+  const [linkCopied, setLinkCopied] = useState(false);
 
   // Refresh lastSync whenever syncStatus changes to 'synced'
   useEffect(() => {
@@ -72,8 +79,36 @@ const Settings = ({ currentUser, config, syncStatus, data, onSwitchUser, onSync,
   const syncInfo = SYNC_STATUS_MAP[syncStatus] || SYNC_STATUS_MAP.idle;
 
   const handleSwitchUser = (e) => {
-    const user = SEED_DATA.users.find((u) => u.id === e.target.value);
+    const allUsers = data?.drivers || [];
+    const user = allUsers.find((u) => u.id === e.target.value);
     if (user) onSwitchUser(user);
+  };
+
+  const handleSaveOAuth = () => {
+    const updated = { ...(config || {}), googleClientId: googleClientId.trim(), appleServiceId: appleServiceId.trim() };
+    saveConfig(updated);
+    setOauthSaved(true);
+    setTimeout(() => setOauthSaved(false), 3000);
+  };
+
+  const handleCopyLoginLink = async () => {
+    // Build a #setup= link that includes OAuth config so new devices get everything
+    const payload = btoa(JSON.stringify({
+      repoUrl:        config?.repoUrl        || '',
+      token:          config?.token          || '',
+      claudeApiKey:   config?.claudeApiKey   || '',
+      branch:         config?.branch         || 'main',
+      googleClientId: googleClientId.trim(),
+      appleServiceId: appleServiceId.trim(),
+    }));
+    const link = `${window.location.origin}${window.location.pathname}#setup=${payload}`;
+    try {
+      await navigator.clipboard.writeText(link);
+    } catch {
+      window.prompt('Copy this login link:', link);
+    }
+    setLinkCopied(true);
+    setTimeout(() => setLinkCopied(false), 3000);
   };
 
   const handleResetClick = () => {
@@ -105,15 +140,27 @@ const Settings = ({ currentUser, config, syncStatus, data, onSwitchUser, onSync,
             </div>
           </div>
 
-          <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Switch user</div>
-          <select style={S.select} value={currentUser?.id || ''} onChange={handleSwitchUser}>
-            {SEED_DATA.users.map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.name} ({u.role === 'admin' ? 'Admin' : 'Driver'})
-              </option>
-            ))}
-          </select>
-          <div style={S.note}>Switching takes effect immediately on this device.</div>
+          <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Switch user</div>
+              <select style={{ ...S.select, marginTop: 0 }} value={currentUser?.id || ''} onChange={handleSwitchUser}>
+                {(data?.drivers || []).filter(d => d.isActive).map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.name} ({u.role === 'admin' ? 'Admin' : 'Driver'})
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          {onLogout && (
+            <button
+              style={{ ...S.outlineBtn('#ef4444'), marginTop: '10px' }}
+              onClick={onLogout}
+            >
+              🚪 Sign Out
+            </button>
+          )}
+          <div style={S.note}>Sign Out returns to the login screen. Your data stays on the device.</div>
         </div>
       </div>
 
@@ -193,6 +240,86 @@ const Settings = ({ currentUser, config, syncStatus, data, onSwitchUser, onSync,
           <div style={S.warning}>Replaces all loads, invoices, brokers, and drivers with seed data. Cannot be undone.</div>
         </div>
       </div>
+
+      {/* ── Sign-In Configuration (admin only) ── */}
+      {currentUser?.role === 'admin' && (
+        <div style={S.section}>
+          <div style={S.sectionHead}>🔑 Sign-In Configuration</div>
+          <div style={S.sectionBody}>
+            <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '12px', lineHeight: 1.6 }}>
+              Optional: enable Google or Apple Sign-In for your team. Users sign in with their company email — it must match the email saved on their driver profile.
+            </div>
+
+            <div style={{ marginBottom: '10px' }}>
+              <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '5px' }}>
+                Google Client ID
+                <span style={{ color: '#334155', marginLeft: '6px', fontSize: '11px' }}>— Google Cloud Console → Credentials</span>
+              </div>
+              <input
+                type="text"
+                value={googleClientId}
+                onChange={(e) => setGoogleClientId(e.target.value)}
+                placeholder="123456789-xxxx.apps.googleusercontent.com"
+                style={{ width: '100%', background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', color: '#e2e8f0', padding: '10px 12px', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }}
+              />
+            </div>
+
+            <div style={{ marginBottom: '12px' }}>
+              <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '5px' }}>
+                Apple Service ID
+                <span style={{ color: '#334155', marginLeft: '6px', fontSize: '11px' }}>— Apple Developer → Identifiers</span>
+              </div>
+              <input
+                type="text"
+                value={appleServiceId}
+                onChange={(e) => setAppleServiceId(e.target.value)}
+                placeholder="com.yourcompany.ettr"
+                style={{ width: '100%', background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', color: '#e2e8f0', padding: '10px 12px', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }}
+              />
+            </div>
+
+            <button
+              style={S.btn(oauthSaved ? '#059669' : '#0284c7')}
+              onClick={handleSaveOAuth}
+            >
+              {oauthSaved ? '✓ Saved!' : 'Save Sign-In Settings'}
+            </button>
+            <div style={S.warning}>
+              Leave blank to disable that sign-in method. After saving, share the Login Link below so team members get the updated settings.
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Login Link (admin only) ── */}
+      {currentUser?.role === 'admin' && config?.repoUrl && (
+        <div style={S.section}>
+          <div style={S.sectionHead}>🔗 Team Login Link</div>
+          <div style={S.sectionBody}>
+            <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '12px', lineHeight: 1.6 }}>
+              Send this link to drivers and admins. When they open it, the app is instantly configured — they see the login screen directly, no setup wizard needed.
+            </div>
+            <div style={{ background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', padding: '10px 12px', marginBottom: '10px' }}>
+              <div style={{ fontSize: '11px', color: '#38bdf8', fontWeight: '700', marginBottom: '4px' }}>WHAT'S INCLUDED IN THE LINK:</div>
+              <div style={{ fontSize: '11px', color: '#64748b', lineHeight: 1.7 }}>
+                ● GitHub repo &amp; token (for data sync){'\n'}
+                {googleClientId && '● Google Sign-In client ID\n'}
+                {appleServiceId && '● Apple Service ID\n'}
+                ● Claude API key (for rate con scanning)
+              </div>
+            </div>
+            <button
+              style={S.btn(linkCopied ? '#059669' : '#7c3aed')}
+              onClick={handleCopyLoginLink}
+            >
+              {linkCopied ? '✓ Link Copied!' : '📋 Copy Team Login Link'}
+            </button>
+            <div style={{ ...S.warning, color: '#ef4444' }}>
+              ⚠ Keep this link private — it contains your GitHub token. Send via iMessage or email, not public channels.
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── App ── */}
       <div style={S.section}>

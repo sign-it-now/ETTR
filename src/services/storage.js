@@ -188,6 +188,24 @@ export const updateBroker = (updatedBroker) => {
   return brokers;
 };
 
+// ─── Aliases for DataContext compatibility ─────────────────────────────────
+// DataContext imports these names — map them to the canonical functions above.
+export const getGithubConfig  = getConfig;
+export const saveGithubConfig = saveConfig;
+export const getUserSession   = getCurrentUser;
+export const saveUserSession  = saveCurrentUser;
+export const clearUserSession = clearCurrentUser;
+export const getLastSynced    = getLastSync;
+export const saveLastSynced   = saveLastSync;
+
+// Tiny ID generator used by DataContext (prefix-xxxx-xxxx)
+export const generateId = (prefix = 'id') =>
+  `${prefix}-${Math.random().toString(36).slice(2, 8)}-${Math.random().toString(36).slice(2, 8)}`;
+
+// generateLoadNumber / generateInvoiceNumber live in models.js; re-export so
+// DataContext can import them from storage without error.
+export { generateLoadNumber, generateInvoiceNumber } from '../data/models';
+
 export const storage = {
   getConfig,
   saveConfig,

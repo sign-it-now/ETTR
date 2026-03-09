@@ -753,7 +753,7 @@ const ChargesTab = ({ load, currentUser, onLoadUpdated }) => {
     onLoadUpdated(updated);
   };
 
-  const CHARGE_TYPES = ['lumper', 'detention', 'layover', 'fuel_surcharge', 'other'];
+  const CHARGE_TYPES = ['lumper', 'detention', 'layover', 'fuel_surcharge', 'comcheck', 'other'];
 
   return (
     <div style={{ margin: '12px 16px 0' }}>
@@ -860,7 +860,7 @@ const LoadDetail = ({ load: initialLoad, currentUser, drivers, brokers, onBack, 
   const [load, setLoad] = useState(initialLoad);
   const [activeTab, setActiveTab] = useState('details');
   const [advancing, setAdvancing] = useState(false);
-  const [showNoBolWarning, setShowNoBolWarning] = useState(false);
+  const [invoiceBlockers, setInvoiceBlockers] = useState([]); // non-empty = show blocker modal
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const status = getStatus(load.status);
   const isAdmin = currentUser?.role === 'admin';
@@ -878,9 +878,19 @@ const LoadDetail = ({ load: initialLoad, currentUser, drivers, brokers, onBack, 
       return;
     }
     if (load.status === 'delivered') {
-      const hasSignedBol = (load.documents || []).some((d) => d.type === 'bol_signed' && !d.deletedAt);
-      if (!hasSignedBol) {
-        setShowNoBolWarning(true);
+      const activeDocs = (load.documents || []).filter((d) => !d.deletedAt);
+      const hasSignedBol = activeDocs.some((d) => d.type === 'bol_signed');
+      const hasRateCon   = activeDocs.some((d) => d.type === 'rate_con' && d.isCurrent !== false);
+      const lumperCharges = (load.charges || []).filter((c) => c.type === 'lumper' || c.type === 'comcheck');
+      const hasLumperReceipts = activeDocs.some((d) => d.type === 'receipt');
+      const blockers = [];
+      if (!hasSignedBol) blockers.push('Signed BOL — upload after delivery in the Documents tab');
+      if (!hasRateCon)   blockers.push('Rate Confirmation — upload in the Documents tab');
+      if (lumperCharges.length > 0 && !hasLumperReceipts) {
+        blockers.push('Lumper / Comcheck receipts — upload receipts in the Documents tab');
+      }
+      if (blockers.length > 0) {
+        setInvoiceBlockers(blockers);
         return;
       }
       onCreateInvoice && onCreateInvoice(load);
@@ -997,28 +1007,29 @@ const LoadDetail = ({ load: initialLoad, currentUser, drivers, brokers, onBack, 
         </div>
       )}
 
-      {/* No signed BOL warning modal */}
-      {showNoBolWarning && (
-        <div style={S.overlay} onClick={(e) => e.target === e.currentTarget && setShowNoBolWarning(false)}>
+      {/* Invoice blockers modal — required docs missing */}
+      {invoiceBlockers.length > 0 && (
+        <div style={S.overlay} onClick={(e) => e.target === e.currentTarget && setInvoiceBlockers([])}>
           <div style={S.modal}>
-            <div style={S.modalTitle}>⚠️ No Signed BOL Attached</div>
-            <p style={{ fontSize: '13px', color: '#94a3b8', margin: '0 0 16px', lineHeight: 1.6 }}>
-              A complete invoice package should include the signed BOL from delivery.
-              Upload the signed BOL in the Documents tab before creating the invoice.
+            <div style={S.modalTitle}>🚫 Invoice Package Incomplete</div>
+            <p style={{ fontSize: '13px', color: '#94a3b8', margin: '0 0 12px', lineHeight: 1.6 }}>
+              The following required documents are missing. The invoice cannot be created until all items are attached:
             </p>
+            <div style={{ background: '#0f172a', borderRadius: '8px', padding: '10px 12px', marginBottom: '16px' }}>
+              {invoiceBlockers.map((b, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: i < invoiceBlockers.length - 1 ? '8px' : 0 }}>
+                  <span style={{ color: '#ef4444', fontWeight: '700', fontSize: '13px', marginTop: '1px' }}>✗</span>
+                  <span style={{ fontSize: '12px', color: '#fca5a5', lineHeight: 1.5 }}>{b}</span>
+                </div>
+              ))}
+            </div>
             <button
               style={{ ...S.modalBtn('#0284c7'), marginTop: 0 }}
-              onClick={() => { setShowNoBolWarning(false); setActiveTab('documents'); }}
+              onClick={() => { setInvoiceBlockers([]); setActiveTab('documents'); }}
             >
               📄 Go to Documents
             </button>
-            <button
-              style={{ ...S.modalBtn('#1e293b'), marginTop: '8px' }}
-              onClick={() => { setShowNoBolWarning(false); onCreateInvoice && onCreateInvoice(load); }}
-            >
-              Create Invoice Anyway
-            </button>
-            <button style={S.cancelBtn} onClick={() => setShowNoBolWarning(false)}>Cancel</button>
+            <button style={S.cancelBtn} onClick={() => setInvoiceBlockers([])}>Cancel</button>
           </div>
         </div>
       )}
