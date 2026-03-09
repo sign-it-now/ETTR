@@ -435,7 +435,7 @@
     {
       "id": "7e119a62-8925-49aa-ba4d-3e4ed3dd5a46",
       "loadNumber": "ETTR-2026-004",
-      "status": "rate_con_received",
+      "status": "accepted",
       "broker": {
         "id": "",
         "companyName": "PENOBSCOT McCRUM, LLC",
@@ -584,11 +584,18 @@
           "userId": "user-tim",
           "action": "rate_con_uploaded",
           "details": "Rate con uploaded: Receipt_2026-02-13_133200_1.jpg"
+        },
+        {
+          "id": "9d4f9235-3f67-483b-9bb6-8b2386cef05b",
+          "timestamp": "2026-03-09T00:14:05.917Z",
+          "userId": "user-tim",
+          "action": "status_changed",
+          "details": "Status updated to Accepted"
         }
       ],
       "notes": [],
       "createdAt": "2026-03-09T00:13:04.211Z",
-      "updatedAt": "2026-03-09T00:13:56.867Z"
+      "updatedAt": "2026-03-09T00:14:05.921Z"
     }
   ]
 }
