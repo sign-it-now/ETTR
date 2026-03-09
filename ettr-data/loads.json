@@ -232,7 +232,7 @@
     {
       "id": "bcff618b-f2ec-47d4-967a-66cbadc56aaa",
       "loadNumber": "ETTR-2026-003",
-      "status": "rate_con_received",
+      "status": "accepted",
       "broker": {
         "id": "",
         "companyName": "C&A TRANSPORTATION & LOGISTICS INC",
@@ -297,11 +297,18 @@
           "userId": "user-tim",
           "action": "driver_assigned",
           "details": "Assigned to Bruce Edgerton"
+        },
+        {
+          "id": "0ed659bb-7e02-494f-87e1-c7d37c97ce70",
+          "timestamp": "2026-03-09T00:05:08.182Z",
+          "userId": "user-tim",
+          "action": "status_changed",
+          "details": "Status updated to Accepted"
         }
       ],
       "notes": [],
       "createdAt": "2026-03-09T00:04:55.419Z",
-      "updatedAt": "2026-03-09T00:05:06.515Z"
+      "updatedAt": "2026-03-09T00:05:08.182Z"
     }
   ]
 }

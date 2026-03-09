@@ -1,1 +1,28 @@
-[]
+{
+  "brokers": [
+    {
+      "id": "9037d91b-5156-4605-b5e0-3771f0a2aa1c",
+      "companyName": "C&A TRANSPORTATION & LOGISTICS INC",
+      "contactName": "CRAIG MACFARLINE",
+      "email": "accounting@candatransportationinc.com",
+      "phone": "(207)-429-4207",
+      "address": "",
+      "mcNumber": "",
+      "dotNumber": "",
+      "paymentTerms": "Net 30",
+      "createdAt": "2026-03-09T00:05:08.182Z",
+      "history": {
+        "totalLoads": 0,
+        "completedLoads": 0,
+        "cancelledLoads": 0,
+        "rateConChanges": 0,
+        "averageRate": 0,
+        "averagePaymentDays": null,
+        "lastLoadDate": null,
+        "rateConChangeLog": [],
+        "paymentHistory": [],
+        "notes": []
+      }
+    }
+  ]
+}
