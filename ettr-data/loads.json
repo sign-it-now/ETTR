@@ -232,7 +232,7 @@
     {
       "id": "bcff618b-f2ec-47d4-967a-66cbadc56aaa",
       "loadNumber": "ETTR-2026-003",
-      "status": "delivered",
+      "status": "invoiced",
       "broker": {
         "id": "",
         "companyName": "C&A TRANSPORTATION & LOGISTICS INC",
@@ -419,11 +419,85 @@
           "userId": "user-tim",
           "action": "status_changed",
           "details": "Status updated to Delivered"
+        },
+        {
+          "id": "5e9b9553-fe0f-4cd4-a46e-1ad09be7fa32",
+          "timestamp": "2026-03-09T00:07:13.855Z",
+          "userId": "user-tim",
+          "action": "invoice_created",
+          "details": "Invoice INV-2026-002 created"
         }
       ],
       "notes": [],
       "createdAt": "2026-03-09T00:04:55.419Z",
-      "updatedAt": "2026-03-09T00:07:10.815Z"
+      "updatedAt": "2026-03-09T00:07:13.856Z"
+    },
+    {
+      "id": "7e119a62-8925-49aa-ba4d-3e4ed3dd5a46",
+      "loadNumber": "ETTR-2026-004",
+      "status": "rate_con_received",
+      "broker": {
+        "id": "",
+        "companyName": "PENOBSCOT McCRUM, LLC",
+        "contactName": "",
+        "email": "",
+        "phone": "",
+        "mcNumber": ""
+      },
+      "reference": {
+        "brokerLoadNumber": "",
+        "referenceNumber": "230476",
+        "poNumber": "0977842677"
+      },
+      "rate": {
+        "amount": 0,
+        "type": "flat",
+        "miles": 0,
+        "ratePerMile": 0
+      },
+      "pickup": {
+        "facilityName": "PENOBSCOT McCRUM, LLC",
+        "address": "2326 PARSONS RD",
+        "city": "WASHBURN",
+        "state": "ME",
+        "zip": "04786",
+        "date": "2026-02-11",
+        "time": "12:00",
+        "contactName": "",
+        "contactPhone": "",
+        "appointmentRequired": false
+      },
+      "delivery": {
+        "facilityName": "WALMART DISTRIBUTION CENTER",
+        "address": "45346 PARKWAY BLVD",
+        "city": "ROBERT",
+        "state": "LA",
+        "zip": "70455",
+        "date": "",
+        "time": "",
+        "contactName": "",
+        "contactPhone": "",
+        "appointmentRequired": false
+      },
+      "commodity": "Sam's Club 1/2\" Unbrinod SkiOff Crinkle Cut L-32 lbs",
+      "weight": "40,320.00",
+      "equipment": "",
+      "specialInstructions": "ALL LOADS TO BE KEPT AT -10°F (NEGATIVE TEN DEGREES FAHRENHEIT)",
+      "assignedDriverId": null,
+      "charges": [],
+      "documents": [],
+      "auditLog": [
+        {
+          "id": "f69bcf07-4f38-4cb8-9864-921c96eec297",
+          "timestamp": "2026-03-09T00:13:04.211Z",
+          "userId": "user-tim",
+          "action": "load_created",
+          "details": "Load created from rate con scan"
+        }
+      ],
+      "notes": [],
+      "createdAt": "2026-03-09T00:13:04.211Z",
+      "updatedAt": "2026-03-09T00:13:04.212Z"
     }
   ]
 }
