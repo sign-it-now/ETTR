@@ -228,6 +228,73 @@
       "notes": [],
       "createdAt": "2026-03-08T23:31:15.191Z",
       "updatedAt": "2026-03-08T23:33:14.322Z"
+    },
+    {
+      "id": "bcff618b-f2ec-47d4-967a-66cbadc56aaa",
+      "loadNumber": "ETTR-2026-003",
+      "status": "rate_con_received",
+      "broker": {
+        "id": "",
+        "companyName": "C&A TRANSPORTATION & LOGISTICS INC",
+        "contactName": "CRAIG MACFARLINE",
+        "email": "accounting@candatransportationinc.com",
+        "phone": "(207)-429-4207",
+        "mcNumber": "518568"
+      },
+      "reference": {
+        "brokerLoadNumber": "9024900",
+        "referenceNumber": "9024900",
+        "poNumber": ""
+      },
+      "rate": {
+        "amount": 2350,
+        "type": "flat",
+        "miles": 0,
+        "ratePerMile": 0
+      },
+      "pickup": {
+        "facilityName": "PINELAND FARMS",
+        "address": "115 PRESQUE ISLE ROAD",
+        "city": "MARS HILL",
+        "state": "ME",
+        "zip": "04758",
+        "date": "2026-01-29",
+        "time": "08:00",
+        "contactName": "",
+        "contactPhone": "",
+        "appointmentRequired": false
+      },
+      "delivery": {
+        "facilityName": "HALL'S WAREHOUSE",
+        "address": "501 KENTILE RD",
+        "city": "SOUTH PLAINFIELD",
+        "state": "NJ",
+        "zip": "07080",
+        "date": "2026-01-30",
+        "time": "11:30",
+        "contactName": "",
+        "contactPhone": "",
+        "appointmentRequired": false
+      },
+      "commodity": "MASHED POTATOES",
+      "weight": "41991",
+      "equipment": "R",
+      "specialInstructions": "34 CONT",
+      "assignedDriverId": null,
+      "charges": [],
+      "documents": [],
+      "auditLog": [
+        {
+          "id": "79ebd4d0-a3e3-4cba-b7d6-a703e5326e78",
+          "timestamp": "2026-03-09T00:04:55.419Z",
+          "userId": "user-tim",
+          "action": "load_created",
+          "details": "Load created from rate con scan"
+        }
+      ],
+      "notes": [],
+      "createdAt": "2026-03-09T00:04:55.419Z",
+      "updatedAt": "2026-03-09T00:04:55.419Z"
     }
   ]
 }
