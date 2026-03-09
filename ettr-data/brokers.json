@@ -23,6 +23,30 @@
         "paymentHistory": [],
         "notes": []
       }
+    },
+    {
+      "id": "2c4a362e-76f2-46af-b1be-21d3e3b4896c",
+      "companyName": "PENOBSCOT McCRUM, LLC",
+      "contactName": "",
+      "email": "",
+      "phone": "",
+      "address": "",
+      "mcNumber": "",
+      "dotNumber": "",
+      "paymentTerms": "Net 30",
+      "createdAt": "2026-03-09T00:13:16.671Z",
+      "history": {
+        "totalLoads": 0,
+        "completedLoads": 0,
+        "cancelledLoads": 0,
+        "rateConChanges": 0,
+        "averageRate": 0,
+        "averagePaymentDays": null,
+        "lastLoadDate": null,
+        "rateConChangeLog": [],
+        "paymentHistory": [],
+        "notes": []
+      }
     }
   ]
 }
