@@ -435,7 +435,7 @@
     {
       "id": "7e119a62-8925-49aa-ba4d-3e4ed3dd5a46",
       "loadNumber": "ETTR-2026-004",
-      "status": "dispatched",
+      "status": "picked_up",
       "broker": {
         "id": "",
         "companyName": "PENOBSCOT McCRUM, LLC",
@@ -514,11 +514,18 @@
           "userId": "user-tim",
           "action": "status_changed",
           "details": "Status updated to Dispatched"
+        },
+        {
+          "id": "dd53143c-a1f3-46cf-b378-2ce8cc1cae3a",
+          "timestamp": "2026-03-09T00:13:30.596Z",
+          "userId": "user-tim",
+          "action": "status_changed",
+          "details": "Status updated to Picked Up"
         }
       ],
       "notes": [],
       "createdAt": "2026-03-09T00:13:04.211Z",
-      "updatedAt": "2026-03-09T00:13:24.383Z"
+      "updatedAt": "2026-03-09T00:13:30.599Z"
     }
   ]
 }
