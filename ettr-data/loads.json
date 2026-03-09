@@ -232,7 +232,7 @@
     {
       "id": "bcff618b-f2ec-47d4-967a-66cbadc56aaa",
       "loadNumber": "ETTR-2026-003",
-      "status": "rate_con_received",
+      "status": "accepted",
       "broker": {
         "id": "",
         "companyName": "C&A TRANSPORTATION & LOGISTICS INC",
@@ -360,11 +360,18 @@
           "userId": "user-tim",
           "action": "rate_con_uploaded",
           "details": "Rate con uploaded: C&A Ld 9024900Pickup (1).pdf"
+        },
+        {
+          "id": "51ee9f72-dfd0-44f0-b082-f14ce2bbf637",
+          "timestamp": "2026-03-09T00:06:15.722Z",
+          "userId": "user-tim",
+          "action": "status_changed",
+          "details": "Status updated to Accepted"
         }
       ],
       "notes": [],
       "createdAt": "2026-03-09T00:04:55.419Z",
-      "updatedAt": "2026-03-09T00:05:55.990Z"
+      "updatedAt": "2026-03-09T00:06:15.723Z"
     }
   ]
 }
