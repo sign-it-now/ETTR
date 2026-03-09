@@ -280,7 +280,7 @@
       "weight": "41991",
       "equipment": "R",
       "specialInstructions": "34 CONT",
-      "assignedDriverId": null,
+      "assignedDriverId": "driver-mmgsb276-y3hj3",
       "charges": [],
       "documents": [],
       "auditLog": [
@@ -290,11 +290,18 @@
           "userId": "user-tim",
           "action": "load_created",
           "details": "Load created from rate con scan"
+        },
+        {
+          "id": "357c25f0-1216-4368-ab48-4b047e82b849",
+          "timestamp": "2026-03-09T00:05:06.514Z",
+          "userId": "user-tim",
+          "action": "driver_assigned",
+          "details": "Assigned to Bruce Edgerton"
         }
       ],
       "notes": [],
       "createdAt": "2026-03-09T00:04:55.419Z",
-      "updatedAt": "2026-03-09T00:04:55.419Z"
+      "updatedAt": "2026-03-09T00:05:06.515Z"
     }
   ]
 }
