@@ -17,6 +17,24 @@
       "notes": "",
       "createdAt": "2026-03-08T23:33:14.321Z",
       "updatedAt": "2026-03-08T23:33:14.321Z"
+    },
+    {
+      "id": "f4bfdb07-1ef5-443b-af19-5fbdf6b33c46",
+      "invoiceNumber": "INV-2026-002",
+      "loadId": "6baf355f-56b2-4f38-91ec-cd8f73fcf873",
+      "brokerId": "",
+      "baseRate": 1500,
+      "additionalCharges": [],
+      "totalAmount": 1500,
+      "status": "draft",
+      "generatedAt": "2026-03-10T17:07:54.232Z",
+      "sentAt": null,
+      "paidAt": null,
+      "pdfBase64": "",
+      "attachedDocuments": [],
+      "notes": "",
+      "createdAt": "2026-03-10T17:07:54.232Z",
+      "updatedAt": "2026-03-10T17:07:54.233Z"
     }
   ]
 }
