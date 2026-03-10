@@ -47,6 +47,30 @@
         "paymentHistory": [],
         "notes": []
       }
+    },
+    {
+      "id": "e9436116-1dfc-4565-8392-30da5f21fbd0",
+      "companyName": "Clutch Transportation Services LLC",
+      "contactName": "",
+      "email": "ap@clutchtransportation.net",
+      "phone": "567-203-1932",
+      "address": "",
+      "mcNumber": "",
+      "dotNumber": "",
+      "paymentTerms": "Net 30",
+      "createdAt": "2026-03-10T19:35:47.151Z",
+      "history": {
+        "totalLoads": 0,
+        "completedLoads": 0,
+        "cancelledLoads": 0,
+        "rateConChanges": 0,
+        "averageRate": 0,
+        "averagePaymentDays": null,
+        "lastLoadDate": null,
+        "rateConChangeLog": [],
+        "paymentHistory": [],
+        "notes": []
+      }
     }
   ]
 }
