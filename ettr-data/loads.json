@@ -232,7 +232,7 @@
     {
       "id": "43c0262f-2a63-4239-8277-58084145f982",
       "loadNumber": "ETTR-2026-004",
-      "status": "rate_con_received",
+      "status": "accepted",
       "broker": {
         "id": "",
         "companyName": "Clutch Transportation Services LLC",
@@ -367,11 +367,18 @@
           "userId": "user-tim",
           "action": "rate_con_uploaded",
           "details": "Rate con uploaded: IMG_9724.jpeg"
+        },
+        {
+          "id": "3af71118-f017-4a37-9145-df1ca70dd395",
+          "timestamp": "2026-03-10T19:39:34.199Z",
+          "userId": "user-tim",
+          "action": "status_changed",
+          "details": "Status updated to Accepted"
         }
       ],
       "notes": [],
       "createdAt": "2026-03-10T19:35:25.116Z",
-      "updatedAt": "2026-03-10T19:39:31.185Z"
+      "updatedAt": "2026-03-10T19:39:34.201Z"
     }
   ]
 }
