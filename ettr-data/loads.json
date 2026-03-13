@@ -3,7 +3,7 @@
     {
       "id": "a32884f2-a3c2-4139-99c7-9fb0c379d05c",
       "loadNumber": "ETTR-2026-001",
-      "status": "rate_con_received",
+      "status": "accepted",
       "broker": {
         "id": "9037d91b-5156-4605-b5e0-3771f0a2aa1c",
         "companyName": "C&A TRANSPORTATION & LOGISTICS INC",
@@ -68,11 +68,18 @@
           "userId": "user-tim",
           "action": "driver_assigned",
           "details": "Assigned to Tim Smith"
+        },
+        {
+          "id": "e28acdde-9234-4c98-874d-2bfac7fa3e46",
+          "timestamp": "2026-03-13T09:45:04.382Z",
+          "userId": "user-tim",
+          "action": "status_changed",
+          "details": "Status updated to Accepted"
         }
       ],
       "notes": [],
       "createdAt": "2026-03-13T09:44:11.626Z",
-      "updatedAt": "2026-03-13T09:44:22.871Z"
+      "updatedAt": "2026-03-13T09:45:04.382Z"
     }
   ]
 }
