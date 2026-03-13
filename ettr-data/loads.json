@@ -51,7 +51,7 @@
       "weight": "",
       "equipment": "REEFER",
       "specialInstructions": "Temperature: 26 cont.",
-      "assignedDriverId": null,
+      "assignedDriverId": "driver-mmgsc6vz-o0vuu",
       "charges": [],
       "documents": [],
       "auditLog": [
@@ -61,11 +61,18 @@
           "userId": "user-tim",
           "action": "load_created",
           "details": "Load created from rate con scan"
+        },
+        {
+          "id": "9363ab04-1116-4b01-8c5e-f4298849dc10",
+          "timestamp": "2026-03-13T09:44:22.871Z",
+          "userId": "user-tim",
+          "action": "driver_assigned",
+          "details": "Assigned to Tim Smith"
         }
       ],
       "notes": [],
       "createdAt": "2026-03-13T09:44:11.626Z",
-      "updatedAt": "2026-03-13T09:44:11.626Z"
+      "updatedAt": "2026-03-13T09:44:22.871Z"
     }
   ]
 }
