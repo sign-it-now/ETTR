@@ -138,6 +138,23 @@
           "replacedById": null,
           "deletedAt": null,
           "deleteReason": ""
+        },
+        {
+          "id": "40524f73-178c-4592-bdf2-3b89fbd7f8eb",
+          "type": "receipt",
+          "version": 1,
+          "isCurrent": true,
+          "fileName": "pc_6jRppEbCcEWJ9N.pdf",
+          "base64Data": "JVBERi0xLjMKMyAwIG9iago8PC9UeXBlIC9QYWdlCi9QYXJlbnQgMSAwIFIKL1Jlc291cmNlcyAyIDAgUgovQ29udGVudHMgNCAwIFI+PgplbmRvYmoKNCAwIG9iago8PC9GaWx0ZXIgL0ZsYXRlRGVjb2RlIC9MZW5ndGggNzc5Pj4Kc3RyZWFtCngB5JhPb9s4EMXv+RQD1IctkEw4w3/i3hxZbrwwYsPRBligF0WiG7WO3FXkbvvtF5HstfcqEwjUnpKD+R7543s0aQF/XAj4fEGoGP65uEnheioya6zQBUVeKKeKglX+qK30WmaZyKLckvC5c0AChYB0DUl68fqvgA8X3d9PZyi1c1jrgguv1zKzZJzLvHrkIpJknTdcCOfNOlfEBkigENDN4SYFUg41g7ECJUFawG/T29klzOfx+/QzJOnrZ677qzOj1mC0+U/dFwizCbzT5orJKklRECPpUBMYxQejJS4QbrbfQSsTxEFE6BQYjg4O093fu+wHPGR1WWWXcBcDsNUcxk1G6DQYUgc3R+5Ka76SpO3penqFr43MkEYyo4lARxJV1KZ0kjU+BAYmRiNOlYW8Jnv9/23sj6p/LyNUBFozGt2ueJXEyWyZhlh0zyPrrNTsd1BqjLpzZuVzX35t4N3vIZZ02Mej/sN9wkZIsoJZsgph8obcyCCpNgfTcTybz9K/gmI7yi+3TfPyrdxsgtTr7YgpZ1DZltjEf83q5tlXTUhmJwZLX5cvT9nj4JlZg5HomG23dVBaR2nWNOwyKm2RZIvp/qlch03VUZurAlr9odLqX/7uy0KxRGVazvPFeAKzu+kiSCb7T+wtRu5hCHnoZpzVdenD1vOofrutn/1mqJnrYMlIHRr64Ksi7FF2Iv5TsDLq0LK03uVfhrrz/au5z4xSaF172qR1Vm58/euROJshERK3DMfP213VwGQX5B65v96f6I+k0SjEUPeoyxw7QtU97+Jt9c1Xpa9yD1MfEtqJycih1QNHZglt9xtAsvF5U2+rModl9uP1fh9iafuonfiMpFUD5nZuqVlGSN2b/WY8H9/FCUz+TEKiPhqMxIA7fTZooVB1j/xJch+vZst0triDxRTi2/HqQ3Ifgnn/Sb7FyO6YpEih7d7yimFaVuXLky9guWle4DuMNJK+ZAmrq4nPv5TVp1+PU/+92RPWhNS9/J2w5Ax/3F9uP74/m+a/AQAA//8oAEUqCmVuZHN0cmVhbQplbmRvYmoKMSAwIG9iago8PC9UeXBlIC9QYWdlcwovS2lkcyBbMyAwIFIgXQovQ291bnQgMQovTWVkaWFCb3ggWzAgMCAzNDAuMTYgNzA4LjY2XQo+PgplbmRvYmoKNSAwIG9iago8PC9UeXBlIC9Gb250Ci9CYXNlRm9udCAvSGVsdmV0aWNhCi9TdWJ0eXBlIC9UeXBlMQovRW5jb2RpbmcgL1dpbkFuc2lFbmNvZGluZwo+PgplbmRvYmoKNiAwIG9iago8PC9UeXBlIC9Gb250Ci9CYXNlRm9udCAvSGVsdmV0aWNhLUJvbGQKL1N1YnR5cGUgL1R5cGUxCi9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nCj4+CmVuZG9iagoyIDAgb2JqCjw8Ci9Qcm9jU2V0IFsvUERGIC9UZXh0IC9JbWFnZUIgL0ltYWdlQyAvSW1hZ2VJXQovRm9udCA8PAovRjBhNzY3MDVkMThlMDQ5NGRkMjRjYjU3M2U1M2FhMGE4YzcxMGVjOTkgNSAwIFIKL0ZmNWQyZGU1ZjNhNzE2OTlhZTRiMmQ4MzE3OWU2MmQwOWU2ZmM0MTI2IDYgMCBSCj4+Ci9YT2JqZWN0IDw8Cj4+Ci9Db2xvclNwYWNlIDw8Cj4+Cj4+CmVuZG9iago3IDAgb2JqCjw8Ci9Qcm9kdWNlciAo/v8ARgBQAEQARgAgADEALgA3KQovQ3JlYXRpb25EYXRlIChEOjIwMjYwMzE3MTAwMjI5KQovTW9kRGF0ZSAoRDoyMDI2MDMxNzEwMDIyOSkKPj4KZW5kb2JqCjggMCBvYmoKPDwKL1R5cGUgL0NhdGFsb2cKL1BhZ2VzIDEgMCBSCi9OYW1lcyA8PAovRW1iZWRkZWRGaWxlcyA8PCAvTmFtZXMgWwogIApdID4+Cj4+Cj4+CmVuZG9iagp4cmVmCjAgOQowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDA5MzYgMDAwMDAgbiAKMDAwMDAwMTIyMCAwMDAwMCBuIAowMDAwMDAwMDA5IDAwMDAwIG4gCjAwMDAwMDAwODcgMDAwMDAgbiAKMDAwMDAwMTAyMyAwMDAwMCBuIAowMDAwMDAxMTE5IDAwMDAwIG4gCjAwMDAwMDE0MzAgMDAwMDAgbiAKMDAwMDAwMTU0MyAwMDAwMCBuIAp0cmFpbGVyCjw8Ci9TaXplIDkKL1Jvb3QgOCAwIFIKL0luZm8gNyAwIFIKPj4Kc3RhcnR4cmVmCjE2NDAKJSVFT0YK",
+          "mimeType": "application/pdf",
+          "uploadedAt": "2026-03-17T12:39:26.453Z",
+          "uploadedBy": "user-tim",
+          "replaceReason": "",
+          "replacedPreviousId": null,
+          "replacedAt": null,
+          "replacedById": null,
+          "deletedAt": null,
+          "deleteReason": ""
         }
       ],
       "auditLog": [
@@ -224,11 +241,18 @@
           "userId": "user-tim",
           "action": "document_uploaded",
           "details": "Uploaded receipt: receipt39711400.pdf"
+        },
+        {
+          "id": "bc869bd3-58f4-4f39-b747-144221ed1f25",
+          "timestamp": "2026-03-17T12:39:26.454Z",
+          "userId": "user-tim",
+          "action": "document_uploaded",
+          "details": "Uploaded receipt: pc_6jRppEbCcEWJ9N.pdf"
         }
       ],
       "notes": [],
       "createdAt": "2026-03-13T09:44:11.626Z",
-      "updatedAt": "2026-03-17T12:39:15.283Z"
+      "updatedAt": "2026-03-17T12:39:26.455Z"
     }
   ]
 }
