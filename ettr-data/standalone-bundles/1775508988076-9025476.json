@@ -1,0 +1,41 @@
+{
+  "loadId": null,
+  "completedAt": "2026-04-06T20:56:28.077Z",
+  "driver": "Tim",
+  "broker": "C&A TRANSPORTATION & LOGISTICS INC",
+  "loadnum": "9025476",
+  "pickup": "SOUTHHAVEN MS",
+  "delivery": "POTTSVILLE PA",
+  "deliveryDate": "2026-03-16",
+  "truckingRate": 3500,
+  "lumperTotal": 709.75,
+  "comdataTotal": 2000,
+  "detentionTotal": 0,
+  "incidentalTotal": 0,
+  "netBillable": 2209.75,
+  "lumperEntries": [
+    {
+      "amount": "374.75",
+      "desc": ""
+    },
+    {
+      "amount": "335.00",
+      "desc": ""
+    }
+  ],
+  "comdataEntries": [
+    {
+      "amount": "1400",
+      "code": ""
+    },
+    {
+      "amount": "600",
+      "code": ""
+    }
+  ],
+  "otherEntries": [],
+  "bolCount": 19,
+  "notes": "",
+  "status": "bundle_received",
+  "v3source": true
+}
